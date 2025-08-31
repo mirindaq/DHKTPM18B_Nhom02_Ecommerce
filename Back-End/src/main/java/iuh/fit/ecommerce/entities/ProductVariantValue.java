@@ -1,4 +1,4 @@
-package iuh.fit.ecommerce.entities;
+package vn.com.ecomstore.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,6 +11,18 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductVariantValue extends BaseEntity {
+
+    @Column
+    private Double price;
+
+    @Column
+    private Double oldPrice;
+
+    @Column
+    private String sku;
+
+    @Column
+    private String stock;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

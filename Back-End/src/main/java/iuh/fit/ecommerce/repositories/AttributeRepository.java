@@ -1,7 +1,7 @@
-package iuh.fit.ecommerce.repositories;
+package vn.com.ecomstore.repositories;
 
-import iuh.fit.ecommerce.entities.Attribute;
 import org.springframework.data.jpa.repository.JpaRepository;
+import vn.com.ecomstore.entities.Attribute;
 
 public interface AttributeRepository extends JpaRepository<Attribute,Long> {
 

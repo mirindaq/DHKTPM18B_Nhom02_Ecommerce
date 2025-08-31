@@ -1,7 +1,7 @@
-package iuh.fit.ecommerce.repositories;
+package vn.com.ecomstore.repositories;
 
-import iuh.fit.ecommerce.entities.Brand;
 import org.springframework.data.jpa.repository.JpaRepository;
+import vn.com.ecomstore.entities.Brand;
 
 public interface BrandRepository extends JpaRepository<Brand, Long> {
 }

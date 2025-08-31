@@ -1,4 +1,4 @@
-package iuh.fit.ecommerce.entities;
+package vn.com.ecomstore.entities;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,7 +1,7 @@
-package iuh.fit.ecommerce.repositories;
+package vn.com.ecomstore.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import iuh.fit.ecommerce.entities.ProductVariantValue;
+import vn.com.ecomstore.entities.ProductVariantValue;
 
 public interface ProductVariantValueRepository extends JpaRepository<ProductVariantValue, Long> {
 }

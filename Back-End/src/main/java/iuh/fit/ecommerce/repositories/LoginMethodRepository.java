@@ -1,7 +1,7 @@
-package iuh.fit.ecommerce.repositories;
+package vn.com.ecomstore.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import iuh.fit.ecommerce.entities.LoginMethod;
+import vn.com.ecomstore.entities.LoginMethod;
 
 public interface LoginMethodRepository extends JpaRepository<LoginMethod, Long> {
 }
