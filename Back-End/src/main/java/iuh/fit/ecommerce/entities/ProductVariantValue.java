@@ -12,6 +12,10 @@ import lombok.*;
 @AllArgsConstructor
 public class ProductVariantValue extends BaseEntity {
 
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column
     private Double price;
 

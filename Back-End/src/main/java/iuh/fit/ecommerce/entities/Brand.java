@@ -1,8 +1,6 @@
 package vn.com.ecomstore.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -13,7 +11,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Brand extends BaseEntity{
-    
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(nullable = false, unique = true)
     private String name;
 

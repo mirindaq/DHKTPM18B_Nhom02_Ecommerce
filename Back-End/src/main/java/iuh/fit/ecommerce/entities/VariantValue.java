@@ -12,6 +12,10 @@ import lombok.*;
 @AllArgsConstructor
 public class VariantValue extends BaseEntity{
 
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column
     private String value;
 

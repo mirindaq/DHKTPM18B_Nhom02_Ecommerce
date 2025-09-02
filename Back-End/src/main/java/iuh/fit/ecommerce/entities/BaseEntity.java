@@ -9,34 +9,30 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @MappedSuperclass
-@SuperBuilder
-@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-    @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "createddate", updatable = false)
+    @Column( name = "created_at", updatable = false)
     @CreatedDate
-    private Date createdDate;
+    private LocalDateTime createdAt;
 
-    @Column(name = "createdby", updatable = false)
+    @Column(name = "created_by", updatable = false)
     @CreatedBy
     private String createdBy;
 
-    @Column(name = "modifieddate")
     @LastModifiedDate
-    private Date modifiedDate;
+    @Column( name = "modified_at")
+    private LocalDateTime modifiedAt;
 
-    @Column(name = "modifiedby")
     @LastModifiedBy
+    @Column( name = "modified_by")
     private String modifiedBy;
 
 }

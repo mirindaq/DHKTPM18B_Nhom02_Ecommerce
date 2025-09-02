@@ -1,8 +1,6 @@
 package vn.com.ecomstore.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -13,6 +11,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Variant extends BaseEntity{
+
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column
     private String name;
 }

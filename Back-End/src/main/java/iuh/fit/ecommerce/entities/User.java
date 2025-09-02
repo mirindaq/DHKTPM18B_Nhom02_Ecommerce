@@ -4,16 +4,19 @@ package vn.com.ecomstore.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "users")
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends BaseEntity  {
+
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column
     private String address;

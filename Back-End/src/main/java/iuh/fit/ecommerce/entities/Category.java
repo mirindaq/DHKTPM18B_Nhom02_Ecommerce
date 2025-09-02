@@ -14,6 +14,10 @@ import java.util.List;
 @AllArgsConstructor
 public class Category extends BaseEntity {
 
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column
     private String name;
 
@@ -26,7 +30,6 @@ public class Category extends BaseEntity {
     @Column
     private boolean status;
 
-    @OneToMany( mappedBy = "category" , fetch = FetchType.LAZY,
-            cascade = { CascadeType.MERGE, CascadeType.PERSIST})
-    private List<Attribute> attributeEntities;
+    @OneToMany( mappedBy = "category", fetch = FetchType.LAZY)
+    private List<Attribute> attributes;
 }

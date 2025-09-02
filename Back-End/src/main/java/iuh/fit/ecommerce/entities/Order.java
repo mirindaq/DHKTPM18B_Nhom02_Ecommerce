@@ -1,24 +1,21 @@
 package vn.com.ecomstore.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDate;
+import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "orders")
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order extends BaseEntity {
+
+    @Id
+    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column( nullable = false , name = "receiver_address")
     private String receiverAddress;
