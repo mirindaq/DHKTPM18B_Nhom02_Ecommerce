@@ -2,6 +2,8 @@ package iuh.fit.ecommerce.dtos.response.brand;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -20,4 +22,8 @@ public class BrandResponse {
     private String origin;
 
     private boolean status;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime modifiedAt;
 }

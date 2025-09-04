@@ -1,4 +1,4 @@
-package vn.com.ecomstore.configurations;
+package iuh.fit.ecommerce.configurations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;

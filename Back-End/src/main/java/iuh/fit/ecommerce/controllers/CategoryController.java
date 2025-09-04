@@ -53,7 +53,7 @@ public class CategoryController {
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
-                "Get category detail success",
+                "Update category success",
                 categoryService.updateCategory( id, request)
         ));
     }

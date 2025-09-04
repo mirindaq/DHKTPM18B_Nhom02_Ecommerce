@@ -24,5 +24,5 @@ public class Attribute extends BaseEntity{
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean active = true;
+    private boolean status = true;
 }
