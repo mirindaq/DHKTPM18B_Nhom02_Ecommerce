@@ -1,3 +1,2 @@
-export { useQuery, useQueryPagination } from './useQuery'
+export { useQuery} from './useQuery'
 export { useMutation } from './useMutation'
-export { useCategories } from './useCategories'
