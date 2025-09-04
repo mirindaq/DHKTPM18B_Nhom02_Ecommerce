@@ -1,7 +1,7 @@
-package vn.com.ecomstore.repositories;
+package iuh.fit.ecommerce.repositories;
 
+import iuh.fit.ecommerce.entities.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
-import vn.com.ecomstore.entities.Cart;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
 }

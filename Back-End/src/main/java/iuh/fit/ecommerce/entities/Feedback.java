@@ -1,5 +1,4 @@
-package vn.com.ecomstore.entities;
-
+package iuh.fit.ecommerce.entities;
 import jakarta.persistence.*;
 import lombok.*;
 

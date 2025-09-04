@@ -1,4 +1,4 @@
-package vn.com.ecomstore.entities;
+package iuh.fit.ecommerce.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,4 +21,8 @@ public class Attribute extends BaseEntity{
 
     @ManyToOne
     private Category category;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true;
 }

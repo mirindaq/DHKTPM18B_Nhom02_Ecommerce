@@ -1,7 +1,7 @@
-package vn.com.ecomstore.repositories;
+package iuh.fit.ecommerce.repositories;
 
+import iuh.fit.ecommerce.entities.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
-import vn.com.ecomstore.entities.Order;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 }
