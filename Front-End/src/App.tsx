@@ -1,13 +1,13 @@
 
 import './App.css'
-import { Button } from './components/ui/button'
+import useRouteElements from './routes/useRouteElements'
 
 function App() {
+  const router = useRouteElements()
   return (
     <>
       <div>
-        <h1 className='text-3xl font-bold underline bg-red-500'>Hello World</h1>
-        <Button>Click me</Button>
+        {router}
       </div>
     </>
   )
