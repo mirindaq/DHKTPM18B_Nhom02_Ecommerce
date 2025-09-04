@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { X, Plus } from "lucide-react"
-import type { Category, CreateCategoryRequest, Attribute, CreateAttributeRequest } from "@/types/category.type"
+import type { Category, CreateCategoryRequest } from "@/types/category.type"
 
 interface CategoryFormProps {
   category?: Category | null

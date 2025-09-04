@@ -26,12 +26,13 @@ public class CategoryController {
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<CategoryResponse>>>> getCategories(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "7") int size,
+            @RequestParam(required = false ) String categoryName
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get categories success",
-                categoryService.getCategories( page, size)
+                categoryService.getCategories( page, size, categoryName)
         ));
     }
 

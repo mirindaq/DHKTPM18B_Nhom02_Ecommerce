@@ -4,11 +4,11 @@ import type {
   CreateCategoryRequest, 
   CategoryResponse, 
   CategoryListResponse 
-} from '../types/category.type';
+} from '@/types/category.type';
 
 export const categoryService = {
-  getCategories: async (page: number = 1, size: number = 10) => {
-    const response = await axiosClient.get<CategoryListResponse>(`/categories?page=${page}&size=${size}`);
+  getCategories: async (page: number = 1, size: number = 10, search: string = "") => {
+    const response = await axiosClient.get<CategoryListResponse>(`/categories?page=${page}&size=${size}&categoryName=${search}`);
     return response.data;
   },
 

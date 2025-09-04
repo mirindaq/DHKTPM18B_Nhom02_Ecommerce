@@ -26,12 +26,13 @@ public class BrandController {
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<BrandResponse>>>> getBrands(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "7") int size,
+            @RequestParam(required = false ) String brandName
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get brands success",
-                brandService.getBrands(page, size)
+                brandService.getBrands(page, size,brandName )
         ));
     }
 

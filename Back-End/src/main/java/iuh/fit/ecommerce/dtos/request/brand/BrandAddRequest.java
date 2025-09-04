@@ -17,6 +17,7 @@ public class BrandAddRequest {
 
     private String image;
 
+    @NotBlank(message = "Origin is required")
     private String origin;
 
     private Boolean status;

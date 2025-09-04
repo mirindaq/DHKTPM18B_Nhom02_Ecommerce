@@ -91,7 +91,7 @@ export default function Products() {
   return (
     <div className="space-y-3 p-2">
       <div className="flex justify-between items-center">
-        <div className="space-y-2">
+        <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Quản lý sản phẩm</h1>
           <p className="text-lg text-gray-600">
             Quản lý danh sách sản phẩm trong hệ thống

@@ -77,7 +77,7 @@ export default function Analytics() {
 
   return (
     <div className="space-y-3 p-2">
-      <div className="space-y-2">
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Thống kê & Phân tích</h1>
         <p className="text-lg text-gray-600">
           Theo dõi hiệu suất kinh doanh và xu hướng thị trường

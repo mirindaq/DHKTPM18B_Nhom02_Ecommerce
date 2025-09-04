@@ -25,7 +25,8 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Store
+  Store,
+  Award
 } from "lucide-react"
 
 const navigation = [
@@ -43,6 +44,11 @@ const navigation = [
     title: "Danh mục",
     icon: Store,
     href: "/admin/categories",
+  },
+  {
+    title: "Thương hiệu",
+    icon: Award,
+    href: "/admin/brands",
   },
   {
     title: "Đơn hàng",

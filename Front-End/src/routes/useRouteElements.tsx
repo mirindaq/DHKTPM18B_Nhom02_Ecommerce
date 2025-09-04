@@ -1,62 +1,67 @@
 
 import { useRoutes } from "react-router";
-import { AUTH_PATH, ADMIN_PATH } from "../constants/path";
 
 // Admin pages (các trang thực sự tồn tại)
-import Dashboard from "../pages/admin/Dashboard";
-import Products from "../pages/admin/Products";
-import Categories from "../pages/admin/Categories";
-import Customers from "../pages/admin/Customers";
-import Orders from "../pages/admin/Orders";
-import Settings from "../pages/admin/Settings";
-import Analytics from "../pages/admin/Analytics";
+import Dashboard from "@/pages/admin/Dashboard";
+import Products from "@/pages/admin/Products";
+import Categories from "@/pages/admin/Categories";
+import Customers from "@/pages/admin/Customers";
+import Orders from "@/pages/admin/Orders";
+import Settings from "@/pages/admin/Settings";
+import Analytics from "@/pages/admin/Analytics";
 
 // Layout components
-import AdminLayout from "../layouts/AdminLayout";
+import AdminLayout from "@/layouts/AdminLayout";
+import Brands from "@/pages/admin/Brands";
+import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path";
 
 const useRouteElements = () => {
   return useRoutes([
     // Public routes
     {
-      path: "/",
+      path: PUBLIC_PATH.HOME,
       element: <Dashboard />,
     },
     {
-      path: "/login",
+      path: AUTH_PATH.LOGIN_USER,
       element: <Dashboard />, // Tạm thời redirect về Dashboard
     },
 
     // Admin routes
     {
-      path: "/admin",
+      path: ADMIN_PATH.DASHBOARD,
       element: <AdminLayout />,
       children: [
         {
-          path: "",
+          path: ADMIN_PATH.DASHBOARD,
           element: <Dashboard />,
         },
         {
-          path: "products",
+          path: ADMIN_PATH.PRODUCTS,
           element: <Products />,
         },
         {
-          path: "categories",
+          path: ADMIN_PATH.CATEGORIES,
           element: <Categories />,
         },
         {
-          path: "customers",
+          path: ADMIN_PATH.BRANDS,
+          element: <Brands />,
+        },
+        {
+          path: ADMIN_PATH.CUSTOMERS,
           element: <Customers />,
         },
         {
-          path: "orders",
+          path: ADMIN_PATH.ORDERS,
           element: <Orders />,
         },
         {
-          path: "settings",
+          path: ADMIN_PATH.SETTINGS,
           element: <Settings />,
         },
         {
-          path: "analytics",
+          path: ADMIN_PATH.ANALYTICS,
           element: <Analytics />,
         },
       ],

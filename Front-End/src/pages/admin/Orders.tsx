@@ -149,7 +149,7 @@ export default function Orders() {
 
   return (
     <div className="space-y-3 p-2">
-      <div className="space-y-2">
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Quản lý đơn hàng</h1>
         <p className="text-lg text-gray-600">
           Quản lý và theo dõi tất cả đơn hàng trong hệ thống

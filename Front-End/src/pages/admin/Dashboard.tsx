@@ -47,7 +47,7 @@ const stats = [
 export default function Dashboard() {
   return (
     <div className="space-y-3 p-2">
-      <div className="space-y-2">
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Dashboard</h1>
         <p className="text-lg text-gray-600">
           Tổng quan về hoạt động kinh doanh của bạn

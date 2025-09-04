@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Search, Edit, Trash2, Power, PowerOff } from "lucide-react"
+import { Search, Edit, Trash2, Power, PowerOff, Loader2 } from "lucide-react"
 import type { Category } from "@/types/category.type"
 
 interface CategoryTableProps {
@@ -12,6 +12,9 @@ interface CategoryTableProps {
   onDelete: (id: number) => void
   onToggleStatus: (id: number) => void
   isLoading?: boolean
+  onSearch: (searchTerm: string) => void
+  currentPage?: number
+  pageSize?: number
 }
 
 export default function CategoryTable({ 
@@ -19,15 +22,12 @@ export default function CategoryTable({
   onEdit, 
   onDelete, 
   onToggleStatus, 
-  isLoading 
+  onSearch,
+  isLoading,
+  currentPage = 1,
+  pageSize = 7
 }: CategoryTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
-
-
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -45,18 +45,40 @@ export default function CategoryTable({
            (attributes.length > 3 ? ` +${attributes.length - 3}` : "")
   }
 
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      onSearch(searchTerm)
+    }
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center py-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Tìm kiếm danh mục..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Tìm kiếm danh mục..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              disabled={isLoading}
+              onKeyDown={handleSearch}
+            />
+          </div>
+          <Button
+            onClick={() => onSearch(searchTerm)}
             disabled={isLoading}
-          />
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Tìm kiếm
+          </Button>
+        </div>
+        
+        <div className="text-sm text-gray-600">
+          Tổng cộng: <span className="font-semibold text-gray-900">{categories.length}</span> danh mục
         </div>
       </div>
 
@@ -64,6 +86,7 @@ export default function CategoryTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 hover:bg-gray-50">
+              <TableHead className="font-semibold text-gray-700">STT</TableHead>
               <TableHead className="font-semibold text-gray-700">Tên danh mục</TableHead>
               <TableHead className="font-semibold text-gray-700">Mô tả</TableHead>
               <TableHead className="font-semibold text-gray-700">Thuộc tính</TableHead>
@@ -75,19 +98,25 @@ export default function CategoryTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  Đang tải dữ liệu...
+                <TableCell colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center space-y-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                    <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : filteredCategories.length === 0 ? (
+            ) : categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   {searchTerm ? "Không tìm thấy danh mục nào" : "Chưa có danh mục nào"}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCategories.map((category) => (
+              categories.map((category, index) => (
                 <TableRow key={category.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <TableCell className="text-center font-medium text-gray-600">
+                    {(currentPage - 1) * pageSize + index + 1}
+                  </TableCell>
                   <TableCell className="font-semibold text-gray-900">{category.name}</TableCell>
                   <TableCell className="text-gray-600 max-w-xs truncate" title={category.description}>
                     {category.description || "Không có mô tả"}
@@ -129,7 +158,7 @@ export default function CategoryTable({
                       >
                         {category.status ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                       </Button>
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onDelete(category.id)}
@@ -137,7 +166,7 @@ export default function CategoryTable({
                         disabled={isLoading}
                       >
                         <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </Button> */}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -10,7 +10,7 @@ public interface BrandService {
 
     BrandResponse createBrand(BrandAddRequest request);
 
-    ResponseWithPagination<List<BrandResponse>> getBrands(int page, int size);
+    ResponseWithPagination<List<BrandResponse>> getBrands(int page, int size, String brandName);
 
     BrandResponse getBrandById(Long id);
 

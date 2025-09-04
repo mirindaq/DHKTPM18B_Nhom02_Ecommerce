@@ -46,13 +46,18 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public ResponseWithPagination<List<CategoryResponse>> getCategories(int page, int size) {
+    public ResponseWithPagination<List<CategoryResponse>> getCategories(int page, int size, String categoryName) {
 
         page = Math.max(0, page - 1);
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        Page<Category> categoryPage;
 
+        if (categoryName != null && !categoryName.isBlank()) {
+            categoryPage = categoryRepository.findByNameContainingIgnoreCase(categoryName, pageable);
+        } else {
+            categoryPage = categoryRepository.findAll(pageable);
+        }
         return ResponseWithPagination.fromPage(categoryPage,categoryMapper::toResponse);
     }
 

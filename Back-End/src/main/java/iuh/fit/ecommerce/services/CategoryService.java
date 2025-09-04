@@ -12,7 +12,7 @@ public interface CategoryService {
 
     CategoryResponse createCategory(CategoryAddRequest request);
 
-    ResponseWithPagination<List<CategoryResponse>> getCategories(int page, int size);
+    ResponseWithPagination<List<CategoryResponse>> getCategories(int page, int size , String categoryName);
 
     CategoryResponse getCategoryById(Long id);
 
