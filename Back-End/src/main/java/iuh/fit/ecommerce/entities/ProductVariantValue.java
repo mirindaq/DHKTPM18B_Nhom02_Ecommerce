@@ -6,35 +6,22 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "product_variant_values")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "product_variant_values")
 public class ProductVariantValue extends BaseEntity {
 
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    private Double price;
-
-    @Column
-    private Double oldPrice;
-
-    @Column
-    private String sku;
-
-    @Column
-    private Integer stock;
+    @ManyToOne
+    @JoinColumn(name = "product_variant_id", nullable = false)
+    private ProductVariant productVariant;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-
-    @ManyToOne
-    @JoinColumn(name = "variant_value_id")
+    @JoinColumn(name = "variant_value_id", nullable = false)
     private VariantValue variantValue;
-
 
 }
