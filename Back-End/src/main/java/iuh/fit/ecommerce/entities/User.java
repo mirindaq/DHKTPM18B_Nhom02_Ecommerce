@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -49,10 +50,8 @@ public class User {
     @Column
     private String refreshToken;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    @JsonIgnore
-    private Role role;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<UserRole> userRole;
 
     @ToString.Exclude
     @JsonIgnore
