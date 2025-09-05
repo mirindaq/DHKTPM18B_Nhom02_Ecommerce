@@ -1,4 +1,5 @@
 package iuh.fit.ecommerce.entities;
+import iuh.fit.ecommerce.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -29,7 +30,8 @@ public class Order extends BaseEntity {
     private LocalDateTime orderDate;
 
     @Column
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     @Column
     private String note;

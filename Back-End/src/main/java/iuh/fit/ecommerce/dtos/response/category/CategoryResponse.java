@@ -27,6 +27,5 @@ public class CategoryResponse {
     public static class AttributeResponse {
         private Long id;
         private String name;
-
     }
 }
