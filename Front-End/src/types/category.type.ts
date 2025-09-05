@@ -1,9 +1,7 @@
+
+import type { Attribute } from "./attribute.type";
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 
-export type Attribute = {
-  id: number;
-  name: string;
-};
 
 export type CreateAttributeRequest = {
   name: string;

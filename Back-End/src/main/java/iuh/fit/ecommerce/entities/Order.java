@@ -1,7 +1,9 @@
 package iuh.fit.ecommerce.entities;
-import iuh.fit.ecommerce.enums.OrderStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
+import iuh.fit.ecommerce.enums.OrderStatus;
+
 import java.time.LocalDateTime;
 
 @Entity

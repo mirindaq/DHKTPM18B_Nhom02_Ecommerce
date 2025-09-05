@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.category;
 
+import iuh.fit.ecommerce.dtos.response.attribute.AttributeResponse;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,13 +20,4 @@ public class CategoryResponse {
     private LocalDateTime modifiedAt;
     private List<AttributeResponse> attributes;
 
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AttributeResponse {
-        private Long id;
-        private String name;
-    }
 }

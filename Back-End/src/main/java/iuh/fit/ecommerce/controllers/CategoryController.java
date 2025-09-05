@@ -1,15 +1,14 @@
 package iuh.fit.ecommerce.controllers;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import iuh.fit.ecommerce.dtos.request.category.CategoryAddRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.category.CategoryResponse;
 import iuh.fit.ecommerce.services.CategoryService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 
 import java.util.List;
 
@@ -54,7 +53,7 @@ public class CategoryController {
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
-                "Update category success",
+                "Get category detail success",
                 categoryService.updateCategory( id, request)
         ));
     }

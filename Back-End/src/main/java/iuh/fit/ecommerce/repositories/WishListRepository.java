@@ -1,7 +1,7 @@
 package iuh.fit.ecommerce.repositories;
 
-import iuh.fit.ecommerce.entities.WishList;
 import org.springframework.data.jpa.repository.JpaRepository;
+import iuh.fit.ecommerce.entities.WishList;
 
 public interface WishListRepository extends JpaRepository<WishList, Long> {
 }

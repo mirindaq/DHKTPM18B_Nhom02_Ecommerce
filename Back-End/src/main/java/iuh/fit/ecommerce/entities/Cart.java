@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.entities;
 
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;

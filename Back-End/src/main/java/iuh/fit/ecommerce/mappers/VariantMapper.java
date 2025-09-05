@@ -1,0 +1,13 @@
+package iuh.fit.ecommerce.mappers;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import iuh.fit.ecommerce.dtos.response.variant.VariantResponse;
+import iuh.fit.ecommerce.entities.Variant;
+
+@Mapper(componentModel = "spring", uses = {VariantValueMapper.class})
+public interface VariantMapper {
+
+    @Mapping(source = "variantValues", target = "variantValues")
+    VariantResponse toResponse(Variant variant);
+}

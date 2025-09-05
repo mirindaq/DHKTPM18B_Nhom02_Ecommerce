@@ -23,6 +23,9 @@ public class ProductAttributeValue extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @Column
+    private boolean status;
+
     @ManyToOne
     @JoinColumn(name = "attribute_id")
     private Attribute attribute;

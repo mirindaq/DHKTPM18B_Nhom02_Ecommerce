@@ -26,7 +26,8 @@ import {
   Settings,
   LogOut,
   Store,
-  Award
+  Award,
+  Tag
 } from "lucide-react"
 
 const navigation = [
@@ -39,6 +40,11 @@ const navigation = [
     title: "Sản phẩm",
     icon: Package,
     href: "/admin/products",
+  },
+  {
+    title: "Biến thể",
+    href: "/admin/variants",
+    icon: Tag,
   },
   {
     title: "Danh mục",

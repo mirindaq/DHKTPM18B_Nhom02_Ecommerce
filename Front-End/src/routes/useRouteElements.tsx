@@ -14,6 +14,7 @@ import Analytics from "@/pages/admin/Analytics";
 import AdminLayout from "@/layouts/AdminLayout";
 import Brands from "@/pages/admin/Brands";
 import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path";
+import Variants from "@/pages/admin/Variants";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -39,6 +40,10 @@ const useRouteElements = () => {
         {
           path: ADMIN_PATH.PRODUCTS,
           element: <Products />,
+        },
+        {
+          path: ADMIN_PATH.VARIANTS,
+          element: <Variants />,
         },
         {
           path: ADMIN_PATH.CATEGORIES,

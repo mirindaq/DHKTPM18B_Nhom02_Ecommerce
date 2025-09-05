@@ -1,5 +1,11 @@
 package iuh.fit.ecommerce.services.impl;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import iuh.fit.ecommerce.dtos.request.category.AttributeAddRequest;
 import iuh.fit.ecommerce.dtos.request.category.CategoryAddRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
@@ -12,13 +18,6 @@ import iuh.fit.ecommerce.mappers.CategoryMapper;
 import iuh.fit.ecommerce.repositories.AttributeRepository;
 import iuh.fit.ecommerce.repositories.CategoryRepository;
 import iuh.fit.ecommerce.services.CategoryService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,7 +48,6 @@ public class CategoryServiceImpl implements CategoryService {
     public ResponseWithPagination<List<CategoryResponse>> getCategories(int page, int size, String categoryName) {
 
         page = Math.max(0, page - 1);
-
         Pageable pageable = PageRequest.of(page, size);
         Page<Category> categoryPage;
 
@@ -141,6 +139,7 @@ public class CategoryServiceImpl implements CategoryService {
                 attr.setStatus(false);
             } else {
                 attr.setStatus(true);
+
             }
         });
         attributeRepository.saveAll(existingAttrs);

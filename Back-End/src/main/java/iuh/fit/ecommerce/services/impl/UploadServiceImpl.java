@@ -2,12 +2,10 @@ package iuh.fit.ecommerce.services.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import iuh.fit.ecommerce.dtos.request.upload.UploadRequest;
-import iuh.fit.ecommerce.services.UploadService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import iuh.fit.ecommerce.services.UploadService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +19,7 @@ public class UploadServiceImpl implements UploadService {
     private final Cloudinary cloudinary;
 
     @Override
-    public List<String> upload(UploadRequest uploadRequest) {
+    public List<String> upload(iuh.fit.ecommerce.dtos.request.upload.UploadRequest uploadRequest) {
         List<MultipartFile> files = uploadRequest.getFiles();
         List<String> urls = new ArrayList<>();
         for (MultipartFile file : files) {

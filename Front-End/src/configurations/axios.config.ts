@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "sonner";
 
 // Khởi tạo instance
 const axiosClient = axios.create({
@@ -31,6 +32,10 @@ axiosClient.interceptors.response.use(
       // Xử lý lỗi chung (401, 403, 500...)
       // if (error.response.status === 401) {
       //   console.warn("Unauthorized - cần login lại");
+      // }
+      // console.log(error.response.status);
+      // if (error.response.status === 409) {
+      //   toast.error("Conflict - Dữ liệu đã tồn tại trong hệ thống");
       // }
       throw error.response.data; // backend trả message
     }

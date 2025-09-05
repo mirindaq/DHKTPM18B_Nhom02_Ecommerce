@@ -1,6 +1,9 @@
 package iuh.fit.ecommerce.entities;
+
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -17,4 +20,10 @@ public class Variant extends BaseEntity{
 
     @Column
     private String name;
+
+    @Column(nullable = false)
+    private boolean status = true;
+
+    @OneToMany( mappedBy = "variant")
+    private List<VariantValue> variantValues;
 }

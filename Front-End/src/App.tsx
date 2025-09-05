@@ -1,6 +1,7 @@
 
 import './App.css'
 import useRouteElements from './routes/useRouteElements'
+import { Toaster } from 'sonner'
 
 function App() {
   const router = useRouteElements()
@@ -8,6 +9,7 @@ function App() {
     <>
       <div>
         {router}
+        <Toaster />
       </div>
     </>
   )

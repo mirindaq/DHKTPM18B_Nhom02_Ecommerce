@@ -26,7 +26,7 @@ public class ProductVariantValue extends BaseEntity {
     private String sku;
 
     @Column
-    private String stock;
+    private Integer stock;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

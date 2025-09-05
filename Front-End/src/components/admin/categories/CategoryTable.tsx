@@ -17,11 +17,11 @@ interface CategoryTableProps {
   pageSize?: number
 }
 
-export default function CategoryTable({ 
-  categories, 
-  onEdit, 
-  onDelete, 
-  onToggleStatus, 
+export default function CategoryTable({
+  categories,
+  onEdit,
+  onDelete,
+  onToggleStatus,
   onSearch,
   isLoading,
   currentPage = 1,
@@ -41,8 +41,10 @@ export default function CategoryTable({
 
   const formatAttributes = (attributes: any[]) => {
     if (!attributes || attributes.length === 0) return "Không có"
-    return attributes.slice(0, 3).map(attr => attr.name).join(", ") + 
-           (attributes.length > 3 ? ` +${attributes.length - 3}` : "")
+    const attributesActive = attributes.filter(attr => attr.status)
+    return attributesActive
+      .slice(0, 3).map(attr => attr.name).join(", ") +
+      (attributesActive.length > 3 ? ` +${attributesActive.length - 3}` : "")
   }
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -76,7 +78,7 @@ export default function CategoryTable({
             Tìm kiếm
           </Button>
         </div>
-        
+
         <div className="text-sm text-gray-600">
           Tổng cộng: <span className="font-semibold text-gray-900">{categories.length}</span> danh mục
         </div>
@@ -149,11 +151,10 @@ export default function CategoryTable({
                         variant="outline"
                         size="sm"
                         onClick={() => onToggleStatus(category.id)}
-                        className={`${
-                          category.status 
-                            ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
-                            : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
-                        }`}
+                        className={`${category.status
+                          ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                          : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                          }`}
                         disabled={isLoading}
                       >
                         {category.status ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}

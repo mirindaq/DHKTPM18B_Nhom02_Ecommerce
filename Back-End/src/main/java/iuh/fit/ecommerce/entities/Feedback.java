@@ -1,4 +1,5 @@
 package iuh.fit.ecommerce.entities;
+
 import jakarta.persistence.*;
 import lombok.*;
 
