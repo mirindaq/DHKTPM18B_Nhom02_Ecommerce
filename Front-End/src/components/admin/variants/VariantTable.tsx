@@ -108,8 +108,20 @@ export default function VariantTable({
               </TableRow>
             ) : variants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  {searchTerm ? "Không tìm thấy variant nào" : "Chưa có variant nào"}
+                <TableCell colSpan={6} className="text-center py-24 text-gray-500">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Search className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-gray-600">
+                        {searchTerm ? "Không tìm thấy variant nào" : "Chưa có variant nào"}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {searchTerm ? "Thử tìm kiếm với từ khóa khác" : "Hãy thêm variant đầu tiên"}
+                      </p>
+                    </div>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

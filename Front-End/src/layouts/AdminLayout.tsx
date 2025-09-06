@@ -104,30 +104,41 @@ export default function AdminLayout() {
             <SidebarGroup>
               <SidebarGroupLabel>Quản lý</SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  {navigation.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        tooltip={item.title}
-                        className={location.pathname === item.href ? "bg-sidebar-accent" : ""}
-                      >
-                        <Link to={item.href}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                <SidebarMenu className="space-y-0.1">
+                  {navigation.map((item) => {
+                    const isActive = location.pathname === item.href || 
+                      (item.href !== "/admin" && location.pathname.startsWith(item.href))
+                    
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          tooltip={item.title}
+                          isActive={isActive}
+                          className={`h-12 px-4 py-3 ${isActive ? "bg-black text-white" : "hover:bg-gray-100 hover:text-gray-900"}`}
+                        >
+                          <Link to={item.href}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
 
           <SidebarFooter>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-2">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Cài đặt">
+                <SidebarMenuButton 
+                  asChild 
+                  tooltip="Cài đặt"
+                  isActive={location.pathname === "/admin/settings"}
+                  className={`h-12 px-4 py-3 ${location.pathname === "/admin/settings" ? "bg-black text-white" : "hover:bg-gray-100 hover:text-gray-900"}`}
+                >
                   <Link to="/admin/settings">
                     <Settings />
                     <span>Cài đặt</span>
@@ -138,7 +149,7 @@ export default function AdminLayout() {
                 <SidebarMenuButton asChild tooltip="Đăng xuất">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-2 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="w-full justify-start gap-2 h-12 px-4 py-3"
                     onClick={handleLogout}
                   >
                     <LogOut />
@@ -156,7 +167,12 @@ export default function AdminLayout() {
               <SidebarTrigger />
               <Separator orientation="vertical" className="h-6" />
               <div className="flex-1">
-                <h1 className="text-lg font-semibold">Dashboard</h1>
+                <h1 className="text-lg font-semibold">
+                  {navigation.find(item => {
+                    if (item.href === "/admin") return location.pathname === "/admin"
+                    return location.pathname.startsWith(item.href)
+                  })?.title || "Dashboard"}
+                </h1>
               </div>
             </div>
           </header>
