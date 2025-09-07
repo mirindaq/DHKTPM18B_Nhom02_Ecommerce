@@ -8,3 +8,4 @@ import iuh.fit.ecommerce.entities.Cart;
 public interface CartRepository extends JpaRepository<Cart, Long> {
     void deleteByUser(User user);
 }
+
