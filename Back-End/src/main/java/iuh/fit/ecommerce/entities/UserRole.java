@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Table(name = "user_roles")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

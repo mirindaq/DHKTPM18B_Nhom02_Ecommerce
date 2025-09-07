@@ -1,0 +1,20 @@
+package iuh.fit.ecommerce.services;
+
+
+import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
+import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
+import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
+
+import java.util.List;
+
+public interface CustomerService {
+    CustomerResponse createCustomer(CustomerAddRequest customerAddRequest);
+    CustomerResponse getCustomerById(long id);
+    ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String name,String active);
+    CustomerResponse updateCustomer(long id, CustomerProfileRequest request);
+    void deleteCustomer(long id);
+    void changeActiveCustomer(Long id);
+//    ResponseWithPagination<List<CustomerResponse>> getCustomers(int page, int size, Boolean active);
+
+}

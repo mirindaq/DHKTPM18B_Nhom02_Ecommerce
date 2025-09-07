@@ -50,7 +50,7 @@ public class User {
     @Column
     private String refreshToken;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserRole> userRole;
 
     @ToString.Exclude
