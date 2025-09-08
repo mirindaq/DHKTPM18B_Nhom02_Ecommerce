@@ -37,21 +37,13 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
-    //tạo customer với các thuộc tính này, sau cập nhật thêm thuộc tính còn lại sau
     @Override
     @Transactional
-    public CustomerResponse createCustomer(CustomerAddRequest customerAddRequest) {
+    public CustomerResponse createCustomer(CustomerAddRequest request) {
         Role role = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new RuntimeException("Role CUSTOMER not exist"));
 
-        Customer customer = Customer.builder()
-                .fullName(customerAddRequest.getFullName())
-                .phone(customerAddRequest.getPhone())
-                .password(customerAddRequest.getPassword())
-                .email(customerAddRequest.getEmail())
-                .registerDate(LocalDate.now())
-                .active(true)
-                .build();
+        Customer customer = customerMapper.toCustomer(request);
         userRepository.save(customer);
         UserRole userRole = UserRole.builder()
                 .user(customer)
@@ -62,15 +54,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .user(customer)
                 .build();
         cartRepository.save(cart);
-        return CustomerResponse.builder()
-                .id(customer.getId())
-                .fullName(customer.getFullName())
-                .email(customer.getEmail())
-                .phone(customer.getPhone())
-                .registerDate(customer.getRegisterDate())
-                .active(customer.isActive())
-                .roles(Collections.singletonList(role.getName()))
-                .build();
+        return customerMapper.toResponse(customer, role.getName());
     }
 
     @Override
@@ -81,17 +65,19 @@ public class CustomerServiceImpl implements CustomerService {
 
 
     @Override
-    public ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String keyword, String status) {
+    public ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String name, String phone, String email, Boolean status) {
         page = page > 0 ? page - 1 : page;
         Pageable pageable = PageRequest.of(page, limit);
-        // Chuyển đổi status từ String ("all", "true", "false") sang Boolean (null, true, false)
-        Boolean statusAsBoolean = null;
-        if (status != null && !status.equalsIgnoreCase("all") && !status.isBlank()) {
-            statusAsBoolean = Boolean.parseBoolean(status);
-        }
-        Page<Customer> customerPage = customerRepository.searchAndFilterCustomers(keyword, statusAsBoolean, pageable);
+
+        name = (name != null && !name.isBlank()) ? name : null;
+        phone = (phone != null && !phone.isBlank()) ? phone : null;
+        email = (email != null && !email.isBlank()) ? email : null;
+
+        Page<Customer> customerPage = customerRepository.searchCustomers(name, phone, email, status, pageable);
         return ResponseWithPagination.fromPage(customerPage, customerMapper::toResponse);
     }
+
+
 
 
     @Override
@@ -124,25 +110,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void changeActiveCustomer(Long id) {
+    public void changeStatusCustomer(Long id) {
         Customer customer = findById(id);
         customer.setActive(!customer.isActive());
         customerRepository.save(customer);
     }
 
-//    @Override
-//    public ResponseWithPagination<List<CustomerResponse>> getCustomers(int page, int size, Boolean active) {
-//        page = Math.max(0, page - 1);
-//        Pageable pageable = PageRequest.of(page, size);
-//        Page<Customer> customerPage;
-//
-//        if (active != null) {
-//            customerPage = customerRepository.findByActive(active, pageable);
-//        } else {
-//            customerPage = customerRepository.findAll(pageable);
-//        }
-//
-//        return ResponseWithPagination.fromPage(customerPage, customerMapper::toResponse);
-//    }
 
 }

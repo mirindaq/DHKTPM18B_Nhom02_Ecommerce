@@ -11,19 +11,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-//    Page<Customer> findByFullNameContainingIgnoreCase(String name, Pageable pageable);
 
     @Query("SELECT c FROM Customer c WHERE " +
-            "(:status IS NULL OR c.active = :status) AND " +
-            "(LOWER(c.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(c.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(c.phone) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(c.address) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Customer> searchAndFilterCustomers(
-            @Param("keyword") String keyword,
-            @Param("status") Boolean status,
-            Pageable pageable
-    );
-
-
+            "(:name IS NULL OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
+            "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
+            "(:status IS NULL OR c.active = :status)")
+    Page<Customer> searchCustomers(@Param("name") String name,
+                                   @Param("phone") String phone,
+                                   @Param("email") String email,
+                                   @Param("status") Boolean status,
+                                   Pageable pageable);
 }

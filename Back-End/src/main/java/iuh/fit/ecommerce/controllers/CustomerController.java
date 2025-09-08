@@ -44,15 +44,17 @@ public class CustomerController {
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<CustomerResponse>>>> getAllCustomers(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "search", required = false, defaultValue = "") String keyword,
-            @RequestParam(name = "status", required = false, defaultValue = "all") String status
-    )
+            @RequestParam(defaultValue = "7") int limit,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) Boolean status)
+
     {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customers success",
-                customerService.getAllCustomers(page, size, keyword, status)
+                customerService.getAllCustomers(page, limit, name, phone, email, status)
         ));
     }
 
@@ -76,7 +78,7 @@ public class CustomerController {
         ));
     }
 
-    @PutMapping("/change-active/{id}")
+    @PutMapping("/change-status/{id}")
     public ResponseEntity<ResponseSuccess<Void>> changeStatusCustomer(@PathVariable Long id) {
         customerService.changeActiveCustomer(id);
         return ResponseEntity.ok(new ResponseSuccess<>(
@@ -85,19 +87,5 @@ public class CustomerController {
                 null
         ));
     }
-
-//    @GetMapping("/search-active")
-//    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<CustomerResponse>>>> getCustomersByActive(
-//            @RequestParam(defaultValue = "1") int page,
-//            @RequestParam(defaultValue = "7") int size,
-//            @RequestParam(required = false) Boolean active
-//    ) {
-//        return ResponseEntity.ok(new ResponseSuccess<>(
-//                OK,
-//                "Get Customers success",
-//                customerService.getCustomers(page, size, active)
-//        ));
-//    }
-
 
 }
