@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -45,18 +46,31 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
-    public ResponseWithPagination<List<StaffResponse>> getStaffs(int page, int size, String staffName) {
-        page = Math.max(0, page - 1);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Staff> staffPage;
+    public ResponseWithPagination<List<StaffResponse>> getStaffs(
+            int page,
+            int size,
+            String staffName,
+            String email,
+            String phone,
+            Boolean status,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
 
-        if (staffName != null && !staffName.isBlank()) {
-            staffPage = staffRepository.findByFullNameContainingIgnoreCase(staffName, pageable);
-        } else {
-            staffPage = staffRepository.findAll(pageable);
-        }
+        Page<Staff> staffPage = staffRepository.findAllWithFilters(
+                (staffName != null && !staffName.isBlank()) ? staffName : null,
+                (email != null && !email.isBlank()) ? email : null,
+                (phone != null && !phone.isBlank()) ? phone : null,
+                status,
+                startDate,
+                endDate,
+                pageable
+        );
+
         return ResponseWithPagination.fromPage(staffPage, staffMapper::toResponse);
     }
+
 
     @Override
     public StaffResponse getStaffById(Long id) {
@@ -105,9 +119,9 @@ public class StaffServiceImpl implements StaffService {
         staff.setFullName(staffUpdateRequest.getFullName());
         staff.setPhone(staffUpdateRequest.getPhone());
         staff.setDateOfBirth(staffUpdateRequest.getDateOfBirth());
-        staff.setActive(staffUpdateRequest.isActive());
         staff.setJoinDate(staffUpdateRequest.getJoinDate());
         staff.setWorkStatus(staffUpdateRequest.getWorkStatus());
+//        staff.setUserRole(staffUpdateRequest.getUserRole());
     }
 
 }

@@ -22,6 +22,14 @@ export interface StaffUserRole {
 // Work status
 export type WorkStatus = "ACTIVE" | "INACTIVE" | "PROBATION"
 
+function mapWorkStatusToApi(value: WorkStatus) {
+  switch (value) {
+    case "ACTIVE": return "ACTIVE" // hoặc "1"
+    case "INACTIVE": return "INACTIVE" // hoặc "0"
+    case "PROBATION": return "PROBATION"
+  }
+}
+
 // Staff entity (đồng bộ với backend DTO)
 export interface Staff {
   id: number
@@ -70,7 +78,6 @@ export interface UpdateStaffRequest {
   avatar?: string
   dateOfBirth?: string
   joinDate?: string
-  active?: boolean
   workStatus?: WorkStatus
   roleIds?: number[]
 }

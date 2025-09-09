@@ -1,10 +1,12 @@
 package iuh.fit.ecommerce.dtos.request.staff;
 
+import iuh.fit.ecommerce.entities.UserRole;
 import iuh.fit.ecommerce.enums.WorkStatus;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,10 +28,10 @@ public class StaffUpdateRequest {
 
     private LocalDate dateOfBirth;
 
-    private boolean active;
-
     private LocalDate joinDate;
 
     private WorkStatus workStatus;
+
+//    private List<UserRole> userRole;
 }
 

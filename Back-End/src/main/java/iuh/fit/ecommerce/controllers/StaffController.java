@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -26,14 +27,20 @@ public class StaffController {
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<StaffResponse>>>> getStaffs(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "7") int size,
-            @RequestParam(required = false) String staffName
+            @RequestParam(required = false) String staffName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) Boolean status, // true/false
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false)  LocalDate endDate
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get staff success",
-                staffService.getStaffs(page, size, staffName)
+                staffService.getStaffs(page, size, staffName, email, phone, status, startDate, endDate)
         ));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseSuccess<StaffResponse>> getStaffByID(@PathVariable Long id) {

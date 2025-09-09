@@ -30,7 +30,7 @@ export default function StaffDialog({
 }: StaffDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="min-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}</DialogTitle>
         </DialogHeader>

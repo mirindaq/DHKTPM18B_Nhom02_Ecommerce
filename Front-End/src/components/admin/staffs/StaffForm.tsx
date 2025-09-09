@@ -1,19 +1,46 @@
 // src/components/admin/staffs/StaffForm.tsx
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import type { CreateStaffRequest, UpdateStaffRequest, Staff, UserRole, WorkStatus } from "@/types/staff.type"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import type {
+  CreateStaffRequest,
+  UpdateStaffRequest,
+  Staff,
+  UserRole,
+  WorkStatus,
+} from "@/types/staff.type";
+import { DatePicker } from "@/components/ui/date-picker";
+import { uploadService } from "@/services/upload.service";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface StaffFormProps {
-  staff?: Staff | null
-  roles: UserRole[] // danh sách role từ backend
-  onSubmit: (data: CreateStaffRequest | UpdateStaffRequest) => void
-  onCancel: () => void
-  isLoading?: boolean
-  isEdit?: boolean
+  staff?: Staff | null;
+  roles: UserRole[];
+  onSubmit: (data: CreateStaffRequest | UpdateStaffRequest) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+  isEdit?: boolean;
+}
+
+function mapWorkStatusToApi(value: WorkStatus) {
+  switch (value) {
+    case "ACTIVE":
+      return "ACTIVE"; // hoặc "1"
+    case "INACTIVE":
+      return "INACTIVE"; // hoặc "0"
+    case "PROBATION":
+      return "PROBATION";
+  }
 }
 
 export default function StaffForm({
@@ -34,9 +61,13 @@ export default function StaffForm({
     dateOfBirth: "",
     active: true,
     joinDate: "",
-    workStatus: "ACTIVE",
+    workStatus: "ACTIVE" as WorkStatus,
     roleIds: [],
-  })
+  });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (staff) {
@@ -44,18 +75,19 @@ export default function StaffForm({
         ...prev,
         fullName: staff.fullName || "",
         email: staff.email || "",
-        password: "", // không gửi mật khẩu khi update
+        password: "",
         phone: staff.phone || "",
         address: staff.address || "",
         avatar: staff.avatar || "",
         dateOfBirth: staff.dateOfBirth || "",
         active: staff.active ?? true,
         joinDate: staff.joinDate || "",
-        workStatus: (staff.workStatus as WorkStatus) || "ACTIVE",
-        roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
-      }))
+        workStatus: (staff.workStatus?.trim() as WorkStatus) || "ACTIVE",
+        // fix: dùng trực tiếp
+        // roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
+      }));
+      setPreviewUrl(staff.avatar || "");
     } else {
-      // nếu là create -> reset
       setFormData((prev) => ({
         ...prev,
         fullName: "",
@@ -68,92 +100,208 @@ export default function StaffForm({
         active: true,
         joinDate: "",
         workStatus: "ACTIVE",
-        roleIds: [],
-      }))
+        // roleIds: [],
+      }));
     }
-  }, [staff])
+  }, [staff]);
 
-  const handleChange = (field: keyof CreateStaffRequest | keyof UpdateStaffRequest, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+  const handleChange = (
+    field: keyof CreateStaffRequest | keyof UpdateStaffRequest,
+    value: any
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleRoleChange = (roleId: number, checked: boolean) => {
     setFormData((prev) => {
-      const roleIds = checked ? [...(prev.roleIds || []), roleId] : (prev.roleIds || []).filter((id) => id !== roleId)
-      return { ...prev, roleIds }
-    })
-  }
+      const roleIds = checked
+        ? [...(prev.roleIds || []), roleId]
+        : (prev.roleIds || []).filter((id) => id !== roleId);
+      return { ...prev, roleIds };
+    });
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (isEdit) {
-      const updateData: UpdateStaffRequest = {
-        fullName: formData.fullName,
-        phone: formData.phone,
-        address: formData.address,
-        avatar: formData.avatar,
-        dateOfBirth: formData.dateOfBirth,
-        active: formData.active,
-        joinDate: formData.joinDate,
-        workStatus: formData.workStatus,
-        roleIds: formData.roleIds,
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      let finalAvatarUrl = formData.avatar;
+
+      // ✅ Xử lý upload avatar nếu có file mới
+      if (selectedFile) {
+        setIsUploading(true);
+        const uploadResponse = await uploadService.uploadImage([selectedFile]);
+        if (uploadResponse.data && uploadResponse.data.length > 0) {
+          finalAvatarUrl = uploadResponse.data[0];
+        } else {
+          toast.error("Không thể upload hình ảnh");
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
       }
-      onSubmit(updateData)
-    } else {
-      onSubmit(formData)
-    }
-  }
 
+      if (isEdit) {
+        // ✅ Update staff
+        const updateData: UpdateStaffRequest = {
+          fullName: formData.fullName,
+          phone: formData.phone,
+          address: formData.address,
+          avatar: finalAvatarUrl,
+          dateOfBirth: formData.dateOfBirth,
+          joinDate: formData.joinDate,
+          workStatus: mapWorkStatusToApi(formData.workStatus ?? "ACTIVE"), // map lại trước khi gọi API
+          // roleIds: formData.roleIds,
+        };
+        console.log("updateData >>>", updateData);
+        onSubmit(updateData);
+      } else {
+        // ✅ Create staff
+        const createData: CreateStaffRequest = {
+          ...formData,
+          avatar: finalAvatarUrl,
+          workStatus: mapWorkStatusToApi(formData.workStatus ?? "ACTIVE"), // map lại trước khi gọi API
+        };
+        console.log("createData >>>", createData);
+        onSubmit(createData);
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Có lỗi xảy ra khi upload hình ảnh");
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setFormData((prev) => ({ ...prev, avatar: "" }));
+  };
+  console.log("formData.workStatus >>>", formData.workStatus);
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="fullName">Họ và tên</Label>
-        <Input id="fullName" value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} required />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Họ và tên */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label
+          htmlFor="fullName"
+          className="text-right font-medium text-gray-700"
+        >
+          Họ và tên <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="fullName"
+          value={formData.fullName}
+          onChange={(e) => handleChange("fullName", e.target.value)}
+          className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Họ và tên"
+          required
+        />
       </div>
 
-      {!isEdit && (
-        <>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} required />
-          </div>
+      {/* Số điện thoại */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="phone" className="text-right font-medium text-gray-700">
+          Số điện thoại <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="phone"
+          value={formData.phone}
+          onChange={(e) => handleChange("phone", e.target.value)}
+          className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Số điện thoại"
+          required
+        />
+      </div>
 
-          <div>
-            <Label htmlFor="password">Mật khẩu</Label>
-            <Input id="password" type="password" value={formData.password} onChange={(e) => handleChange("password", e.target.value)} required />
+      {/* Email + Password */}
+      {!isEdit && (
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label className="text-right font-medium text-gray-700">
+            Tài khoản <span className="text-red-500">*</span>
+          </Label>
+          <div className="col-span-3 grid grid-cols-2 gap-4">
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              required
+              placeholder="Email"
+              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            />
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleChange("password", e.target.value)}
+              required
+              placeholder="Mật khẩu"
+              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            />
           </div>
-        </>
+        </div>
       )}
 
-      <div>
-        <Label htmlFor="phone">Số điện thoại</Label>
-        <Input id="phone" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} required />
+      {/* Địa chỉ */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label
+          htmlFor="address"
+          className="text-right font-medium text-gray-700"
+        >
+          Địa chỉ
+        </Label>
+        <Input
+          id="address"
+          value={formData.address}
+          onChange={(e) => handleChange("address", e.target.value)}
+          className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Địa chỉ"
+        />
       </div>
 
-      <div>
-        <Label htmlFor="address">Địa chỉ</Label>
-        <Input id="address" value={formData.address} onChange={(e) => handleChange("address", e.target.value)} />
+      {/* Ngày sinh + Ngày vào làm */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label className="text-right font-medium text-gray-700">
+          Thời gian
+        </Label>
+        <div className="col-span-3 grid grid-cols-2 gap-4">
+          <DatePicker
+            id="dateOfBirth"
+            value={formData.dateOfBirth}
+            onChange={(val) => handleChange("dateOfBirth", val)}
+            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          />
+          <DatePicker
+            id="joinDate"
+            value={formData.joinDate}
+            onChange={(val) => handleChange("joinDate", val)}
+            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="avatar">Ảnh đại diện (URL)</Label>
-        <Input id="avatar" value={formData.avatar} onChange={(e) => handleChange("avatar", e.target.value)} />
-      </div>
-
-      <div>
-        <Label htmlFor="dateOfBirth">Ngày sinh</Label>
-        <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => handleChange("dateOfBirth", e.target.value)} />
-      </div>
-
-      <div>
-        <Label htmlFor="joinDate">Ngày vào làm</Label>
-        <Input id="joinDate" type="date" value={formData.joinDate} onChange={(e) => handleChange("joinDate", e.target.value)} />
-      </div>
-
-      <div>
-        <Label htmlFor="workStatus">Trạng thái làm việc</Label>
-        <Select value={formData.workStatus as WorkStatus} onValueChange={(v: WorkStatus) => handleChange("workStatus", v)}>
-          <SelectTrigger>
+      {/* Trạng thái làm việc */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label
+          htmlFor="workStatus"
+          className="text-right font-medium text-gray-700"
+        >
+          Trạng thái làm việc
+        </Label>
+        <Select
+          value={formData.workStatus ?? "ACTIVE"}
+          onValueChange={(v: WorkStatus) => handleChange("workStatus", v)}
+        >
+          <SelectTrigger className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500 w-full">
             <SelectValue placeholder="Chọn trạng thái" />
           </SelectTrigger>
           <SelectContent>
@@ -164,27 +312,76 @@ export default function StaffForm({
         </Select>
       </div>
 
-      <div>
-        <Label>Vai trò</Label>
-        <div className="grid grid-cols-2 gap-2">
+      {/* Avatar */}
+      <div className="grid grid-cols-4 items-start gap-4">
+        <Label className="text-right font-medium text-gray-700 pt-2">
+          Ảnh đại diện
+        </Label>
+        <div className="col-span-3 space-y-3">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          />
+          {previewUrl && (
+            <div className="relative inline-block">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={removeImage}
+                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-red-500 text-white hover:bg-red-600 border-0"
+              >
+                X
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Vai trò */}
+      <div className="grid grid-cols-4 items-start gap-4">
+        <Label className="text-right font-medium text-gray-700">Vai trò</Label>
+        <div className="col-span-3 grid grid-cols-2 gap-2">
           {roles.map((role) => (
             <label key={role.id} className="flex items-center space-x-2">
-              <Checkbox checked={(formData.roleIds || []).includes(role.id)} onCheckedChange={(checked) => handleRoleChange(role.id, checked === true)} />
+              <Checkbox
+                checked={(formData.roleIds || []).includes(role.id)}
+                onCheckedChange={(checked) =>
+                  handleRoleChange(role.id, checked === true)
+                }
+              />
               <span>{role.name}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Checkbox checked={formData.active} onCheckedChange={(checked) => handleChange("active", checked === true)} />
-        <Label>Hoạt động</Label>
-      </div>
-
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>Hủy</Button>
-        <Button type="submit" disabled={isLoading}>{isLoading ? "Đang lưu..." : "Lưu"}</Button>
+      {/* Buttons */}
+      <div className="flex justify-end space-x-3 pt-4">
+        <Button
+          type="submit"
+          disabled={isLoading || isUploading}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          {isLoading || isUploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Đang xử lý...
+            </>
+          ) : staff ? (
+            "Cập nhật"
+          ) : (
+            "Thêm"
+          )}
+        </Button>
       </div>
     </form>
-  )
+  );
 }

@@ -15,9 +15,11 @@ import type {
 
 export const staffService = {
   // Lấy danh sách staff: trả về StaffListPayload (đã unwrap)
-  getStaffs: async (page: number = 1, size: number = 7, search: string = ""): Promise<StaffListPayload> => {
+  getStaffs: async (page: number = 1, size: number = 7, params : Record<string,string> ): Promise<StaffListPayload> => {
     const response = await axiosClient.get<ApiResponse<StaffListPayload>>(
-      `/staffs?page=${page}&size=${size}&staffName=${encodeURIComponent(search)}`
+      `/staffs?page=${page}&size=${size}`, {
+        params: params
+      }
     )
     return response.data.data
   },
