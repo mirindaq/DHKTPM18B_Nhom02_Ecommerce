@@ -1,153 +1,118 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Search, Edit, Power, PowerOff, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Eye, Pencil, Power, PowerOff } from "lucide-react"
 import type { CustomerSummary } from "@/types/customer.type"
 
 interface CustomerTableProps {
-  customers: CustomerSummary[]
-  onEdit: (customer: CustomerSummary) => void
-  onToggleStatus: (id: number) => void
-  isLoading?: boolean
-  onSearch: (searchTerm: string) => void
-  currentPage?: number
-  pageSize?: number
+  customers: CustomerSummary[];
+  isLoading: boolean;
+  onEdit: (customer: CustomerSummary) => void;
+  onDelete: (id: number) => void;
+  onViewDetail: (customer: CustomerSummary) => void;
+  onToggleStatus: (id: number) => void;  
 }
 
-export default function CustomerTable({ 
-  customers, 
-  onEdit, 
-  onToggleStatus, 
-  onSearch,
+const formatPrice = (price: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("vi-VN");
+
+export default function CustomerTable({
+  customers,
   isLoading,
-  currentPage = 1,
-  pageSize = 7
+  onEdit,
+ 
+  onViewDetail,
+  onToggleStatus,   
 }: CustomerTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      onSearch(searchTerm)
-    }
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Tìm kiếm khách hàng..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              disabled={isLoading}
-              onKeyDown={handleSearch}
-            />
-          </div>
-          <Button
-            onClick={() => onSearch(searchTerm)}
-            disabled={isLoading}
-            className="bg-blue-600 text-white"
-          >
-            <Search className="h-4 w-4 mr-2" />
-            Tìm kiếm
-          </Button>
-        </div>
-        
-        <div className="text-sm text-gray-600">
-          Tổng cộng: <span className="font-semibold text-gray-900">{customers.length}</span> khách hàng
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead>STT</TableHead>
-              <TableHead>Tên khách hàng</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Số điện thoại</TableHead>
-              <TableHead>Địa chỉ</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Ngày tham gia</TableHead>
-              <TableHead>Thao tác</TableHead>
+    <div className="rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-50">
+            <TableHead>Khách hàng</TableHead>
+            <TableHead>Liên hệ</TableHead>
+            <TableHead>Địa chỉ</TableHead>
+            <TableHead>Tổng chi tiêu</TableHead>
+            <TableHead>Trạng thái</TableHead>
+            <TableHead>Ngày tham gia</TableHead>
+            <TableHead>Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={6} className="h-24 text-center">
+                Đang tải...
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
-                  <p className="text-gray-500">Đang tải dữ liệu...</p>
+          ) : customers.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="h-24 text-center">
+                Không tìm thấy khách hàng.
+              </TableCell>
+            </TableRow>
+          ) : (
+            customers.map((customer) => (
+              <TableRow key={customer.id}>
+                <TableCell className="font-semibold">{customer.fullName}</TableCell>
+                <TableCell>
+                  <div>{customer.email}</div>
+                  <div className="text-sm text-gray-600">{customer.phone}</div>
+                </TableCell>
+                <TableCell className="font-medium">{customer.address}</TableCell>
+                <TableCell>{formatPrice(customer.totalSpent)}</TableCell>
+                <TableCell>
+                  <Badge
+                    className={
+                      customer.active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {customer.active ? "Hoạt động" : "Không hoạt động"}
+                  </Badge>
+                </TableCell>
+                <TableCell>{formatDate(customer.registerDate)}</TableCell>
+                <TableCell className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewDetail(customer)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(customer)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onToggleStatus(customer.id)} 
+                    className={`${
+                      customer.active
+                        ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                        : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                    }`}
+                  >
+                    {customer.active ? (
+                      <PowerOff className="h-4 w-4" />
+                    ) : (
+                      <Power className="h-4 w-4" />
+                    )}
+                  </Button>
                 </TableCell>
               </TableRow>
-            ) : customers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  {searchTerm ? "Không tìm thấy khách hàng nào" : "Chưa có khách hàng nào"}
-                </TableCell>
-              </TableRow>
-            ) : (
-              customers.map((customer, index) => (
-                <TableRow key={customer.id} className="hover:bg-gray-50">
-                  <TableCell className="text-center">{(currentPage - 1) * pageSize + index + 1}</TableCell>
-                  <TableCell className="font-semibold">{customer.fullName}</TableCell>
-                  <TableCell>{customer.email}</TableCell>
-                  <TableCell>{customer.phone}</TableCell>
-                  <TableCell>{customer.address}</TableCell>
-                  <TableCell>
-                    <Badge variant={customer.active ? "default" : "secondary"} className={
-                      customer.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                    }>
-                      {customer.active ? "Hoạt động" : "Ngưng hoạt động"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatDate(customer.registerDate)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onEdit(customer)}
-                        className="border-blue-200 text-blue-600"
-                        disabled={isLoading}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onToggleStatus(customer.id)}
-                        className={customer.active 
-                          ? "border-orange-200 text-orange-600" 
-                          : "border-green-200 text-green-600"}
-                        disabled={isLoading}
-                      >
-                        {customer.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
-  )
+  );
 }

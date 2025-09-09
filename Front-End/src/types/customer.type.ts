@@ -31,7 +31,7 @@ export type UpdateCustomerProfileRequest = {
   phone: string;
   email: string;
   address?: string;
-  dateOfBirth?: Date | null;
+  dateOfBirth?: string | null;
   gender?: Gender;
   avatar?: string;
 };
@@ -47,14 +47,20 @@ export type MostPurchasedProduct = {
   count: number;
 };
 
+// src/types/customer.type.ts
+
 export type CreateCustomerRequest = {
   fullName: string;
   phone: string;
-  password?: string; 
+  password: string;  // nên để bắt buộc khi tạo mới
   email: string;
   registerDate: Date | null;
-  
+  address: string;
+  dateOfBirth?: string | null;  // thêm ngày sinh
+  gender?: Gender;             // thêm giới tính
+  avatar?: string;             // thêm avatar (nếu cần)
 };
+
 export type CustomerDetail = CustomerSummary  & {
   lastActivityDate: string; 
   orders: Order[];

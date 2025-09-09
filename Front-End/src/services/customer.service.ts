@@ -11,21 +11,37 @@ import type {
 
 // ... (các import và các hàm khác của bạn)
 
+interface GetCustomersParams {
+  page: number;
+  size: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  status?: string;
+}
 export const customerService = {
-  getCustomers: async (page: number, size: number, search: string, active: string) => {
+  getCustomers: async ({ page, size, name, email, phone, status }: GetCustomersParams) => {
     const params = new URLSearchParams({
-        page: page.toString(),
-        size: size.toString(),
-        search: search,
+      page: page.toString(),
+      limit: size.toString(),
     });
 
-    // Chỉ thêm tham số `status` vào URL nếu nó không phải là rỗng (trường hợp "all")
-    if (active) {
-        params.append('status', active);
-    }
-    
-    const response = await axiosClient.get<CustomerListResponse>(`/customers?${params.toString()}`);
+    if (name) params.append("name", name);
+    if (email) params.append("email", email);
+    if (phone) params.append("phone", phone);
+    if (status) params.append("status", status);
+
+    const response = await axiosClient.get<CustomerListResponse>(
+      `/customers?${params.toString()}`
+    );
     return response.data;
+  },
+
+
+
+getCustomerDetails: async (id: number) => {
+  const response = await axiosClient.get<CustomerDetailResponse>(`/customers/${String(id)}`);
+  return response.data;
 },
 
   // Lấy chi tiết khách hàng theo ID
