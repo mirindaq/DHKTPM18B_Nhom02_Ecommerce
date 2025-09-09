@@ -114,7 +114,7 @@ export default function StaffTable({
 
                   <TableCell>
                     <div className="w-12 h-12 rounded-full overflow-hidden border">
-                      <img src={staff.avatar || "/placeholder-avatar.png"} alt={staff.fullName} className="w-full h-full object-cover" onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder-avatar.png")} />
+                      <img src={staff.avatar || ""} alt={staff.fullName} className="w-full h-full object-cover" />
                     </div>
                   </TableCell>
 
