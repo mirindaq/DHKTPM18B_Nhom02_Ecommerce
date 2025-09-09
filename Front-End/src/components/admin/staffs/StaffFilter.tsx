@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 
 export default function StaffFilter({
@@ -39,100 +39,162 @@ export default function StaffFilter({
     onSearch(payload);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      staffName: "",
+      email: "",
+      phone: "",
+      status: "",
+      startDate: "",
+      endDate: "",
+    });
+    onSearch({
+      staffName: "",
+      email: "",
+      phone: "",
+      status: null,
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const hasActiveFilters = Object.values(filters).some(value => value !== "");
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 p-4 bg-white rounded-2xl shadow"
-    >
-      {/* Row 1: StaffName, Email, Phone */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            id="filterStaffName"
-            placeholder="Tìm theo tên..."
-            value={filters.staffName}
-            onChange={(e) => handleChange("staffName", e.target.value)}
-            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            id="filterEmail"
-            placeholder="Tìm theo email..."
-            value={filters.email}
-            onChange={(e) => handleChange("email", e.target.value)}
-            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            id="filterPhone"
-            placeholder="Tìm theo số điện thoại..."
-            value={filters.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
-            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          />
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-medium text-gray-900">Tìm kiếm nhân viên</h3>
+          {hasActiveFilters && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              className="text-gray-500 hover:text-gray-700 h-8 px-2"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Xóa
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Row 2: StartDate → EndDate + Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Ngày vào làm (chiếm 2/3) */}
-        <div className="md:col-span-2">
-          <Label className="mb-1 block">Ngày vào làm</Label>
-          <div className="flex items-center gap-2 w-full">
-            <DatePicker
-              id="filterStartDate"
-              value={filters.startDate}
-              placeholder="Từ ngày"
-              onChange={(val) => handleChange("startDate", val)}
-              className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-            <span className="text-gray-500">→</span>
-            <DatePicker
-              id="filterEndDate"
-              value={filters.endDate}
-              placeholder="Đến ngày"
-              onChange={(val) => handleChange("endDate", val)}
-              className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
+      <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        {/* Row 1: Basic Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-1">
+            <Label htmlFor="filterStaffName" className="text-sm text-gray-600">
+              Tên nhân viên
+            </Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="filterStaffName"
+                placeholder="Nhập tên..."
+                value={filters.staffName}
+                onChange={(e) => handleChange("staffName", e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="filterEmail" className="text-sm text-gray-600">
+              Email
+            </Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="filterEmail"
+                placeholder="Nhập email..."
+                value={filters.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="filterPhone" className="text-sm text-gray-600">
+              Số điện thoại
+            </Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="filterPhone"
+                placeholder="Nhập số điện thoại..."
+                value={filters.phone}
+                onChange={(e) => handleChange("phone", e.target.value)}
+                className="pl-9"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Trạng thái (chiếm 1/3) */}
-        <div>
-          <Label className="mb-1 block">Trạng thái</Label>
-          <Select
-            value={filters.status}
-            onValueChange={(val) => handleChange("status", val)}
-          >
-            <SelectTrigger id="filterStatus" className="w-full">
-              <SelectValue placeholder="Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="true">Hoạt động</SelectItem>
-              <SelectItem value="false">Ngừng hoạt động</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+        {/* Row 2: Date and Status */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2 space-y-1">
+            <Label className="text-sm text-gray-600">Ngày vào làm</Label>
+            <div className="flex items-center gap-2">
+              <DatePicker
+                id="filterStartDate"
+                value={filters.startDate}
+                placeholder="Từ ngày"
+                onChange={(val) => handleChange("startDate", val)}
+                className="flex-1"
+              />
+              <DatePicker
+                id="filterEndDate"
+                value={filters.endDate}
+                placeholder="Đến ngày"
+                onChange={(val) => handleChange("endDate", val)}
+                className="flex-1"
+              />
+            </div>
+          </div>
 
-      {/* Row 3: Button */}
-      <div className="flex justify-end">
-        <Button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 h-10"
-        >
-          <Search className="h-4 w-4 mr-2" />
-          Tìm kiếm
-        </Button>
-      </div>
-    </form>
+          <div className="space-y-1">
+            <Label htmlFor="filterStatus" className="text-sm text-gray-600">
+              Trạng thái
+            </Label>
+            <Select
+              value={filters.status}
+              onValueChange={(val) => handleChange("status", val)}
+            >
+              <SelectTrigger id="filterStatus">
+                <SelectValue placeholder="Tất cả trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="true">Hoạt động</SelectItem>
+                <SelectItem value="false">Ngừng hoạt động</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClearFilters}
+            className="px-4"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Xóa bộ lọc
+          </Button>
+          <Button
+            type="submit"
+            className="px-6 bg-blue-600 hover:bg-blue-700"
+          >
+            <Search className="h-4 w-4 mr-1" />
+            Tìm kiếm
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
