@@ -1,5 +1,13 @@
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 
+export const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  OTHER: 'OTHER'
+} as const;
+
+export type Gender = typeof Gender[keyof typeof Gender];
+
 export type CustomerSummary = {
   id: number;
   fullName: string;
@@ -20,12 +28,6 @@ export type CustomerSummary = {
   createdAt: string;
   modifiedAt: string;
 };
-
-export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-  OTHER = 'OTHER'
-}
 export type UpdateCustomerProfileRequest = {
   fullName: string;
   phone: string;
@@ -47,8 +49,6 @@ export type MostPurchasedProduct = {
   count: number;
 };
 
-// src/types/customer.type.ts
-
 export type CreateCustomerRequest = {
   fullName: string;
   phone: string;
@@ -66,6 +66,6 @@ export type CustomerDetail = CustomerSummary  & {
   orders: Order[];
   mostPurchased: MostPurchasedProduct[];
 };
-export type CustomerResponse = ResponseApi<CustomerSummary >;
+export type CustomerResponse = ResponseApi<CustomerSummary>;
 export type CustomerDetailResponse = ResponseApi<CustomerDetail>;
 export type CustomerListResponse = ResponseApiWithPagination<CustomerSummary []>;

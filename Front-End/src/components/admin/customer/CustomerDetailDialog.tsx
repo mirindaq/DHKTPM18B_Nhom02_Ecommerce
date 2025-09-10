@@ -13,6 +13,7 @@ import { customerService } from "@/services/customer.service";
 import type {
   CustomerSummary,
   CustomerDetailResponse,
+  Gender,
 } from "@/types/customer.type";
 import {
   User,
@@ -52,7 +53,7 @@ export default function CustomerDetailDialog({
   const customerDetail = detailData?.data;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getGenderText = (gender: string | undefined) => {
+  const getGenderText = (gender: Gender | undefined) => {
     switch (gender) {
       case "MALE":
         return "Nam";
