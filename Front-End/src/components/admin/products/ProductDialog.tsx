@@ -1,3 +1,4 @@
+import ProductForm from "@/components/admin/products/ProductForm";
 import {
   Dialog,
   DialogContent,
@@ -5,49 +6,46 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { CreateProductRequest, Product } from "@/types/product.type";
 
-import type { Brand, CreateBrandRequest } from "@/types/brand.type";
-import BrandForm from "./BrandForm";
-
-interface BrandDialogProps {
+interface ProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  brand?: Brand | null;
-  onSubmit: (data: CreateBrandRequest) => void;
+  product?: Product | null;
+  onSubmit: (data: CreateProductRequest) => void;
   isLoading?: boolean;
 }
 
-export default function BrandDialog({
+export default function ProductDialog({
   open,
   onOpenChange,
-  brand,
+  product,
   onSubmit,
   isLoading,
-}: BrandDialogProps) {
-  const handleSubmit = (data: CreateBrandRequest) => {
+}: ProductDialogProps) {
+  const handleSubmit = (data: CreateProductRequest) => {
     onSubmit(data);
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">
-            {brand ? "Chỉnh sửa thương hiệu" : "Thêm thương hiệu mới"}
+            {product ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            {brand
-              ? "Cập nhật thông tin thương hiệu"
-              : "Điền thông tin thương hiệu mới"}
+            {product
+              ? "Cập nhật thông tin sản phẩm"
+              : "Điền thông tin sản phẩm mới"}
           </DialogDescription>
         </DialogHeader>
 
-        <BrandForm
-          brand={brand}
+        <ProductForm
+          product={product}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isLoading={isLoading}
