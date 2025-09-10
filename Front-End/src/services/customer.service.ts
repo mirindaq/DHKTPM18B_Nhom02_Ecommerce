@@ -20,7 +20,16 @@ interface GetCustomersParams {
   status?: string;
 }
 export const customerService = {
-  getCustomers: async ({ page, size, name, email, phone, status }: GetCustomersParams) => {
+  getCustomers: async ({
+    page,
+    size,
+    name,
+    email,
+    phone,
+    status,
+    startDate,
+    endDate,
+  }: GetCustomersParams & { startDate?: string; endDate?: string }) => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: size.toString(),
@@ -29,13 +38,22 @@ export const customerService = {
     if (name) params.append("name", name);
     if (email) params.append("email", email);
     if (phone) params.append("phone", phone);
-    if (status) params.append("status", status);
+
+    // Status: append ngay cả khi false
+    if (status !== null && status !== undefined) {
+      params.append("status", status.toString());
+    }
+
+    // Date filters
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
 
     const response = await axiosClient.get<CustomerListResponse>(
       `/customers?${params.toString()}`
     );
     return response.data;
   },
+
 
 
 

@@ -35,6 +35,7 @@ export default function CustomerFilter({
     const payload = {
       ...filters,
       status: filters.status === "all" ? null : filters.status,
+    
     };
     onSearch(payload);
   };
