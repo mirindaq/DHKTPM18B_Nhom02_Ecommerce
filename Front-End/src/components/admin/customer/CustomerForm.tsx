@@ -153,10 +153,7 @@ export default function CustomerForm({
         <div className="relative">
           <img
             src={
-              preview ||
-              `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(
-                formData.fullName || "User"
-              )}`
+              preview || "/assets/avatar.jpg"
             }
             alt="Avatar"
             className="h-28 w-28 rounded-full object-cover border-2"

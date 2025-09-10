@@ -70,8 +70,8 @@ export default function CustomerDetailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-w-[90vw] p-6">
         <DialogHeader>
-          <DialogTitle className="text-3xl">Chi tiết khách hàng</DialogTitle>
-          <DialogDescription className="text-lg mt-1">
+          <DialogTitle className="">Chi tiết khách hàng</DialogTitle>
+          <DialogDescription className="text-base mt-1">
             Thông tin chi tiết của khách hàng{" "}
             <strong>{customer?.fullName}</strong>
           </DialogDescription>
@@ -89,10 +89,7 @@ export default function CustomerDetailDialog({
               >
                 <img
                   src={
-                    customerDetail.avatar ||
-                    `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(
-                      customerDetail.fullName
-                    )}`
+                    customerDetail.avatar || "/assets/avatar.jpg"
                   }
                   alt={customerDetail.fullName}
                   className="h-32 w-32 rounded-full object-cover border-2 border-gray-200 shadow-sm"
@@ -117,7 +114,7 @@ export default function CustomerDetailDialog({
             </div>
 
             {/* Thông tin chi tiết */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-base">
               <div className="flex items-center gap-3">
                 <Phone className="text-gray-400" />{" "}
                 <span className="font-medium text-gray-500">Số điện thoại:</span>

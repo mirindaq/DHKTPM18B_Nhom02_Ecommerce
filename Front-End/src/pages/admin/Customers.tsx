@@ -157,9 +157,8 @@ export default function Customers() {
       <CustomerDialog
         open={isAddEditDialogOpen}
         onOpenChange={(open) => {
-          if (!open) setEditingCustomer(null);
           setIsAddEditDialogOpen(open);
-      }}
+        }}
         customer={editingCustomer}
         onSubmit={handleFormSubmit}
         isLoading={createCustomerMutation.isLoading || updateCustomerMutation.isLoading}

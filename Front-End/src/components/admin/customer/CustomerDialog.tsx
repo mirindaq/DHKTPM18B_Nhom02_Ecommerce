@@ -13,7 +13,7 @@ interface CustomerDialogProps {
 export default function CustomerDialog({ open, onOpenChange, customer, onSubmit, isLoading }: CustomerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="min-w-[700px]">
         <DialogHeader>
           <DialogTitle>{customer ? "Chỉnh sửa khách hàng" : "Thêm khách hàng mới"}</DialogTitle>
         </DialogHeader>
