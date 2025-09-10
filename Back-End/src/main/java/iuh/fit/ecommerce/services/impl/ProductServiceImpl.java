@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductResponse createProduct(ProductAddRequest productAddRequest) {
+    public void createProduct(ProductAddRequest productAddRequest) {
         if(productRepository.existsByName(productAddRequest.getName())){
             throw new ConflictException("Product name already exists with name: " + productAddRequest.getName());
         }
@@ -47,8 +47,6 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
 
         saveVariants(productAddRequest.getVariants(), product);
-
-        return productMapper.toResponse(product);
     }
 
     @Override
@@ -65,7 +63,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductResponse getProductBySlug(String slug) {
+        Product product = productRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " +  slug));
+        return productMapper.toResponse(product);
+    }
+
+    @Override
     public ProductResponse updateProductById(Long id) {
+
         return null;
     }
 
@@ -79,28 +85,31 @@ public class ProductServiceImpl implements ProductService {
         productMapper.requestToEntity(request, product);
 
         product.setBrand(brand);
+        product.setRating(0.0);
         product.setCategory(category);
         product.setSlug(StringUtils.normalizeString(request.getName()));
 
-        product.setProductImages(buildImages(request.getProductImages()));
-        product.setAttributes(buildAttributes(request.getAttributes()));
+        product.setProductImages(buildImages(request.getProductImages(), product));
+        product.setAttributes(buildAttributes(request.getAttributes(), product));
 
         return product;
     }
 
-    private List<ProductImage> buildImages(List<String> urls) {
+    private List<ProductImage> buildImages(List<String> urls, Product product) {
         return urls.stream()
                 .map(url -> ProductImage.builder()
                         .url(url)
+                        .product(product)
                         .build())
                 .toList();
     }
 
-    private List<ProductAttributeValue> buildAttributes(List<ProductAttributeRequest> attrs) {
+    private List<ProductAttributeValue> buildAttributes(List<ProductAttributeRequest> attrs, Product product) {
         return attrs.stream()
                 .map(attr -> ProductAttributeValue.builder()
                         .value(attr.getValue())
                         .status(true)
+                        .product(product)
                         .attribute(attributeService.getAttributeEntityById(attr.getAttributeId()))
                         .build())
                 .toList();

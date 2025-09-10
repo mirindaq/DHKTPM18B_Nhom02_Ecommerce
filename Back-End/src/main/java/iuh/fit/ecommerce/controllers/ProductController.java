@@ -25,11 +25,12 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping("")
-    public ResponseEntity<ResponseSuccess<ProductResponse>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
+    public ResponseEntity<ResponseSuccess<?>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
+        productService.createProduct(productAddRequest);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Create product success",
-                productService.createProduct(productAddRequest)
+                null
         ));
     }
 
@@ -51,6 +52,15 @@ public class ProductController {
                 OK,
                 "Get product detail success",
                 productService.getProductById(id)
+        ));
+    }
+
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<ResponseSuccess<ProductResponse>> getProductBySlug(@PathVariable String slug) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get product detail by slug success",
+                productService.getProductBySlug(slug)
         ));
     }
 

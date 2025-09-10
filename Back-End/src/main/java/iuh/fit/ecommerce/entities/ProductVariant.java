@@ -34,4 +34,7 @@ public class ProductVariant extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @OneToMany(mappedBy = "productVariant")
+    private List<ProductVariantValue> productVariantValues;
+
 }

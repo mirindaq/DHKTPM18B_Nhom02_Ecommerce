@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -57,14 +58,14 @@ public class Product extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL ,orphanRemoval = true)
-    private List<ProductAttributeValue> attributes;
+    private List<ProductAttributeValue> attributes = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "product",
             fetch = FetchType.LAZY,
             cascade = { CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-    private List<ProductImage> productImages;
+    private List<ProductImage> productImages = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL ,orphanRemoval = true)
-    private List<ProductVariant> productVariants;
+    private List<ProductVariant> productVariants = new ArrayList<>();
 }
