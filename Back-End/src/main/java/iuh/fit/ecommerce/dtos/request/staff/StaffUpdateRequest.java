@@ -32,6 +32,6 @@ public class StaffUpdateRequest {
 
     private WorkStatus workStatus;
 
-//    private List<UserRole> userRole;
+    private List<Long> roleIds;
 }
 

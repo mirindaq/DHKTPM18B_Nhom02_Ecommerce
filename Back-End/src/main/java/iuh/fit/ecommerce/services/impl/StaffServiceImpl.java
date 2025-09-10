@@ -4,11 +4,13 @@ import iuh.fit.ecommerce.dtos.request.staff.StaffAddRequest;
 import iuh.fit.ecommerce.dtos.request.staff.StaffUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.staff.StaffResponse;
+import iuh.fit.ecommerce.entities.Role;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.entities.UserRole;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.StaffMapper;
+import iuh.fit.ecommerce.repositories.RoleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
 import iuh.fit.ecommerce.services.StaffService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +21,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class StaffServiceImpl implements StaffService {
 
+    private final RoleRepository roleRepository;
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
 
@@ -34,11 +39,8 @@ public class StaffServiceImpl implements StaffService {
         if (staffRepository.existsByEmail(staffAddRequest.getEmail())) {
             throw new ConflictException("Email already exists");
         }
-        Staff staff = new Staff();
-        mapAddRequestToStaff(staffAddRequest, staff);
-        for (UserRole ur : staff.getUserRole()) {
-            ur.setUser(staff);
-        }
+        Staff staff = mapAddRequestToStaff(staffAddRequest);
+
         staffRepository.save(staff);
 
         return staffMapper.toResponse(staff);
@@ -99,18 +101,24 @@ public class StaffServiceImpl implements StaffService {
     }
 
 
-    private void mapAddRequestToStaff(StaffAddRequest staffAddRequest, Staff staff) {
-        staff.setAddress(staffAddRequest.getAddress());
-        staff.setAvatar(staffAddRequest.getAvatar());
-        staff.setEmail(staffAddRequest.getEmail());
-        staff.setFullName(staffAddRequest.getFullName());
-        staff.setPassword(staffAddRequest.getPassword());
-        staff.setPhone(staffAddRequest.getPhone());
-        staff.setDateOfBirth(staffAddRequest.getDateOfBirth());
-        staff.setActive(staffAddRequest.isActive());
-        staff.setUserRole(staffAddRequest.getUserRole());
-        staff.setJoinDate(staffAddRequest.getJoinDate());
-        staff.setWorkStatus(staffAddRequest.getWorkStatus());
+    private Staff mapAddRequestToStaff(StaffAddRequest staffAddRequest) {
+        Staff staff = Staff.builder()
+                .address(staffAddRequest.getAddress())
+                .avatar(staffAddRequest.getAvatar())
+                .email(staffAddRequest.getEmail())
+                .fullName(staffAddRequest.getFullName())
+                .password(staffAddRequest.getPassword())
+                .phone(staffAddRequest.getPhone())
+                .dateOfBirth(staffAddRequest.getDateOfBirth())
+                .active(staffAddRequest.isActive())
+                .joinDate(staffAddRequest.getJoinDate())
+                .workStatus(staffAddRequest.getWorkStatus())
+                .build();
+
+        List<UserRole> userRoles = mapRoleIdsToUserRoles(staffAddRequest.getRoleIds(), staff);
+        staff.setUserRole(userRoles);
+
+        return staff;
     }
 
     private void mapUpdateRequestToStaff(StaffUpdateRequest staffUpdateRequest, Staff staff) {
@@ -121,7 +129,34 @@ public class StaffServiceImpl implements StaffService {
         staff.setDateOfBirth(staffUpdateRequest.getDateOfBirth());
         staff.setJoinDate(staffUpdateRequest.getJoinDate());
         staff.setWorkStatus(staffUpdateRequest.getWorkStatus());
-//        staff.setUserRole(staffUpdateRequest.getUserRole());
+
+        // Map roles mới nếu có
+        if (staffUpdateRequest.getRoleIds() != null) {
+            staff.getUserRole().clear();
+
+            // Map sang roles mới
+            List<UserRole> newUserRoles = mapRoleIdsToUserRoles(staffUpdateRequest.getRoleIds(), staff);
+            staff.setUserRole(newUserRoles);
+        }
     }
+
+
+    private List<UserRole> mapRoleIdsToUserRoles(List<Long> roleIds, Staff staff) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Role> roles = roleRepository.findAllByIdIn(roleIds);
+
+        return roles.stream()
+                .map(role -> {
+                    UserRole ur = new UserRole();
+                    ur.setRole(role);
+                    ur.setUser(staff); // gán staff để mapping 2 chiều
+                    return ur;
+                })
+                .collect(Collectors.toList());
+    }
+
 
 }

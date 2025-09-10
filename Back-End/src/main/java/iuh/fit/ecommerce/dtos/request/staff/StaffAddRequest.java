@@ -36,7 +36,7 @@ public class StaffAddRequest {
 
     private boolean active;
 
-    private List<UserRole> userRole;
+    private List<Long> roleIds;
 
     private LocalDate joinDate;
 
