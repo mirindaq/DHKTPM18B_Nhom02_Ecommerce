@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services;
 
+import iuh.fit.ecommerce.entities.Category;
 import jakarta.validation.Valid;
 import iuh.fit.ecommerce.dtos.request.category.CategoryAddRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
@@ -18,4 +19,5 @@ public interface CategoryService {
     CategoryResponse updateCategory(Long id, @Valid CategoryAddRequest request);
 
     void changeStatusCategory(Long id);
+    Category getCategoryEntityById(Long id);
 }

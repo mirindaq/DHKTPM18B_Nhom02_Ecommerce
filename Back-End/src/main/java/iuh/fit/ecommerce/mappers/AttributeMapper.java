@@ -7,7 +7,6 @@ import iuh.fit.ecommerce.entities.Attribute;
 
 @Mapper(componentModel = "spring")
 public interface AttributeMapper {
-    @Mapping(source = "category.name", target = "categoryName")
     AttributeResponse toResponse(Attribute attribute);
 
 //    @Named("mapActiveAttributes")

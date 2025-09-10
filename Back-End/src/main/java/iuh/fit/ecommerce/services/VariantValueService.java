@@ -15,4 +15,5 @@ public interface VariantValueService {
     List<VariantValue> createValues(List<VariantValueAddRequest> variantValues, Variant variant);
 
     List<VariantValue> updateValue(List<VariantValueAddRequest> variantValues, Variant variant);
+    VariantValue getVariantValueEntityById(Long id);
 }
