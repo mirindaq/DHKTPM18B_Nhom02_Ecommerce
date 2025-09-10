@@ -65,7 +65,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 
     @Override
-    public ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String name, String phone, String email, Boolean status) {
+    public ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String name, String phone, String email, Boolean status, LocalDate startDate, LocalDate endDate ) {
         page = page > 0 ? page - 1 : page;
         Pageable pageable = PageRequest.of(page, limit);
 
@@ -73,7 +73,7 @@ public class CustomerServiceImpl implements CustomerService {
         phone = (phone != null && !phone.isBlank()) ? phone : null;
         email = (email != null && !email.isBlank()) ? email : null;
 
-        Page<Customer> customerPage = customerRepository.searchCustomers(name, phone, email, status, pageable);
+        Page<Customer> customerPage = customerRepository.searchCustomers(name, phone, email, status, startDate, endDate, pageable);
         return ResponseWithPagination.fromPage(customerPage, customerMapper::toResponse);
     }
 

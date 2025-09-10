@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
@@ -16,10 +18,15 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             "(:name IS NULL OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
             "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-            "(:status IS NULL OR c.active = :status)")
+            "(:status IS NULL OR c.active = :status) AND "+
+            "(:startDate IS NULL OR c.registerDate >= :startDate) AND " +
+            "(:endDate IS NULL OR c.registerDate <= :endDate)")
+
     Page<Customer> searchCustomers(@Param("name") String name,
                                    @Param("phone") String phone,
                                    @Param("email") String email,
                                    @Param("status") Boolean status,
+                                   @Param("startDate") LocalDate startDate,
+                                   @Param("endDate") LocalDate endDate,
                                    Pageable pageable);
 }

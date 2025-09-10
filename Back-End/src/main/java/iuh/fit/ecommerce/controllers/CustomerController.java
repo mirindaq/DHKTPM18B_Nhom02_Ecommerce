@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -48,13 +49,14 @@ public class CustomerController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) Boolean status)
-
+            @RequestParam(required = false) Boolean status,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate)
     {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customers success",
-                customerService.getAllCustomers(page, limit, name, phone, email, status)
+                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate)
         ));
     }
 
@@ -80,7 +82,7 @@ public class CustomerController {
 
     @PutMapping("/change-status/{id}")
     public ResponseEntity<ResponseSuccess<Void>> changeStatusCustomer(@PathVariable Long id) {
-        customerService.changeActiveCustomer(id);
+        customerService.changeStatusCustomer(id);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Change status customer success",
