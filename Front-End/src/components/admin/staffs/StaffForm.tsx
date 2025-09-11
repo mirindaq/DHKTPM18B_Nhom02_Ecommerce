@@ -30,6 +30,7 @@ interface StaffFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   isEdit?: boolean;
+  open: boolean;
 }
 
 function mapWorkStatusToApi(value: WorkStatus) {
@@ -51,6 +52,7 @@ export default function StaffForm({
   isLoading = false,
   isEdit = false,
 }: StaffFormProps) {
+  console.log("StaffForm mounted with staff:", staff);
   const [formData, setFormData] = useState<CreateStaffRequest>({
     fullName: "",
     email: "",
@@ -61,7 +63,7 @@ export default function StaffForm({
     dateOfBirth: "",
     active: true,
     joinDate: "",
-    workStatus: "ACTIVE" as WorkStatus,
+    workStatus: "ACTIVE", // 🔥 quan trọng
     roleIds: [],
   });
 
@@ -70,9 +72,30 @@ export default function StaffForm({
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
+    if (!open) {
+      // dialog closed -> we can safely reset (optional)
+      if (!isEdit) {
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          phone: "",
+          address: "",
+          avatar: "",
+          dateOfBirth: "",
+          active: true,
+          joinDate: "",
+          workStatus: "ACTIVE",
+          roleIds: [],
+        });
+        setPreviewUrl("");
+      }
+      return;
+    }
+
+    // dialog opened -> initialize from staff (if exists) or defaults
     if (staff) {
-      setFormData((prev) => ({
-        ...prev,
+      setFormData({
         fullName: staff.fullName || "",
         email: staff.email || "",
         password: "",
@@ -82,14 +105,15 @@ export default function StaffForm({
         dateOfBirth: staff.dateOfBirth || "",
         active: staff.active ?? true,
         joinDate: staff.joinDate || "",
-        workStatus: (staff.workStatus?.trim() as WorkStatus) || "ACTIVE",
-        // fix: dùng trực tiếp
-        // roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
-      }));
+        workStatus: staff.workStatus
+          ? (String(staff.workStatus).toUpperCase().trim() as WorkStatus)
+          : "ACTIVE",
+        roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
+      });
       setPreviewUrl(staff.avatar || "");
     } else {
-      setFormData((prev) => ({
-        ...prev,
+      // opened for "create new"
+      setFormData({
         fullName: "",
         email: "",
         password: "",
@@ -100,10 +124,11 @@ export default function StaffForm({
         active: true,
         joinDate: "",
         workStatus: "ACTIVE",
-        // roleIds: [],
-      }));
+        roleIds: [],
+      });
+      setPreviewUrl("");
     }
-  }, [staff]);
+  }, [open, staff, isEdit]);
 
   const handleChange = (
     field: keyof CreateStaffRequest | keyof UpdateStaffRequest,
@@ -187,6 +212,9 @@ export default function StaffForm({
     setFormData((prev) => ({ ...prev, avatar: "" }));
   };
   console.log("formData.workStatus >>>", formData.workStatus);
+  console.log("Select value >>>", JSON.stringify(formData.workStatus));
+  console.log("Render Select với value:", formData.workStatus);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Họ và tên */}
@@ -298,8 +326,9 @@ export default function StaffForm({
           Trạng thái làm việc
         </Label>
         <Select
-          value={formData.workStatus ?? "ACTIVE"}
-          onValueChange={(v: WorkStatus) => handleChange("workStatus", v)}
+          key={formData.workStatus} // ép Select mount lại khi value đổi
+          value={formData.workStatus}
+          onValueChange={(v) => handleChange("workStatus", v as WorkStatus)}
         >
           <SelectTrigger className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500 w-full">
             <SelectValue placeholder="Chọn trạng thái" />

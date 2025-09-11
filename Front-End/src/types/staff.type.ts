@@ -44,7 +44,7 @@ export interface Staff {
   workStatus?: WorkStatus
   userRole: StaffUserRole[]
   createdAt?: string
-  updatedAt?: string
+  modifiedAt?: string
 }
 
 // Pagination payload that backend trả ra trong data của getStaffs

@@ -61,7 +61,7 @@ export default function StaffFilter({
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
       {/* Header */}
-    
+
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
         {/* Row 1: Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -144,7 +144,7 @@ export default function StaffFilter({
               value={filters.status}
               onValueChange={(val) => handleChange("status", val)}
             >
-              <SelectTrigger id="filterStatus">
+              <SelectTrigger id="filterStatus" className="w-full">
                 <SelectValue placeholder="Tất cả trạng thái" />
               </SelectTrigger>
               <SelectContent>
@@ -167,10 +167,7 @@ export default function StaffFilter({
             <X className="h-4 w-4 mr-1" />
             Xóa bộ lọc
           </Button>
-          <Button
-            type="submit"
-            className="px-6 bg-blue-600 hover:bg-blue-700"
-          >
+          <Button type="submit" className="px-6 bg-blue-600 hover:bg-blue-700">
             <Search className="h-4 w-4 mr-1" />
             Tìm kiếm
           </Button>

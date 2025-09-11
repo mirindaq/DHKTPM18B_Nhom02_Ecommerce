@@ -5,18 +5,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import StaffForm from "./StaffForm"
-import type { Staff, CreateStaffRequest, UpdateStaffRequest, UserRole } from "@/types/staff.type"
+} from "@/components/ui/dialog";
+import StaffForm from "./StaffForm";
+import type {
+  Staff,
+  CreateStaffRequest,
+  UpdateStaffRequest,
+  UserRole,
+} from "@/types/staff.type";
 
 interface StaffDialogProps {
-  open: boolean
-  onClose: () => void
-  onSubmit: (data: CreateStaffRequest | UpdateStaffRequest) => void
-  staff: Staff | null
-  roles: UserRole[]
-  isLoading?: boolean
-  isEdit?: boolean
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: CreateStaffRequest | UpdateStaffRequest) => void;
+  staff: Staff | null;
+  roles: UserRole[];
+  isLoading?: boolean;
+  isEdit?: boolean;
 }
 
 export default function StaffDialog({
@@ -29,18 +34,26 @@ export default function StaffDialog({
   isEdit = false,
 }: StaffDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent className="min-w-3xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}
+          </DialogTitle>
         </DialogHeader>
 
         <StaffForm
+          open={open}
           staff={staff}
           roles={roles}
           onSubmit={(data) => {
-            onSubmit(data)
-            // không tự đóng ở đây; caller sẽ đóng khi mutation thành công.
+            onSubmit(data);
+            // caller sẽ đóng khi mutation thành công
           }}
           onCancel={onClose}
           isLoading={isLoading}
@@ -50,5 +63,5 @@ export default function StaffDialog({
         <DialogFooter />
       </DialogContent>
     </Dialog>
-  )
+  );
 }
