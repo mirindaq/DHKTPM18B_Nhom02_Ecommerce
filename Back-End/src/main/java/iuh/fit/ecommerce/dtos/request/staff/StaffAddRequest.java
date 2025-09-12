@@ -1,8 +1,9 @@
 package iuh.fit.ecommerce.dtos.request.staff;
 
-import iuh.fit.ecommerce.entities.UserRole;
 import iuh.fit.ecommerce.enums.WorkStatus;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -15,12 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 public class StaffAddRequest {
 
-    @NotBlank(message = "Address is required")
     private String address;
 
     private String avatar;
 
     @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
     @NotBlank(message = "Full name is required")
@@ -30,6 +31,7 @@ public class StaffAddRequest {
     private String password;
 
     @NotBlank(message = "Phone is required")
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must have 10 digist")
     private String phone;
 
     private LocalDate dateOfBirth;

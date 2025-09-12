@@ -52,7 +52,6 @@ export default function StaffForm({
   isLoading = false,
   isEdit = false,
 }: StaffFormProps) {
-  console.log("StaffForm mounted with staff:", staff);
   const [formData, setFormData] = useState<CreateStaffRequest>({
     fullName: "",
     email: "",
@@ -176,9 +175,8 @@ export default function StaffForm({
           dateOfBirth: formData.dateOfBirth,
           joinDate: formData.joinDate,
           workStatus: mapWorkStatusToApi(formData.workStatus ?? "ACTIVE"), // map lại trước khi gọi API
-          // roleIds: formData.roleIds,
+          roleIds: formData.roleIds,
         };
-        console.log("updateData >>>", updateData);
         onSubmit(updateData);
       } else {
         // ✅ Create staff
@@ -187,7 +185,6 @@ export default function StaffForm({
           avatar: finalAvatarUrl,
           workStatus: mapWorkStatusToApi(formData.workStatus ?? "ACTIVE"), // map lại trước khi gọi API
         };
-        console.log("createData >>>", createData);
         onSubmit(createData);
       }
     } catch (error) {
@@ -211,9 +208,6 @@ export default function StaffForm({
     setPreviewUrl("");
     setFormData((prev) => ({ ...prev, avatar: "" }));
   };
-  console.log("formData.workStatus >>>", formData.workStatus);
-  console.log("Select value >>>", JSON.stringify(formData.workStatus));
-  console.log("Render Select với value:", formData.workStatus);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
