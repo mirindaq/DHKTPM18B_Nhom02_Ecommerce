@@ -1,407 +1,287 @@
 // src/components/admin/staffs/StaffForm.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import type {
-  CreateStaffRequest,
-  UpdateStaffRequest,
-  Staff,
-  UserRole,
-  WorkStatus,
-} from "@/types/staff.type";
+import type { CreateStaffRequest, UpdateStaffRequest, Staff, UserRole, WorkStatus } from "@/types/staff.type";
 import { DatePicker } from "@/components/ui/date-picker";
 import { uploadService } from "@/services/upload.service";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Camera } from "lucide-react";
 
 interface StaffFormProps {
-  staff?: Staff | null;
+  staff: Staff | null;
   roles: UserRole[];
   onSubmit: (data: CreateStaffRequest | UpdateStaffRequest) => void;
   onCancel: () => void;
-  isLoading?: boolean;
+  isLoading: boolean;
   isEdit?: boolean;
-  open: boolean;
 }
 
-function mapWorkStatusToApi(value: WorkStatus) {
-  switch (value) {
-    case "ACTIVE":
-      return "ACTIVE"; // hoặc "1"
-    case "INACTIVE":
-      return "INACTIVE"; // hoặc "0"
-    case "PROBATION":
-      return "PROBATION";
+const getInitialFormData = (staff: Staff | null): CreateStaffRequest & Partial<UpdateStaffRequest> => {
+  if (staff) {
+    return {
+      fullName: staff.fullName ?? "",
+      email: staff.email ?? "",
+      phone: staff.phone ?? "",
+      address: staff.address ?? "",
+      dateOfBirth: staff.dateOfBirth ?? "",
+      joinDate: staff.joinDate ?? "",
+      workStatus: staff.workStatus ?? "ACTIVE",
+      roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
+      avatar: staff.avatar ?? "",
+      password: "",
+      active: staff.active ?? true,
+    };
   }
-}
+
+  return {
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    address: "",
+    dateOfBirth: "",
+    joinDate: "",
+    workStatus: "ACTIVE",
+    roleIds: [],
+    avatar: "",
+    active: true,
+  };
+};
 
 export default function StaffForm({
   staff,
   roles,
   onSubmit,
   onCancel,
-  isLoading = false,
+  isLoading,
   isEdit = false,
 }: StaffFormProps) {
-  const [formData, setFormData] = useState<CreateStaffRequest>({
-    fullName: "",
-    email: "",
-    password: "",
-    phone: "",
-    address: "",
-    avatar: "",
-    dateOfBirth: "",
-    active: true,
-    joinDate: "",
-    workStatus: "ACTIVE", // 🔥 quan trọng
-    roleIds: [],
-  });
-
+  const [formData, setFormData] = useState(() => getInitialFormData(staff));
+  const [preview, setPreview] = useState<string | null>(staff?.avatar || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      // dialog closed -> we can safely reset (optional)
-      if (!isEdit) {
-        setFormData({
-          fullName: "",
-          email: "",
-          password: "",
-          phone: "",
-          address: "",
-          avatar: "",
-          dateOfBirth: "",
-          active: true,
-          joinDate: "",
-          workStatus: "ACTIVE",
-          roleIds: [],
-        });
-        setPreviewUrl("");
-      }
-      return;
-    }
-
-    // dialog opened -> initialize from staff (if exists) or defaults
-    if (staff) {
-      setFormData({
-        fullName: staff.fullName || "",
-        email: staff.email || "",
-        password: "",
-        phone: staff.phone || "",
-        address: staff.address || "",
-        avatar: staff.avatar || "",
-        dateOfBirth: staff.dateOfBirth || "",
-        active: staff.active ?? true,
-        joinDate: staff.joinDate || "",
-        workStatus: staff.workStatus
-          ? (String(staff.workStatus).toUpperCase().trim() as WorkStatus)
-          : "ACTIVE",
-        roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
-      });
-      setPreviewUrl(staff.avatar || "");
-    } else {
-      // opened for "create new"
-      setFormData({
-        fullName: "",
-        email: "",
-        password: "",
-        phone: "",
-        address: "",
-        avatar: "",
-        dateOfBirth: "",
-        active: true,
-        joinDate: "",
-        workStatus: "ACTIVE",
-        roleIds: [],
-      });
-      setPreviewUrl("");
-    }
-  }, [open, staff, isEdit]);
-
-  const handleChange = (
-    field: keyof CreateStaffRequest | keyof UpdateStaffRequest,
-    value: any
-  ) => {
+  const handleValueChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleRoleChange = (roleId: number, checked: boolean) => {
-    setFormData((prev) => {
-      const roleIds = checked
-        ? [...(prev.roleIds || []), roleId]
-        : (prev.roleIds || []).filter((id) => id !== roleId);
-      return { ...prev, roleIds };
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      let finalAvatarUrl = formData.avatar;
-
-      // ✅ Xử lý upload avatar nếu có file mới
-      if (selectedFile) {
-        setIsUploading(true);
-        const uploadResponse = await uploadService.uploadImage([selectedFile]);
-        if (uploadResponse.data && uploadResponse.data.length > 0) {
-          finalAvatarUrl = uploadResponse.data[0];
-        } else {
-          toast.error("Không thể upload hình ảnh");
-          setIsUploading(false);
-          return;
-        }
-        setIsUploading(false);
-      }
-
-      if (isEdit) {
-        // ✅ Update staff
-        const updateData: UpdateStaffRequest = {
-          fullName: formData.fullName,
-          phone: formData.phone,
-          address: formData.address,
-          avatar: finalAvatarUrl,
-          dateOfBirth: formData.dateOfBirth,
-          joinDate: formData.joinDate,
-          workStatus: mapWorkStatusToApi(formData.workStatus ?? "ACTIVE"), // map lại trước khi gọi API
-          roleIds: formData.roleIds,
-        };
-        onSubmit(updateData);
-      } else {
-        // ✅ Create staff
-        const createData: CreateStaffRequest = {
-          ...formData,
-          avatar: finalAvatarUrl,
-          workStatus: mapWorkStatusToApi(formData.workStatus ?? "ACTIVE"), // map lại trước khi gọi API
-        };
-        onSubmit(createData);
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Có lỗi xảy ra khi upload hình ảnh");
-      setIsUploading(false);
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setPreview(URL.createObjectURL(file));
     }
   };
 
-  const removeImage = () => {
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setFormData((prev) => ({ ...prev, avatar: "" }));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let finalAvatarUrl = staff?.avatar || "";
+    if (selectedFile) {
+      setIsUploading(true);
+      try {
+        const uploadResponse = await uploadService.uploadImage([selectedFile]);
+        finalAvatarUrl = uploadResponse.data[0];
+      } catch (error) {
+        toast.error("Upload ảnh đại diện thất bại.");
+        setIsUploading(false);
+        return;
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    // Nếu chưa có avatar thì gán avatar mặc định
+    if (!finalAvatarUrl) {
+      finalAvatarUrl = "/assets/avatar.jpg";
+    }
+
+    if (isEdit && staff) {
+      const payload: UpdateStaffRequest = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        address: formData.address,
+        avatar: finalAvatarUrl,
+        dateOfBirth: formData.dateOfBirth,
+        joinDate: formData.joinDate,
+        workStatus: formData.workStatus as WorkStatus,
+        roleIds: formData.roleIds,
+      };
+      onSubmit(payload);
+    } else {
+      const payload: CreateStaffRequest = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password!,
+        address: formData.address,
+        dateOfBirth: formData.dateOfBirth,
+        joinDate: formData.joinDate,
+        workStatus: formData.workStatus as WorkStatus,
+        roleIds: formData.roleIds,
+        avatar: finalAvatarUrl,
+        active: true,
+      };
+      onSubmit(payload);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Họ và tên */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label
-          htmlFor="fullName"
-          className="text-right font-medium text-gray-700"
-        >
-          Họ và tên <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="fullName"
-          value={formData.fullName}
-          onChange={(e) => handleChange("fullName", e.target.value)}
-          className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          placeholder="Họ và tên"
-          required
-        />
-      </div>
-
-      {/* Số điện thoại */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="phone" className="text-right font-medium text-gray-700">
-          Số điện thoại <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="phone"
-          value={formData.phone}
-          onChange={(e) => handleChange("phone", e.target.value)}
-          className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          placeholder="Số điện thoại"
-          required
-        />
-      </div>
-
-      {/* Email + Password */}
-      {!isEdit && (
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right font-medium text-gray-700">
-            Tài khoản <span className="text-red-500">*</span>
-          </Label>
-          <div className="col-span-3 grid grid-cols-2 gap-4">
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              required
-              placeholder="Email"
-              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              required
-              placeholder="Mật khẩu"
-              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Địa chỉ */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label
-          htmlFor="address"
-          className="text-right font-medium text-gray-700"
-        >
-          Địa chỉ
-        </Label>
-        <Input
-          id="address"
-          value={formData.address}
-          onChange={(e) => handleChange("address", e.target.value)}
-          className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          placeholder="Địa chỉ"
-        />
-      </div>
-
-      {/* Ngày sinh + Ngày vào làm */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right font-medium text-gray-700">
-          Thời gian
-        </Label>
-        <div className="col-span-3 grid grid-cols-2 gap-4">
-          <DatePicker
-            id="dateOfBirth"
-            value={formData.dateOfBirth}
-            onChange={(val) => handleChange("dateOfBirth", val)}
-            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          />
-          <DatePicker
-            id="joinDate"
-            value={formData.joinDate}
-            onChange={(val) => handleChange("joinDate", val)}
-            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
-      {/* Trạng thái làm việc */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label
-          htmlFor="workStatus"
-          className="text-right font-medium text-gray-700"
-        >
-          Trạng thái làm việc
-        </Label>
-        <Select
-          key={formData.workStatus} // ép Select mount lại khi value đổi
-          value={formData.workStatus}
-          onValueChange={(v) => handleChange("workStatus", v as WorkStatus)}
-        >
-          <SelectTrigger className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500 w-full">
-            <SelectValue placeholder="Chọn trạng thái" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ACTIVE">Đang làm</SelectItem>
-            <SelectItem value="INACTIVE">Nghỉ việc</SelectItem>
-            <SelectItem value="PROBATION">Thử việc</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Avatar */}
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label className="text-right font-medium text-gray-700 pt-2">
-          Ảnh đại diện
-        </Label>
-        <div className="col-span-3 space-y-3">
-          <Input
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          <img
+            src={preview ?? "/assets/avatar.jpg"}
+            alt="Avatar"
+            className="h-28 w-28 rounded-full object-cover border-2"
+          />
+
+          <label
+            htmlFor="staff-image-upload"
+            className="absolute bottom-0 right-0 bg-gray-800 p-2 rounded-full cursor-pointer hover:bg-gray-700"
+          >
+            <Camera className="h-4 w-4 text-white" />
+          </label>
+          <input
+            id="staff-image-upload"
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            disabled={isLoading || isUploading}
+            className="hidden"
           />
-          {previewUrl && (
-            <div className="relative inline-block">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-32 h-32 object-cover rounded-lg border border-gray-200"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={removeImage}
-                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-red-500 text-white hover:bg-red-600 border-0"
-              >
-                X
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Vai trò */}
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label className="text-right font-medium text-gray-700">Vai trò</Label>
-        <div className="col-span-3 grid grid-cols-2 gap-2">
-          {roles.map((role) => (
-            <label key={role.id} className="flex items-center space-x-2">
-              <Checkbox
-                checked={(formData.roleIds || []).includes(role.id)}
-                onCheckedChange={(checked) =>
-                  handleRoleChange(role.id, checked === true)
-                }
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label>Họ và tên *</Label>
+          <Input
+            defaultValue={formData.fullName}
+            onChange={(e) => handleValueChange("fullName", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Số điện thoại *</Label>
+          <Input
+            defaultValue={formData.phone}
+            onChange={(e) => handleValueChange("phone", e.target.value)}
+          />
+        </div>
+
+        {!isEdit && (
+          <>
+            <div className="space-y-1">
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                defaultValue={formData.email}
+                onChange={(e) => handleValueChange("email", e.target.value)}
               />
-              <span>{role.name}</span>
-            </label>
-          ))}
+            </div>
+
+            <div className="space-y-1">
+              <Label>Mật khẩu *</Label>
+              <Input
+                type="password"
+                onChange={(e) => handleValueChange("password", e.target.value)}
+              />
+            </div>
+          </>
+        )}
+
+        <div className="space-y-1">
+          <Label>Địa chỉ</Label>
+          <Input
+            defaultValue={formData.address}
+            onChange={(e) => handleValueChange("address", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Ngày sinh</Label>
+          <DatePicker
+            id="dateOfBirth"
+            value={formData.dateOfBirth}
+            onChange={(val) => handleValueChange("dateOfBirth", val)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Ngày vào làm</Label>
+          <DatePicker
+            id="joinDate"
+            value={formData.joinDate}
+            onChange={(val) => handleValueChange("joinDate", val)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Trạng thái làm việc</Label>
+          <Select
+            defaultValue={formData.workStatus}
+            onValueChange={(value: WorkStatus) => handleValueChange("workStatus", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACTIVE">Đang làm</SelectItem>
+              <SelectItem value="INACTIVE">Nghỉ việc</SelectItem>
+              <SelectItem value="PROBATION">Thử việc</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1 md:col-span-2">
+          <Label>Vai trò</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {roles.map((role) => (
+              <label key={role.id} className="flex items-center space-x-2">
+                <Checkbox
+                  checked={(formData.roleIds || []).includes(role.id)}
+                  onCheckedChange={(checked) =>
+                    handleValueChange(
+                      "roleIds",
+                      checked
+                        ? [...(formData.roleIds || []), role.id]
+                        : (formData.roleIds || []).filter((id) => id !== role.id)
+                    )
+                  }
+                />
+                <span>{role.name}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Buttons */}
-      <div className="flex justify-end space-x-3 pt-4">
+      <div className="flex justify-end space-x-3 pt-4 border-t">
         <Button
-          type="submit"
+          type="button"
+          variant="outline"
+          onClick={onCancel}
           disabled={isLoading || isUploading}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
         >
+          Thoát
+        </Button>
+
+        <Button type="submit" disabled={isLoading || isUploading}>
           {isLoading || isUploading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Đang xử lý...
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Đang xử lý...
             </>
           ) : staff ? (
             "Cập nhật"
           ) : (
-            "Thêm"
+            "Tạo nhân viên"
           )}
         </Button>
       </div>

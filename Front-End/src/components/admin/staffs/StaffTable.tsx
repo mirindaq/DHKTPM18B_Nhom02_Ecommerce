@@ -108,7 +108,7 @@ export default function StaffTable({
                   <TableCell>
                     <div className="w-12 h-12 rounded-full overflow-hidden border">
                       <img
-                        src={staff.avatar || ""}
+                        src={staff.avatar?.trim() ? staff.avatar : "/assets/avatar.jpg"}
                         alt={staff.fullName}
                         className="w-full h-full object-cover"
                       />
