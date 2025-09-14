@@ -118,20 +118,21 @@ export default function StaffFilter({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 space-y-1">
             <Label className="text-sm text-gray-600">Ngày vào làm</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              {" "}
               <DatePicker
                 id="filterStartDate"
                 value={filters.startDate}
                 placeholder="Từ ngày"
                 onChange={(val) => handleChange("startDate", val)}
-                className="flex-1"
+                className="w-full" // đổi từ flex-1 thành w-full
               />
               <DatePicker
                 id="filterEndDate"
                 value={filters.endDate}
                 placeholder="Đến ngày"
                 onChange={(val) => handleChange("endDate", val)}
-                className="flex-1"
+                className="w-full" // đổi từ flex-1 thành w-full
               />
             </div>
           </div>

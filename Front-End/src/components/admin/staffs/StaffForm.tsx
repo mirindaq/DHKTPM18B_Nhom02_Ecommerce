@@ -3,9 +3,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { CreateStaffRequest, UpdateStaffRequest, Staff, UserRole, WorkStatus } from "@/types/staff.type";
+import type {
+  CreateStaffRequest,
+  UpdateStaffRequest,
+  Staff,
+  UserRole,
+  WorkStatus,
+} from "@/types/staff.type";
 import { DatePicker } from "@/components/ui/date-picker";
 import { uploadService } from "@/services/upload.service";
 import { toast } from "sonner";
@@ -20,7 +32,9 @@ interface StaffFormProps {
   isEdit?: boolean;
 }
 
-const getInitialFormData = (staff: Staff | null): CreateStaffRequest & Partial<UpdateStaffRequest> => {
+const getInitialFormData = (
+  staff: Staff | null
+): CreateStaffRequest & Partial<UpdateStaffRequest> => {
   if (staff) {
     return {
       fullName: staff.fullName ?? "",
@@ -65,6 +79,57 @@ export default function StaffForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const validateForm = (formData: any, isEdit: boolean): boolean => {
+    if (!formData.fullName.trim()) {
+      toast.error("Họ và tên không được để trống");
+      return false;
+    }
+
+    if (!isEdit) {
+      if (!formData.email.trim()) {
+        toast.error("Email không được để trống");
+        return false;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Email không đúng định dạng");
+        return false;
+      }
+
+      if (!formData.password.trim()) {
+        toast.error("Mật khẩu không được để trống");
+        return false;
+      }
+    }
+
+    if (!formData.phone.trim()) {
+      toast.error("Số điện thoại không được để trống");
+      return false;
+    }
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      toast.error("Số điện thoại phải gồm đúng 10 chữ số");
+      return false;
+    }
+
+    if (!formData.dateOfBirth) {
+      toast.error("Vui lòng chọn ngày sinh");
+      return false;
+    }
+
+    if (!formData.joinDate) {
+      toast.error("Vui lòng chọn ngày vào làm");
+      return false;
+    }
+
+    if (!formData.roleIds || formData.roleIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một vai trò");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleValueChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -79,6 +144,10 @@ export default function StaffForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm(formData, isEdit)) {
+      return;
+    }
 
     let finalAvatarUrl = staff?.avatar || "";
     if (selectedFile) {
@@ -180,7 +249,6 @@ export default function StaffForm({
             <div className="space-y-1">
               <Label>Email *</Label>
               <Input
-                type="email"
                 defaultValue={formData.email}
                 onChange={(e) => handleValueChange("email", e.target.value)}
               />
@@ -226,9 +294,11 @@ export default function StaffForm({
           <Label>Trạng thái làm việc</Label>
           <Select
             defaultValue={formData.workStatus}
-            onValueChange={(value: WorkStatus) => handleValueChange("workStatus", value)}
+            onValueChange={(value: WorkStatus) =>
+              handleValueChange("workStatus", value)
+            }
           >
-            <SelectTrigger>
+            <SelectTrigger className="col-span-3 border-gray-200 focus:border-blue-500 focus:ring-blue-500 w-full">
               <SelectValue placeholder="Chọn trạng thái" />
             </SelectTrigger>
             <SelectContent>
@@ -251,7 +321,9 @@ export default function StaffForm({
                       "roleIds",
                       checked
                         ? [...(formData.roleIds || []), role.id]
-                        : (formData.roleIds || []).filter((id) => id !== role.id)
+                        : (formData.roleIds || []).filter(
+                            (id) => id !== role.id
+                          )
                     )
                   }
                 />

@@ -107,7 +107,7 @@ export default function Staffs() {
   };
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setEditingStaff(null);
+    // setEditingStaff(null);
   };
   const handleFormSubmit = (data: CreateStaffRequest | UpdateStaffRequest) => {
     if (editingStaff) {

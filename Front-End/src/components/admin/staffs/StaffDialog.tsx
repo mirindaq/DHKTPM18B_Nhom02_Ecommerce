@@ -48,7 +48,6 @@ export default function StaffDialog({
         </DialogHeader>
 
         <StaffForm
-          open={open}
           staff={staff}
           roles={roles}
           onSubmit={(data) => {
@@ -56,7 +55,7 @@ export default function StaffDialog({
             // caller sẽ đóng khi mutation thành công
           }}
           onCancel={onClose}
-          isLoading={isLoading}
+          isLoading={!!isLoading}
           isEdit={isEdit}
         />
 
