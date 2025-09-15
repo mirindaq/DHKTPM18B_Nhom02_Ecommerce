@@ -16,6 +16,7 @@ export const ADMIN_PATH = {
   SETTINGS: "/admin/settings",
   ANALYTICS: "/admin/analytics",
   VARIANTS: "/admin/variants",
+  STAFFS: "/admin/staffs",
 };
 export const PUBLIC_PATH = {
   HOME: "/",

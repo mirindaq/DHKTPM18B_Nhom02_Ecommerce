@@ -127,7 +127,7 @@ export default function BrandTable({
                   <TableCell>
                     <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
                       <img
-                        src={brand.image || "/placeholder-image.png"}
+                        src={brand.image || "/  .png"}
                         alt={brand.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {

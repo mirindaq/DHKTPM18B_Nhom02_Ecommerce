@@ -15,6 +15,7 @@ import AdminLayout from "@/layouts/AdminLayout";
 import Brands from "@/pages/admin/Brands";
 import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path";
 import Variants from "@/pages/admin/Variants";
+import Staffs from "@/pages/admin/Staff";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -68,6 +69,10 @@ const useRouteElements = () => {
         {
           path: ADMIN_PATH.ANALYTICS,
           element: <Analytics />,
+        },
+        {
+          path: ADMIN_PATH.STAFFS,
+          element: <Staffs />,
         },
       ],
     },
