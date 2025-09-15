@@ -63,6 +63,7 @@ export default function StaffFilter({
       {/* Header */}
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <h2 className="font-semibold text-gray-700 text-base mb-4">Bộ lọc tìm kiếm</h2>
         {/* Row 1: Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1">

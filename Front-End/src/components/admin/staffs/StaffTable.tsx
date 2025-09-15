@@ -150,7 +150,7 @@ export default function StaffTable({
                           : "bg-gray-100 text-gray-800 border-gray-200"
                       }
                     >
-                      {staff.active ? "Hoạt động" : "Ngừng"}
+                      {staff.active ? "Hoạt động" : "Không hoạt động"}
                     </Badge>
                   </TableCell>
                   <TableCell>
