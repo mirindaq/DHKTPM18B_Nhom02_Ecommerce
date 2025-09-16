@@ -17,8 +17,8 @@ public class WishList {
     private Long id;
 
     @ManyToOne
-    @JoinColumn( name = "product_id" )
-    private Product productWishList;
+    @JoinColumn( name = "product_variant_id" )
+    private ProductVariant productVariant;
 
     @ManyToOne
     @JoinColumn( name = "user_id")

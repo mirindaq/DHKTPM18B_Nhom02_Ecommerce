@@ -91,7 +91,7 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public void changeActive(Long id) {
         Staff staff = getStaffEntityById(id);
-        staff.setActive(!staff.isActive());
+        staff.setActive(!staff.getActive());
         staffRepository.save(staff);
     }
 

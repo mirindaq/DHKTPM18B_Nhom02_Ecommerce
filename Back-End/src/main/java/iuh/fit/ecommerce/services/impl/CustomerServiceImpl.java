@@ -60,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponse getCustomerById(long id) {
         Customer customer = findById(id);
-        return CustomerResponse.fromCustomer(customer);
+        return customerMapper.toResponse(customer);
     }
 
 
@@ -85,12 +85,11 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setFullName(customerProfileRequest.getFullName());
         customer.setPhone(customerProfileRequest.getPhone());
         customer.setEmail(customerProfileRequest.getEmail());
-        customer.setGender(customerProfileRequest.getGender());
         customer.setAddress(customerProfileRequest.getAddress());
         customer.setAvatar(customerProfileRequest.getAvatar());
         customer.setDateOfBirth(customerProfileRequest.getDateOfBirth());
         userRepository.save(customer);
-        return CustomerResponse.fromCustomer(customer);
+        return customerMapper.toResponse(customer);
     }
 
 
@@ -110,7 +109,6 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public void changeStatusCustomer(Long id) {
         Customer customer = findById(id);
-        customer.setActive(!customer.isActive());
         customerRepository.save(customer);
     }
 

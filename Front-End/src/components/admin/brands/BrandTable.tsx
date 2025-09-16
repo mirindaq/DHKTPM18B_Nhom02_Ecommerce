@@ -127,12 +127,12 @@ export default function BrandTable({
                   <TableCell>
                     <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
                       <img
-                        src={brand.image || "/  .png"}
+                        src={brand.image || "/assets/avatar.jpg"}
                         alt={brand.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
-                          target.src = "/placeholder-image.png"
+                          target.src = "/assets/avatar.jpg"
                         }}
                       />
                     </div>

@@ -45,7 +45,7 @@ public class User {
     private LocalDate dateOfBirth;
 
     @Column
-    private boolean active;
+    private Boolean active;
 
     @Column
     private String refreshToken;

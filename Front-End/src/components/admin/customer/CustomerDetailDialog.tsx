@@ -13,10 +13,8 @@ import { customerService } from "@/services/customer.service";
 import type {
   CustomerSummary,
   CustomerDetailResponse,
-  Gender,
 } from "@/types/customer.type";
 import {
-  User,
   Mail,
   Phone,
   MapPin,
@@ -53,18 +51,6 @@ export default function CustomerDetailDialog({
   const customerDetail = detailData?.data;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getGenderText = (gender: Gender | undefined) => {
-    switch (gender) {
-      case "MALE":
-        return "Nam";
-      case "FEMALE":
-        return "Nữ";
-      case "OTHER":
-        return "Khác";
-      default:
-        return "Chưa cập nhật";
-    }
-  };
 
 
   return (
@@ -86,7 +72,7 @@ export default function CustomerDetailDialog({
             <div className="flex flex-col items-center text-center space-y-3">
               <div
                 className="relative group cursor-pointer"
-                
+
               >
                 <img
                   src={
@@ -102,7 +88,7 @@ export default function CustomerDetailDialog({
                   type="file"
                   accept="image/*"
                   ref={fileInputRef}
-                
+
                   className="hidden"
                 />
               </div>
@@ -162,13 +148,7 @@ export default function CustomerDetailDialog({
                 </span>
               </div>
 
-              <div className="flex items-center gap-3">
-                <User className="text-gray-400" />{" "}
-                <span className="font-medium text-gray-500">Giới tính:</span>
-                <span className="text-gray-900 font-semibold">
-                  {getGenderText(customerDetail.gender)}
-                </span>
-              </div>
+
             </div>
           </div>
         ) : (

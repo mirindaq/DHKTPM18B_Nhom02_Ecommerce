@@ -28,6 +28,6 @@ public class Brand extends BaseEntity{
     private String origin;
 
     @Column
-    private boolean status;
+    private Boolean status;
 
 }

@@ -69,7 +69,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public void changeStatusBrand(Long id) {
         Brand brand = getBrandEntityById(id);
-        brand.setStatus(!brand.isStatus());
+        brand.setStatus(!brand.getStatus());
         brandRepository.save(brand);
     }
     private Brand getBrandEntityById(Long id) {
