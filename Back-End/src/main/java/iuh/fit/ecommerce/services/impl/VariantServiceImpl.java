@@ -84,7 +84,7 @@ public class VariantServiceImpl implements VariantService {
     @Override
     public void changeStatusVariant(Long id) {
         Variant variant = findVariantOrThrow(id);
-        variant.setStatus(!variant.isStatus());
+        variant.setStatus(!variant.getStatus());
         variantRepository.save(variant);
     }
 

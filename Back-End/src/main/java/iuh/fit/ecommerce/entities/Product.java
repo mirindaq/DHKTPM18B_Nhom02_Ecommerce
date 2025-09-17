@@ -34,7 +34,7 @@ public class Product extends BaseEntity {
     private String thumbnail;
 
     @Column
-    private boolean status;
+    private Boolean status;
 
     @Column
     private Double rating;

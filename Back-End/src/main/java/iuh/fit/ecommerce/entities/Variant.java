@@ -22,7 +22,11 @@ public class Variant extends BaseEntity{
     private String name;
 
     @Column(nullable = false)
-    private boolean status = true;
+    private Boolean status = true;
+
+    @ManyToOne
+    @JoinColumn( name = "category_id", nullable = false)
+    private Category category;
 
     @OneToMany( mappedBy = "variant")
     private List<VariantValue> variantValues;
