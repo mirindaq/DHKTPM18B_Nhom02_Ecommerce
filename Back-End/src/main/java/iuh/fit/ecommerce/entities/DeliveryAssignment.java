@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -19,7 +20,6 @@ public class DeliveryAssignment extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column
     private LocalDate expectedDeliveryDate;
 
@@ -28,6 +28,9 @@ public class DeliveryAssignment extends BaseEntity{
 
     @Column
     private DeliveryStatus deliveryStatus;
+
+    @Column
+    private LocalDateTime deliveredAt;
 
     @Column
     private String note;
