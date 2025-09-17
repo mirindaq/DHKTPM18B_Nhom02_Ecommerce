@@ -55,5 +55,14 @@ public class ProductController {
         ));
     }
 
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<ResponseSuccess<ProductResponse>> getProductBySlug(@PathVariable String slug) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get product detail by slug success",
+                productService.getProductBySlug(slug)
+        ));
+    }
+
 
 }

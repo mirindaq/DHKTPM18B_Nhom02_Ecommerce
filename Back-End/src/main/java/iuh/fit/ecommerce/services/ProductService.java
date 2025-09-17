@@ -10,5 +10,6 @@ public interface ProductService {
     void createProduct(ProductAddRequest productAddRequest);
     ResponseWithPagination<List<ProductResponse>> getAllProducts(int page, int size);
     ProductResponse getProductById(Long id);
+    ProductResponse getProductBySlug(String slug);
     ProductResponse updateProductById(Long id);
 }

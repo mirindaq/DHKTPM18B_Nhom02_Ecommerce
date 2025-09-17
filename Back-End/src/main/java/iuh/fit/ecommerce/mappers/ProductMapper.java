@@ -14,7 +14,8 @@ import org.mapstruct.MappingTarget;
                 ProductVariantMapper.class,
                 VariantValueMapper.class,
                 AttributeMapper.class,
-                ProductImageMapper.class
+                ProductImageMapper.class,
+                ProductVariantValueMapper.class
         }
 )
 public interface ProductMapper {
