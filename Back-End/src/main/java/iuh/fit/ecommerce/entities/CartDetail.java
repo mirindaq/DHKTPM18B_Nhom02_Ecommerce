@@ -26,6 +26,6 @@ public class CartDetail {
 
     @ManyToOne
     @JoinColumn( name = "cart_id")
-    private Cart cartUser;
+    private Cart cart;
 
 }

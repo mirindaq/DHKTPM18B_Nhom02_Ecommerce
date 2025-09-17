@@ -64,6 +64,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductResponse getProductBySlug(String slug) {
+        return null;
+    }
+
+    @Override
     public ProductResponse updateProductById(Long id) {
         return null;
     }

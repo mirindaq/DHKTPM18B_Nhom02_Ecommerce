@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.entities;
 
+import iuh.fit.ecommerce.enums.MessageType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,37 +9,27 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "feedbacks")
+@Table(name = "messages")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Feedback {
+public class Message extends BaseEntity  {
 
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
     private String content;
 
     @Column
-    private Double rate;
-
-    @Column
-    private LocalDateTime feedbackTime;
+    @Enumerated(EnumType.STRING)
+    private MessageType messageType;
 
     @Column
     private Boolean status;
 
     @ManyToOne
-    @JoinColumn( name = "product_id")
-    private Product product;
-
-    @ManyToOne
-    @JoinColumn( name = "user_id")
-    private User user;
-
-
-
-
+    @JoinColumn(name = "chat_id")
+    private Chat chat;
 }
