@@ -2,6 +2,8 @@
 package iuh.fit.ecommerce.services.impl;
 
 
+import iuh.fit.ecommerce.entities.Category;
+import iuh.fit.ecommerce.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +31,7 @@ public class VariantServiceImpl implements VariantService {
     private final VariantRepository variantRepository;
     private final VariantMapper variantMapper;
     private final VariantValueService variantValueService; // tách logic variant value sang service riêng
+    private final CategoryService categoryService;
 
     @Override
     public ResponseWithPagination<List<VariantResponse>> getVariants(int page, int size, String variantName) {
@@ -53,9 +56,7 @@ public class VariantServiceImpl implements VariantService {
     @Override
     public VariantResponse createVariant(VariantAddRequest request) {
         Variant variant = new Variant();
-        variant.setName(request.getName());
-        variant.setStatus(request.getStatus() != null ? request.getStatus() : Boolean.TRUE);
-
+        mapVariantFields(variant, request);
         variant = variantRepository.save(variant);
 
         if (request.getVariantValues() != null && !request.getVariantValues().isEmpty()) {
@@ -70,7 +71,7 @@ public class VariantServiceImpl implements VariantService {
     public VariantResponse updateVariant(Long id, VariantAddRequest request) {
         Variant variant = findVariantOrThrow(id);
 
-        updateVariantFields(variant, request);
+        mapVariantFields(variant, request);
         variant = variantRepository.save(variant);
 
         if (request.getVariantValues() != null && !request.getVariantValues().isEmpty()) {
@@ -88,16 +89,26 @@ public class VariantServiceImpl implements VariantService {
         variantRepository.save(variant);
     }
 
+    @Override
+    public List<VariantResponse> getVariantsByCategory( Long id) {
+        List<Variant> variants = variantRepository.findByStatusAndCategory_Id(true,id);
+        return variants.stream()
+                .map(variantMapper::toResponse)
+                .toList();
+    }
+
     private Variant findVariantOrThrow(Long id) {
         return variantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + id));
     }
 
 
-    private void updateVariantFields(Variant variant, VariantAddRequest request) {
+    private void mapVariantFields(Variant variant, VariantAddRequest request) {
         variant.setName(request.getName());
         if (request.getStatus() != null) {
             variant.setStatus(request.getStatus());
         }
+        Category category = categoryService.getCategoryEntityById(request.getCategoryId());
+        variant.setCategory(category);
     }
 }

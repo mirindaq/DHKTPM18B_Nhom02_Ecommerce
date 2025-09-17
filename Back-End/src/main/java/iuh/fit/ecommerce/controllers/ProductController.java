@@ -25,11 +25,12 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping("")
-    public ResponseEntity<ResponseSuccess<ProductResponse>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
+    public ResponseEntity<ResponseSuccess<?>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
+        productService.createProduct(productAddRequest);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Create product success",
-                productService.createProduct(productAddRequest)
+                null
         ));
     }
 

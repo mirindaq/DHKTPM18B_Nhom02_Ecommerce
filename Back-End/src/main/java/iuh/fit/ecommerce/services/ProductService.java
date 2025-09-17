@@ -7,7 +7,7 @@ import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import java.util.List;
 
 public interface ProductService {
-    ProductResponse createProduct(ProductAddRequest productAddRequest);
+    void createProduct(ProductAddRequest productAddRequest);
     ResponseWithPagination<List<ProductResponse>> getAllProducts(int page, int size);
     ProductResponse getProductById(Long id);
     ProductResponse updateProductById(Long id);

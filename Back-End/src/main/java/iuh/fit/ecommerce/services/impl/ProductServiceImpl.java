@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductResponse createProduct(ProductAddRequest productAddRequest) {
+    public void createProduct(ProductAddRequest productAddRequest) {
         if(productRepository.existsByName(productAddRequest.getName())){
             throw new ConflictException("Product name already exists with name: " + productAddRequest.getName());
         }
@@ -48,7 +48,6 @@ public class ProductServiceImpl implements ProductService {
 
         saveVariants(productAddRequest.getVariants(), product);
 
-        return productMapper.toResponse(product);
     }
 
     @Override
@@ -82,16 +81,17 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setSlug(StringUtils.normalizeString(request.getName()));
 
-        product.setProductImages(buildImages(request.getProductImages()));
+        product.setProductImages(buildImages(request.getProductImages(), product));
         product.setAttributes(buildAttributes(request.getAttributes()));
 
         return product;
     }
 
-    private List<ProductImage> buildImages(List<String> urls) {
+    private List<ProductImage> buildImages(List<String> urls, Product product) {
         return urls.stream()
                 .map(url -> ProductImage.builder()
                         .url(url)
+                        .product(product)
                         .build())
                 .toList();
     }

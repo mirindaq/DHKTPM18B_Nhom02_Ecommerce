@@ -38,3 +38,6 @@ cloudinary:
 
 api:
   prefix: ${API_PREFIX}
+
+app:
+  upload-dir: uploads

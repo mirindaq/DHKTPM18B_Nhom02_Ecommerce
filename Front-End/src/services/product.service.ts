@@ -27,4 +27,9 @@ export const productService = {
     const response = await axiosClient.put<ProductResponse>(`/products/${id}`, request)
     return response.data
   },
+
+  changeStatusProduct: async (id: number) => {
+    const response = await axiosClient.patch<ProductResponse>(`/products/${id}/status`)
+    return response.data
+  },
 }

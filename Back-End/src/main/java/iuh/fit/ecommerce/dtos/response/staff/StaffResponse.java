@@ -39,8 +39,6 @@ public class StaffResponse {
 
     private WorkStatus workStatus;
 
-    private String employeeCode;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime modifiedAt;

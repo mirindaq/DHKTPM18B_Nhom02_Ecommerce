@@ -1,4 +1,6 @@
+import type { Attribute } from "./attribute.type";
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
+import type { VariantValue } from "./variant.type";
 
 export type Product = {
   id: number;
@@ -49,15 +51,9 @@ export type ProductVariantRequest = {
 export type ProductAttributeResponse = {
   id: number;
   value: string;
-  attribute: AttributeResponse;
+  attribute: Attribute;
 };
 
-export type AttributeResponse = {
-  id: number;
-  name: string;
-  categoryName: string;
-  status: boolean;
-};
 
 export type ProductVariantResponse = {
   id: number;
@@ -70,18 +66,9 @@ export type ProductVariantResponse = {
 
 export type ProductVariantValueResponse = {
   id: number;
-  variantValue: VariantValueResponse;
+  variantValue: VariantValue;
 };
 
-export type VariantValueResponse = {
-  id: number;
-  value: string;
-  status: boolean;
-  variantId: number;
-  variantName: string;
-  createdAt: string;
-  modifiedAt: string;
-};
 
 export type ProductResponse = ResponseApi<Product>;
 export type ProductListResponse = ResponseApiWithPagination<Product[]>;

@@ -4,6 +4,8 @@ import { useRoutes } from "react-router";
 // Admin pages (các trang thực sự tồn tại)
 import Dashboard from "@/pages/admin/Dashboard";
 import Products from "@/pages/admin/Products";
+import AddProduct from "@/pages/admin/AddProduct";
+import EditProduct from "@/pages/admin/EditProduct";
 import Categories from "@/pages/admin/Categories";
 import Customers from "@/pages/admin/Customers";
 import Orders from "@/pages/admin/Orders";
@@ -41,6 +43,14 @@ const useRouteElements = () => {
         {
           path: ADMIN_PATH.PRODUCTS,
           element: <Products />,
+        },
+        {
+          path: ADMIN_PATH.PRODUCT_ADD,
+          element: <AddProduct />,
+        },
+        {
+          path: "/admin/products/edit/:id",
+          element: <EditProduct />,
         },
         {
           path: ADMIN_PATH.VARIANTS,

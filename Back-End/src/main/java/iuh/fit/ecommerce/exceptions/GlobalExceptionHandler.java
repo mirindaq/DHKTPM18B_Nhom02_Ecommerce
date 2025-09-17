@@ -116,7 +116,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseError handleException(IllegalStateException ex, WebRequest request) {
+    public ResponseError handleException(Exception ex, WebRequest request) {
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -125,6 +125,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
     }
+
 
 
 
