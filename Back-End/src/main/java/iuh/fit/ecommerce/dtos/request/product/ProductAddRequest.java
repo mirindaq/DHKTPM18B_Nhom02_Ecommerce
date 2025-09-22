@@ -16,6 +16,9 @@ public class ProductAddRequest {
     @Size(max = 255, message = "Tên sản phẩm tối đa 255 ký tự")
     private String name;
 
+    @NotBlank(message = "SPU không được để trống")
+    private String spu;
+
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private Integer stock;
@@ -30,13 +33,7 @@ public class ProductAddRequest {
     @NotBlank(message = "Ảnh thumbnail không được để trống")
     private String thumbnail;
 
-    private boolean active = true;
-
-    @NotBlank(message = "Slug không được để trống")
-    private String slug;
-
-    @NotBlank(message = "SPU không được để trống")
-    private String spu;
+    private boolean status = true;
 
     @NotNull(message = "Thương hiệu không được để trống")
     private Long brandId;

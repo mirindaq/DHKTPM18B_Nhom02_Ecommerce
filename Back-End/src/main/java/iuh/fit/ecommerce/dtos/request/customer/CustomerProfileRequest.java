@@ -1,6 +1,5 @@
 package iuh.fit.ecommerce.dtos.request.customer;
 
-import iuh.fit.ecommerce.enums.Gender;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,5 +25,4 @@ public class CustomerProfileRequest {
     private String avatar;
     private String address;
     private LocalDate dateOfBirth;
-    private Gender gender;
 }

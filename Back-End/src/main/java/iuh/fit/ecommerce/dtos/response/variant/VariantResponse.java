@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.variant;
 
+import iuh.fit.ecommerce.dtos.response.category.CategoryResponse;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,6 @@ public class VariantResponse {
     private Long id;
     private String name;
     private boolean status;
+    private CategoryResponse category;
     private List<VariantValueResponse> variantValues;
-    private LocalDateTime createdAt;
-    private LocalDateTime modifiedAt;
 }

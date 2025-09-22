@@ -6,12 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DialogFooter } from "@/components/ui/dialog";
 import { Calendar as CalendarIcon, Camera, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Gender } from "@/types/customer.type";
 import type { CustomerSummary, CreateCustomerRequest, UpdateCustomerProfileRequest } from "@/types/customer.type";
 import { uploadService } from "@/services/upload.service";
 
@@ -30,7 +27,6 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
       phone: customer.phone ?? "",
       address: customer.address ?? "",
       dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth) : null,
-      gender: customer.gender,
       avatar: customer.avatar ?? "",
       password: "",
       registerDate: customer.registerDate ? new Date(customer.registerDate) : new Date(),
@@ -73,33 +69,48 @@ export default function CustomerForm({
     }
   };
 
-  const validate = () => {
-    if (!formData.fullName?.trim()) {
-      toast.error("Họ và tên là bắt buộc.");
+  const validateForm = (formData: any, isEdit: boolean): boolean => {
+    if (!formData.fullName.trim()) {
+      toast.error("Họ và tên không được để trống");
       return false;
     }
-    if (!/^[A-Za-zÀ-ỹ\s]+$/u.test(formData.fullName)) {
-      toast.error("Họ và tên không hợp lệ.");
+
+    if (!isEdit) {
+      if (!formData.email.trim()) {
+        toast.error("Email không được để trống");
+        return false;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Email không đúng định dạng");
+        return false;
+      }
+
+      if (!formData.password.trim()) {
+        toast.error("Mật khẩu không được để trống");
+        return false;
+      }
+    }
+
+    if (!formData.phone.trim()) {
+      toast.error("Số điện thoại không được để trống");
       return false;
     }
-    if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
-      toast.error("Email không hợp lệ.");
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      toast.error("Số điện thoại phải gồm đúng 10 chữ số");
       return false;
     }
-    if (!formData.phone || !/^\d{10}$/.test(formData.phone)) {
-      toast.error("Số điện thoại phải có 10 chữ số.");
-      return false;
-    }
-    if (!customer && !formData.password) {
-      toast.error("Mật khẩu là bắt buộc khi tạo mới.");
-      return false;
-    }
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+
+    if (!validateForm(formData, !!customer)) {
+      return;
+    }
 
     let finalAvatarUrl = customer?.avatar || "";
     if (selectedFile) {
@@ -116,6 +127,11 @@ export default function CustomerForm({
       }
     }
 
+    // Nếu chưa có avatar thì gán avatar mặc định
+    if (!finalAvatarUrl) {
+      finalAvatarUrl = "/assets/avatar.jpg";
+    }
+
     const formattedDateOfBirth = formData.dateOfBirth
       ? format(formData.dateOfBirth, "yyyy-MM-dd")
       : null;
@@ -127,7 +143,6 @@ export default function CustomerForm({
         phone: formData.phone,
         address: formData.address,
         dateOfBirth: formattedDateOfBirth,
-        gender: formData.gender,
         avatar: finalAvatarUrl,
       };
       onSubmit(payload);
@@ -140,7 +155,6 @@ export default function CustomerForm({
         registerDate: formData.registerDate || new Date(),
         address: formData.address,
         dateOfBirth: formattedDateOfBirth,
-        gender: formData.gender,
         avatar: finalAvatarUrl,
       };
       onSubmit(payload);
@@ -149,23 +163,23 @@ export default function CustomerForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Avatar */}
       <div className="flex flex-col items-center">
         <div className="relative">
           <img
-            src={
-              preview || "/assets/avatar.jpg"
-            }
+            src={preview ?? "/assets/avatar.jpg"}
             alt="Avatar"
             className="h-28 w-28 rounded-full object-cover border-2"
           />
+
           <label
-            htmlFor="image-upload"
+            htmlFor="customer-image-upload"
             className="absolute bottom-0 right-0 bg-gray-800 p-2 rounded-full cursor-pointer hover:bg-gray-700"
           >
             <Camera className="h-4 w-4 text-white" />
           </label>
           <input
-            id="image-upload"
+            id="customer-image-upload"
             type="file"
             accept="image/*"
             onChange={handleFileChange}
@@ -185,21 +199,32 @@ export default function CustomerForm({
         </div>
 
         <div className="space-y-1">
-          <Label>Email *</Label>
-          <Input
-            type="email"
-            defaultValue={formData.email}
-            onChange={(e) => handleValueChange("email", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-1">
           <Label>Số điện thoại *</Label>
           <Input
             defaultValue={formData.phone}
             onChange={(e) => handleValueChange("phone", e.target.value)}
           />
         </div>
+
+        {!customer && (
+          <>
+            <div className="space-y-1">
+              <Label>Email *</Label>
+              <Input
+                defaultValue={formData.email}
+                onChange={(e) => handleValueChange("email", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label>Mật khẩu *</Label>
+              <Input
+                type="password"
+                onChange={(e) => handleValueChange("password", e.target.value)}
+              />
+            </div>
+          </>
+        )}
 
         <div className="space-y-1">
           <Label>Địa chỉ</Label>
@@ -232,43 +257,17 @@ export default function CustomerForm({
             </PopoverContent>
           </Popover>
         </div>
-
-        <div className="space-y-1">
-          <Label>Giới tính</Label>
-          <Select
-            defaultValue={formData.gender}
-            onValueChange={(value: Gender) => handleValueChange("gender", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn giới tính" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="MALE">Nam</SelectItem>
-              <SelectItem value="FEMALE">Nữ</SelectItem>
-              <SelectItem value="OTHER">Khác</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {!customer && (
-          <div className="md:col-span-2 space-y-1">
-            <Label>Mật khẩu *</Label>
-            <Input
-              type="password"
-              onChange={(e) => handleValueChange("password", e.target.value)}
-            />
-          </div>
-        )}
       </div>
 
-      <DialogFooter className="flex justify-end gap-3 pt-4 border-t">
+      {/* Buttons */}
+      <div className="flex justify-end space-x-3 pt-4 border-t">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           disabled={isLoading || isUploading}
         >
-          Hủy
+          Thoát
         </Button>
 
         <Button type="submit" disabled={isLoading || isUploading}>
@@ -277,12 +276,12 @@ export default function CustomerForm({
               <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Đang xử lý...
             </>
           ) : customer ? (
-            "Lưu thay đổi"
+            "Cập nhật"
           ) : (
             "Tạo khách hàng"
           )}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
   );
 }

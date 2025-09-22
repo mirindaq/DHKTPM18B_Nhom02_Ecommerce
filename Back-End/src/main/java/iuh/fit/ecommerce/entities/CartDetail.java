@@ -21,11 +21,11 @@ public class CartDetail {
     private Long quantity;
 
     @ManyToOne
-    @JoinColumn( name = "product_variant_value_id" )
-    private ProductVariantValue productVariantValue;
+    @JoinColumn( name = "product_variant_id" )
+    private ProductVariant productVariant;
 
     @ManyToOne
     @JoinColumn( name = "cart_id")
-    private Cart cartUser;
+    private Cart cart;
 
 }

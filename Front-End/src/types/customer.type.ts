@@ -1,12 +1,5 @@
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 
-export const Gender = {
-  MALE: 'MALE',
-  FEMALE: 'FEMALE',
-  OTHER: 'OTHER'
-} as const;
-
-export type Gender = typeof Gender[keyof typeof Gender];
 
 export type CustomerSummary = {
   id: number;
@@ -19,7 +12,6 @@ export type CustomerSummary = {
   
   // Các trường profile để điền form sửa
   dateOfBirth?: string | null;
-  gender?: Gender;
   avatar?: string;
 
   // Các trường thống kê
@@ -34,7 +26,6 @@ export type UpdateCustomerProfileRequest = {
   email: string;
   address?: string;
   dateOfBirth?: string | null;
-  gender?: Gender;
   avatar?: string;
 };
 
@@ -57,7 +48,6 @@ export type CreateCustomerRequest = {
   registerDate: Date | null;
   address: string;
   dateOfBirth?: string | null;  // thêm ngày sinh
-  gender?: Gender;             // thêm giới tính
   avatar?: string;             // thêm avatar (nếu cần)
 };
 

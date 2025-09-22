@@ -28,7 +28,7 @@ public class Category extends BaseEntity {
     private String image;
 
     @Column
-    private boolean status;
+    private Boolean status;
 
     @OneToMany( mappedBy = "category", fetch = FetchType.LAZY)
     private List<Attribute> attributes;

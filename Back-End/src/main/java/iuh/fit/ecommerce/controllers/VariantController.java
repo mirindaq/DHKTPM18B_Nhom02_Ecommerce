@@ -35,6 +35,15 @@ public class VariantController {
         ));
     }
 
+    @GetMapping("/category/{id}")
+    public ResponseEntity<ResponseSuccess<List<VariantResponse>>> getVariantsByCategory(@PathVariable Long id) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get variants by category success",
+                variantService.getVariantsByCategory(id)
+        ));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResponseSuccess<VariantResponse>> getVariantById(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(

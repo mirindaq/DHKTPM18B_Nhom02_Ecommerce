@@ -15,6 +15,4 @@ public class VariantValueResponse {
     private boolean status;
     private Long variantId;
     private String variantName;
-    private LocalDateTime createdAt;
-    private LocalDateTime modifiedAt;
 }

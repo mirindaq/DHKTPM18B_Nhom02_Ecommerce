@@ -45,12 +45,12 @@ public class User {
     private LocalDate dateOfBirth;
 
     @Column
-    private boolean active;
+    private Boolean active;
 
     @Column
     private String refreshToken;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UserRole> userRole;
 
     @ToString.Exclude
