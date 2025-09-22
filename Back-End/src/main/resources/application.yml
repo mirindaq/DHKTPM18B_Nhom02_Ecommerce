@@ -32,7 +32,11 @@ spring:
           starttls:
             enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}
             required: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED}
-
+  app:
+    jwtAccessSecret: ${SPRING_APP_JWT_ACCESS_SECRET}
+    jwtRefreshSecret: ${SPRING_APP_JWT_REFRESH_SECRET}
+    jwtAccessExpirationMs: ${SPRING_APP_JWT_ACCESS_EXPIRATION_MS}
+    jwtRefreshExpirationMs: ${SPRING_APP_JWT_REFRESH_EXPIRATION_MS}
 cloudinary:
   url: ${CLOUDINARY_URL}
 

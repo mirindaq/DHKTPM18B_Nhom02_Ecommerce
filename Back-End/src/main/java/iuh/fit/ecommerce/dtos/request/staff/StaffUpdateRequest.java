@@ -12,9 +12,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class StaffUpdateRequest {
 
     private String address;

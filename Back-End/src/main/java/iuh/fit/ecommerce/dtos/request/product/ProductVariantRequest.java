@@ -7,9 +7,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProductVariantRequest {
 
     @NotNull(message = "Giá sản phẩm không được để trống")

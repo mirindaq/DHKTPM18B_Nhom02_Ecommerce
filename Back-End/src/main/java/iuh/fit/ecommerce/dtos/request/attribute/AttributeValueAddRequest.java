@@ -6,9 +6,6 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class AttributeValueAddRequest {
 
     @NotNull(message = "Attribute ID is required")

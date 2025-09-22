@@ -8,9 +8,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class VariantAddRequest {
     @NotBlank(message = "Variant name is required")
     private String name;

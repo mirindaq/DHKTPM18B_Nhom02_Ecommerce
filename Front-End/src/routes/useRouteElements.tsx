@@ -1,7 +1,6 @@
 
 import { useRoutes } from "react-router";
 
-// Admin pages (các trang thực sự tồn tại)
 import Dashboard from "@/pages/admin/Dashboard";
 import Products from "@/pages/admin/Products";
 import AddProduct from "@/pages/admin/AddProduct";
@@ -11,6 +10,7 @@ import Customers from "@/pages/admin/Customers";
 import Orders from "@/pages/admin/Orders";
 import Settings from "@/pages/admin/Settings";
 import Analytics from "@/pages/admin/Analytics";
+import AdminLogin from "@/pages/auth/AdminLogin";
 
 // Layout components
 import AdminLayout from "@/layouts/AdminLayout";
@@ -21,14 +21,20 @@ import Staffs from "@/pages/admin/Staff";
 
 const useRouteElements = () => {
   return useRoutes([
-    // Public routes
+    // Auth routes
     {
-      path: PUBLIC_PATH.HOME,
-      element: <Dashboard />,
+      path: AUTH_PATH.LOGIN_ADMIN,
+      element: <AdminLogin />,
     },
     {
       path: AUTH_PATH.LOGIN_USER,
       element: <Dashboard />, // Tạm thời redirect về Dashboard
+    },
+    
+    // Public routes
+    {
+      path: PUBLIC_PATH.HOME,
+      element: <Dashboard />,
     },
 
     // Admin routes
