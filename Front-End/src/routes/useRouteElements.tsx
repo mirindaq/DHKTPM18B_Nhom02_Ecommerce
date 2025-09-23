@@ -18,6 +18,7 @@ import Brands from "@/pages/admin/Brands";
 import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path";
 import Variants from "@/pages/admin/Variants";
 import Staffs from "@/pages/admin/Staff";
+import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -91,6 +92,11 @@ const useRouteElements = () => {
           element: <Staffs />,
         },
       ],
+    },
+
+    {
+      path: AUTH_PATH.GOOGLE_CALLBACK,
+      element: <AuthCallbackComponent />,
     },
 
     // Fallback route

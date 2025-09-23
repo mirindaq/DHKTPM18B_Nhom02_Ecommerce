@@ -8,14 +8,13 @@ import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.services.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("${api.prefix}/auth")
@@ -49,6 +48,29 @@ public class AuthenticationController {
                 HttpStatus.OK,
                 "Logout Success",
                 null));
+    }
+
+    @GetMapping("/social-login")
+    public ResponseEntity<ResponseSuccess<String>> socialLogin(@RequestParam("login_type") String loginType) {
+        return ResponseEntity.ok().body(
+                new ResponseSuccess<>(HttpStatus.OK,
+                        "Social login successfully",
+                        authenticationService.generateAuthUrl(loginType)
+                )
+        );
+    }
+
+    @GetMapping("/social-login/callback")
+    public ResponseEntity<ResponseSuccess<LoginResponse>> socialLoginCallback(
+            @RequestParam("login_type") String loginType,
+            @RequestParam String code) throws IOException {
+
+        return ResponseEntity.ok().body(
+                new ResponseSuccess<>(HttpStatus.OK,
+                        "Social login callback successfully",
+                        authenticationService.socialLoginCallback(loginType, code)
+                )
+        );
     }
 
 }

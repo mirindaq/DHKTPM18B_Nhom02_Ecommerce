@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { useMutation } from '@/hooks/useMutation'
 import { authService } from '@/services/auth.service'
 import { ADMIN_PATH } from '@/constants/path'
+import { FcGoogle } from "react-icons/fc"
 import type { LoginRequest, AuthResponse } from '@/types/auth.type'
 
 // Schema validation cho form đăng nhập
@@ -25,6 +26,35 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
+  // Lắng nghe message từ popup
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Kiểm tra origin để đảm bảo an toàn
+      if (event.origin !== window.location.origin) return
+
+      if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+        const { data } = event.data
+        if (data) {
+          // Lưu token và thông tin user
+          const { accessToken, refreshToken, email, roles } = data
+          localStorage.setItem('accessToken', accessToken)
+          localStorage.setItem('refreshToken', refreshToken)
+          localStorage.setItem('userEmail', email)
+          localStorage.setItem('userRoles', JSON.stringify(roles))
+
+          toast.success('Đăng nhập thành công!')
+          navigate(ADMIN_PATH.DASHBOARD)
+        }
+      } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+        console.error('Login error:', event.data.error)
+        toast.error(event.data.error || 'Đăng nhập thất bại')
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [navigate])
+
   const {
     register,
     handleSubmit,
@@ -35,12 +65,11 @@ export default function AdminLogin() {
 
   const loginMutation = useMutation<AuthResponse>(authService.login, {
     onSuccess: (data) => {
-      console.log('Login success:', data)
       localStorage.setItem('accessToken', data.data.accessToken)
       localStorage.setItem('refreshToken', data.data.refreshToken)
       localStorage.setItem('userEmail', data.data.email)
       localStorage.setItem('userRoles', JSON.stringify(data.data.roles))
-      
+
       toast.success('Đăng nhập thành công!')
       navigate(ADMIN_PATH.DASHBOARD)
     },
@@ -55,8 +84,30 @@ export default function AdminLogin() {
       email: data.email,
       password: data.password
     }
-    
+
     await loginMutation.mutate(loginRequest)
+  }
+
+  const handleGoogleLogin = async () => {
+    const response = await authService.socialLogin("google")
+    if (response.data.data && typeof response.data.data === "string") {
+      const popupWidth = 600;
+      const popupHeight = 650;
+
+      const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+      const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+      const popupWindow = window.open(
+        response.data.data,
+        'googleLogin',
+        `width=${popupWidth},height=${popupHeight},scrollbars=yes,resizable=yes,location=no,left=${left},top=${top}`
+      )
+
+      if (!popupWindow) {
+        toast.error('Không thể mở cửa sổ đăng nhập. Vui lòng cho phép popup.')
+      }
+    } else {
+      toast.error('Không thể kết nối với Google')
+    }
   }
 
   return (
@@ -85,7 +136,7 @@ export default function AdminLogin() {
               Nhập thông tin tài khoản để truy cập hệ thống
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email Field */}
@@ -172,6 +223,25 @@ export default function AdminLogin() {
                 )}
               </Button>
             </form>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Hoặc tiếp tục với
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full"
+              onClick={handleGoogleLogin}
+            >
+              <FcGoogle className="mr-2 h-4 w-4" />
+              Google
+            </Button>
 
             {/* Footer */}
             <div className="mt-6 pt-4 border-t border-border">
@@ -192,6 +262,7 @@ export default function AdminLogin() {
           </p>
         </div>
       </div>
+
     </div>
   )
 }
