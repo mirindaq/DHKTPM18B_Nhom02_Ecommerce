@@ -25,12 +25,12 @@ public class RoleController {
 
     private final RoleService roleService;
 
-    @GetMapping("")
-    public ResponseEntity<ResponseSuccess<List<RoleResponse>>> getListRole() {
+    @GetMapping("/for-admin")
+    public ResponseEntity<ResponseSuccess<List<RoleResponse>>> getAllRolesForAdmin() {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get roles success",
-                roleService.getAllRoles()
+                roleService.getAllRolesForAdmin()
         ));
     }
 }

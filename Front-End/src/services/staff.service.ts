@@ -48,8 +48,8 @@ export const staffService = {
   },
 
   // Lấy danh sách roles => trả về UserRole[]
-  getRoles: async (): Promise<UserRole[]> => {
-    const response = await axiosClient.get<ApiResponse<UserRole[]>>("/roles")
+  getRolesForAdmin: async (): Promise<UserRole[]> => {
+    const response = await axiosClient.get<ApiResponse<UserRole[]>>("/roles/for-admin")
     return response.data.data
   },
 }

@@ -19,7 +19,7 @@ public interface CartMapper {
     CartResponse toResponse(Cart cart);
 
     @Mapping(source = "productVariant.id", target = "productId")
-    @Mapping(source = "productVariant.name", target = "productName")
+    @Mapping(source = "productVariant.product.name", target = "productName")
     CartDetailResponse toItemResponse(CartDetail cartDetail);
 
     @Named("calculateTotalPrice")
