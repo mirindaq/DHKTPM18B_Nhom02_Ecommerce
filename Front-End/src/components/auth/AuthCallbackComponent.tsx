@@ -22,8 +22,6 @@ export default function AuthCallbackComponent() {
         if (!code) {
           throw new Error('Không tìm thấy mã xác thực');
         }
-
-        // Gửi code và login_type lên server để xác thực
         const response = await authService.socialLoginCallback('google', code);
         
         if (response.data) {

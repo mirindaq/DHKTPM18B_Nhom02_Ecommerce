@@ -18,13 +18,21 @@ import Cart from "@/pages/user/Cart"
 import Profile from "@/pages/user/Profile"
 import AdminLayout from "@/layouts/AdminLayout"
 import UserLayout from "@/layouts/UserLayout"
-import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path"
+import StaffLayout from "@/layouts/StaffLayout"
+import ShipperLayout from "@/layouts/ShipperLayout"
+import StaffDashboard from "@/pages/staff/StaffDashboard"
+import ShipperDashboard from "@/pages/shipper/ShipperDashboard"
+import ShipperOrders from "@/pages/shipper/ShipperOrders"
+import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH, STAFF_PATH, SHIPPER_PATH } from "@/constants/path"
 import UserLogin from "@/pages/auth/UserLogin"
+import AdminLogin from "@/pages/auth/AdminLogin"
 import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent"
+import { AdminRoute, StaffRoute, ShipperRoute } from "@/components/auth/ProtectedRoute"
 
 
 const useRouteElements = () => {
   return useRoutes([
+    // Public routes (không cần authentication)
     {
       path: PUBLIC_PATH.HOME,
       element: <UserLayout />,
@@ -33,18 +41,31 @@ const useRouteElements = () => {
         { path: "product/:id", element: <ProductDetail /> },
         { path: "cart", element: <Cart /> },
         { path: "profile", element: <Profile /> },
-        // { path: AUTH_PATH.LOGIN_USER, element: <LoginUser /> }
       ]
     },
-    
+
+    // Auth routes
     {
-      path: PUBLIC_PATH.HOME,
-      element: <Dashboard />,
+      path: AUTH_PATH.LOGIN_USER,
+      element: <UserLogin />
+    },
+    {
+      path: AUTH_PATH.LOGIN_ADMIN,
+      element: <AdminLogin />
+    },
+    {
+      path: AUTH_PATH.GOOGLE_CALLBACK,
+      element: <AuthCallbackComponent />
     },
 
+    // Admin routes (chỉ admin mới truy cập được)
     {
       path: ADMIN_PATH.DASHBOARD,
-      element: <AdminLayout />,
+      element: (
+        <AdminRoute>
+          <AdminLayout />
+        </AdminRoute>
+      ),
       children: [
         { index: true, element: <Dashboard /> },
         { path: ADMIN_PATH.PRODUCTS, element: <Products /> },
@@ -61,16 +82,38 @@ const useRouteElements = () => {
       ]
     },
 
+    // Staff routes (admin và staff có thể truy cập)
     {
-      path: AUTH_PATH.LOGIN_USER,
-      element: <UserLogin />
+      path: STAFF_PATH.DASHBOARD,
+      element: (
+        <StaffRoute>
+          <StaffLayout />
+        </StaffRoute>
+      ),
+      children: [
+        { index: true, element: <StaffDashboard /> },
+        { path: STAFF_PATH.PRODUCTS, element: <Products /> },
+        { path: STAFF_PATH.ORDERS, element: <Orders /> },
+        { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
+      ]
     },
 
+    // Shipper routes (chỉ shipper mới truy cập được)
     {
-      path: AUTH_PATH.GOOGLE_CALLBACK,
-      element: <AuthCallbackComponent />
+      path: SHIPPER_PATH.DASHBOARD,
+      element: (
+        <ShipperRoute>
+          <ShipperLayout />
+        </ShipperRoute>
+      ),
+      children: [
+        { index: true, element: <ShipperDashboard /> },
+        { path: SHIPPER_PATH.ORDERS, element: <ShipperOrders /> },
+        { path: SHIPPER_PATH.DELIVERIES, element: <ShipperOrders /> },
+      ]
     },
 
+    // Fallback route
     {
       path: "*",
       element: <Home />

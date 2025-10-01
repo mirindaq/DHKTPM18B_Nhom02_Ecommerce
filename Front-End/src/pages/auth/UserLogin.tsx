@@ -9,9 +9,10 @@ import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useMutation } from '@/hooks/useMutation'
 import { authService } from '@/services/auth.service'
-import { ADMIN_PATH } from '@/constants/path'
+import { ADMIN_PATH, STAFF_PATH, SHIPPER_PATH, PUBLIC_PATH } from '@/constants/path'
 import { FcGoogle } from "react-icons/fc"
-import type { LoginRequest, AuthResponse } from '@/types/auth.type'
+import { useUser } from '@/context/UserContext'
+import type { LoginRequest, AuthResponse, UserProfile } from '@/types/auth.type'
 
 // Schema validation cho form đăng nhập
 const loginSchema = z.object({
@@ -24,25 +25,42 @@ type LoginFormData = z.infer<typeof loginSchema>
 export default function UserLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+  const { login } = useUser()
 
   // Lắng nghe message từ popup
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Kiểm tra origin để đảm bảo an toàn
       if (event.origin !== window.location.origin) return
 
       if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
         const { data } = event.data
         if (data) {
-          // Lưu token và thông tin user
           const { accessToken, refreshToken, email, roles } = data
           localStorage.setItem('accessToken', accessToken)
           localStorage.setItem('refreshToken', refreshToken)
-          localStorage.setItem('userEmail', email)
-          localStorage.setItem('userRoles', JSON.stringify(roles))
+
+          const userProfile: UserProfile = {
+            id: email, 
+            email: email,
+            name: email.split('@')[0], 
+            roles: roles,
+          }
+          
+          // Sử dụng UserContext để login
+          login(userProfile)
 
           toast.success('Đăng nhập thành công!')
-          navigate('/')
+          
+          // Điều hướng dựa trên role
+          if (roles.includes('admin')) {
+            navigate(ADMIN_PATH.DASHBOARD)
+          } else if (roles.includes('staff')) {
+            navigate(STAFF_PATH.DASHBOARD)
+          } else if (roles.includes('shipper')) {
+            navigate(SHIPPER_PATH.DASHBOARD)
+          } else {
+            navigate(PUBLIC_PATH.HOME)
+          }
         }
       } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
         console.error('Login error:', event.data.error)
@@ -66,11 +84,30 @@ export default function UserLogin() {
     onSuccess: (data) => {
       localStorage.setItem('accessToken', data.data.accessToken)
       localStorage.setItem('refreshToken', data.data.refreshToken)
-      localStorage.setItem('userEmail', data.data.email)
-      localStorage.setItem('userRoles', JSON.stringify(data.data.roles))
-
+      
+      // Tạo user profile từ response
+      const userProfile: UserProfile = {
+        id: data.data.email, // Tạm thời dùng email làm ID
+        email: data.data.email,
+        name: data.data.email.split('@')[0], // Tạm thời dùng phần trước @ làm tên
+        roles: data.data.roles,
+      }
+      
+      // Sử dụng UserContext để login
+      login(userProfile)
+      
       toast.success('Đăng nhập thành công!')
-      navigate(ADMIN_PATH.DASHBOARD)
+      
+      // Điều hướng dựa trên role
+      if (data.data.roles.includes('admin')) {
+        navigate(ADMIN_PATH.DASHBOARD)
+      } else if (data.data.roles.includes('staff')) {
+        navigate(STAFF_PATH.DASHBOARD)
+      } else if (data.data.roles.includes('shipper')) {
+        navigate(SHIPPER_PATH.DASHBOARD)
+      } else {
+        navigate(PUBLIC_PATH.HOME)
+      }
     },
     onError: (error) => {
       console.error('Login error:', error)

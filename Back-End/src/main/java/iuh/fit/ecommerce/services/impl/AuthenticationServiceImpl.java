@@ -11,15 +11,18 @@ import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
+import iuh.fit.ecommerce.dtos.response.user.UserProfileResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.enums.TokenType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
+import iuh.fit.ecommerce.mappers.UserMapper;
 import iuh.fit.ecommerce.repositories.CustomerRepository;
 import iuh.fit.ecommerce.repositories.RoleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
 import iuh.fit.ecommerce.repositories.UserRepository;
 import iuh.fit.ecommerce.services.AuthenticationService;
+import iuh.fit.ecommerce.utils.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,7 +71,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final SecurityUtil securityUtil;
     private final OAuth2ClientProperties oAuth2ClientProperties;
+    private final UserMapper userMapper;
 
     @Override
     public LoginResponse staffLogin(LoginRequest loginRequest) {
@@ -88,66 +93,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
     }
 
-    private <T extends User> LoginResponse loginProcess(
-            LoginRequest loginRequest,
-            Function<String, Optional<T>> findByEmail,
-            Function<T, T> saveUser) {
-
-        T user = findByEmail.apply(loginRequest.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
-
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid password");
-        }
-
-        if (!user.getActive()) {
-            throw new DisabledException("User is disabled");
-        }
-
-        String token = jwtUtil.generateAccessToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
-
-        user.setRefreshToken(refreshToken);
-        saveUser.apply(user);
-
-        List<String> roles = user.getUserRoles()
-                .stream()
-                .map(userRole -> userRole.getRole().getName().toUpperCase())
-                .toList();
-
-        return LoginResponse.builder()
-                .accessToken(token)
-                .refreshToken(refreshToken)
-                .roles(roles)
-                .email(user.getEmail())
-                .build();
+    @Override
+    public UserProfileResponse getProfile() {
+        User user = securityUtil.getCurrentUser();
+        return userMapper.toUserProfileResponse(user);
     }
-
 
     @Override
     public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.getRefreshToken();
-            if (!jwtUtil.validateJwtToken(refreshToken, TokenType.REFRESH_TOKEN)) {
-                throw new JwtException("Invalid or expired refresh token");
-            }
-            String email = jwtUtil.getUserNameFromJwtToken(refreshToken, TokenType.REFRESH_TOKEN);
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + email));
+        if (!jwtUtil.validateJwtToken(refreshToken, TokenType.REFRESH_TOKEN)) {
+            throw new JwtException("Invalid or expired refresh token");
+        }
+        String email = jwtUtil.getUserNameFromJwtToken(refreshToken, TokenType.REFRESH_TOKEN);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + email));
 
-            if (!refreshToken.equals(user.getRefreshToken())) {
-                throw new BadCredentialsException("Invalid refresh token");
-            }
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new BadCredentialsException("Invalid refresh token");
+        }
 
         if (!user.getActive()) {
             throw new UnauthorizedException("User is disabled");
         }
 
-            String accessToken = jwtUtil.generateAccessToken(user);
-            return RefreshTokenResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .email(email)
-                    .build();
+        String accessToken = jwtUtil.generateAccessToken(user);
+        return RefreshTokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .email(email)
+                .build();
 
     }
 
@@ -223,6 +198,42 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         return loginSocial(customer);
+    }
+
+
+    private <T extends User> LoginResponse loginProcess(
+            LoginRequest loginRequest,
+            Function<String, Optional<T>> findByEmail,
+            Function<T, T> saveUser) {
+
+        T user = findByEmail.apply(loginRequest.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
+
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+
+        if (!user.getActive()) {
+            throw new DisabledException("User is disabled");
+        }
+
+        String token = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        user.setRefreshToken(refreshToken);
+        saveUser.apply(user);
+
+        List<String> roles = user.getUserRoles()
+                .stream()
+                .map(userRole -> userRole.getRole().getName().toUpperCase())
+                .toList();
+
+        return LoginResponse.builder()
+                .accessToken(token)
+                .refreshToken(refreshToken)
+                .roles(roles)
+                .email(user.getEmail())
+                .build();
     }
 
     private LoginResponse loginSocial(Customer customer) {

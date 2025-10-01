@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
+import iuh.fit.ecommerce.dtos.response.user.UserProfileResponse;
 import iuh.fit.ecommerce.services.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -91,4 +92,13 @@ public class AuthenticationController {
         );
     }
 
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseSuccess<UserProfileResponse>> getProfile() {
+        return ResponseEntity.ok().body(
+                new ResponseSuccess<>(HttpStatus.OK,
+                        "Social login callback successfully",
+                        authenticationService.getProfile()
+                ));
+    }
 }
