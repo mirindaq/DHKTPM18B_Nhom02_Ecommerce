@@ -1,6 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
+import LocalStorageUtil from "@/utils/localStorage.util";
 
 // Khởi tạo instance
 const axiosClient = axios.create({
@@ -14,7 +15,7 @@ const axiosClient = axios.create({
 // ✅ Request interceptor
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    const token = LocalStorageUtil.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -66,15 +67,14 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = LocalStorageUtil.getRefreshToken();
       
       if (refreshToken) {
         try {
           const response = await authService.refreshToken({ refreshToken });
           const { accessToken, refreshToken: newRefreshToken } = response.data.data;
           
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
+          LocalStorageUtil.setTokens({ accessToken, refreshToken: newRefreshToken });
           
           processQueue(null, accessToken);
           
@@ -83,9 +83,7 @@ axiosClient.interceptors.response.use(
         } catch (refreshError) {
           processQueue(refreshError, null);
           // Refresh token cũng hết hạn, logout user
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
+          LocalStorageUtil.clearAllData();
           window.location.href = '/login';
           return Promise.reject(refreshError);
         } finally {
@@ -93,9 +91,7 @@ axiosClient.interceptors.response.use(
         }
       } else {
         // Không có refresh token, logout user
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        LocalStorageUtil.clearAllData();
         window.location.href = '/login';
         return Promise.reject(error);
       }

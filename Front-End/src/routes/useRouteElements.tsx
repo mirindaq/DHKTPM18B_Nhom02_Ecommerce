@@ -28,14 +28,23 @@ import UserLogin from "@/pages/auth/UserLogin"
 import AdminLogin from "@/pages/auth/AdminLogin"
 import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent"
 import { AdminRoute, StaffRoute, ShipperRoute } from "@/components/auth/ProtectedRoute"
+import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
+import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
 
 
 const useRouteElements = () => {
   return useRoutes([
-    // Public routes (không cần authentication)
+    {
+      path: "/",
+      element: <RoleBasedRedirect />
+    },
     {
       path: PUBLIC_PATH.HOME,
-      element: <UserLayout />,
+      element: (
+        <RoleBasedAuthWrapper>
+          <UserLayout />
+        </RoleBasedAuthWrapper>
+      ),
       children: [
         { index: true, element: <Home /> },
         { path: "product/:id", element: <ProductDetail /> },
@@ -47,11 +56,19 @@ const useRouteElements = () => {
     // Auth routes
     {
       path: AUTH_PATH.LOGIN_USER,
-      element: <UserLogin />
+      element: (
+        <RoleBasedAuthWrapper>
+          <UserLogin />
+        </RoleBasedAuthWrapper>
+      )
     },
     {
       path: AUTH_PATH.LOGIN_ADMIN,
-      element: <AdminLogin />
+      element: (
+        <RoleBasedAuthWrapper>
+          <AdminLogin />
+        </RoleBasedAuthWrapper>
+      )
     },
     {
       path: AUTH_PATH.GOOGLE_CALLBACK,
