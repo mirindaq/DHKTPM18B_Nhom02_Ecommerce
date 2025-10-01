@@ -23,11 +23,29 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/admin/login")
-    public ResponseEntity<ResponseSuccess<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ResponseSuccess<LoginResponse>> loginStaff(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 HttpStatus.OK,
                 "Login Success",
                 authenticationService.staffLogin(loginRequest)
+        ));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ResponseSuccess<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                HttpStatus.OK,
+                "Login Success",
+                authenticationService.userLogin(loginRequest)
+        ));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ResponseSuccess<LoginResponse>> register(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                HttpStatus.OK,
+                "Login Success",
+                authenticationService.userLogin(loginRequest)
         ));
     }
 

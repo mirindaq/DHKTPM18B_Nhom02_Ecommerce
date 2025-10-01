@@ -11,11 +11,12 @@ import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
-import iuh.fit.ecommerce.entities.Staff;
-import iuh.fit.ecommerce.entities.User;
+import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.enums.TokenType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
+import iuh.fit.ecommerce.repositories.CustomerRepository;
+import iuh.fit.ecommerce.repositories.RoleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
 import iuh.fit.ecommerce.repositories.UserRepository;
 import iuh.fit.ecommerce.services.AuthenticationService;
@@ -32,8 +33,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -58,42 +63,66 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private String userInfoUri;
 
     private final StaffRepository staffRepository;
+    private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final OAuth2ClientProperties oAuth2ClientProperties;
 
     @Override
     public LoginResponse staffLogin(LoginRequest loginRequest) {
+        return loginProcess(
+                loginRequest,
+                staffRepository::findByEmail,
+                staffRepository::save
+        );
+    }
 
-        Staff staff = staffRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Staff not found with email: " + loginRequest.getEmail()));
+    @Override
+    public LoginResponse userLogin(LoginRequest loginRequest) {
+        return loginProcess(
+                loginRequest,
+                customerRepository::findByEmail,
+                customerRepository::save
+        );
+    }
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), staff.getPassword())) {
+    private <T extends User> LoginResponse loginProcess(
+            LoginRequest loginRequest,
+            Function<String, Optional<T>> findByEmail,
+            Function<T, T> saveUser) {
+
+        T user = findByEmail.apply(loginRequest.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginRequest.getEmail()));
+
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid password");
         }
 
-        if (!staff.getActive()) {
+        if (!user.getActive()) {
             throw new DisabledException("User is disabled");
         }
 
-        String token = jwtUtil.generateAccessToken(staff);
-        String refreshToken = jwtUtil.generateRefreshToken(staff);
+        String token = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        staff.setRefreshToken(refreshToken);
-        staffRepository.save(staff);
+        user.setRefreshToken(refreshToken);
+        saveUser.apply(user);
 
-        List<String> roles = staff.getUserRoles()
-                .stream().map(userRole -> userRole.getRole().getName().toUpperCase())
+        List<String> roles = user.getUserRoles()
+                .stream()
+                .map(userRole -> userRole.getRole().getName().toUpperCase())
                 .toList();
 
         return LoginResponse.builder()
                 .accessToken(token)
                 .refreshToken(refreshToken)
                 .roles(roles)
-                .email(staff.getEmail())
+                .email(user.getEmail())
                 .build();
     }
+
 
     @Override
     public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
@@ -149,8 +178,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public LoginResponse socialLoginCallback(String loginType, String code) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         String accessToken;
         if ("google".equalsIgnoreCase(loginType)) {
             accessToken = new GoogleAuthorizationCodeTokenRequest(
@@ -160,46 +187,74 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     clientSecret,
                     code,
                     redirectUri).execute().getAccessToken();
-
         } else {
             throw new IllegalArgumentException("Unsupported login type: " + loginType);
         }
 
-        restTemplate.getInterceptors()
-                .add((request, body, execution) -> {
-                    request.getHeaders().set("Authorization", "Bearer " + accessToken);
-                    return execution.execute(request, body);
-                });
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            request.getHeaders().set("Authorization", "Bearer " + accessToken);
+            return execution.execute(request, body);
+        });
 
-        Map<String,Object> userInfo = new ObjectMapper().readValue(
+        Map<String, Object> userInfo = new ObjectMapper().readValue(
                 restTemplate.getForEntity(userInfoUri, String.class).getBody(),
-                new TypeReference<>() {
-                }
+                new TypeReference<>() {}
         );
 
-//        User user = userRepository.findByEmail(userInfo.get("email").toString())
-//                .orElseGet(() -> {
-//                    User newUser = new User();
-//                    newUser.setEmail(userInfo.get("email").toString());
-//                    newUser.setFullName(userInfo.get("name").toString());
-//                    newUser.setActive(true);
-//                    newUser.setRole(roleRepository.findByName("CUSTOMER"));
-//                    return userRepository.save(newUser);
-//                });
-//
-//        if (!user.isActive()) {
-//            throw new ConflictException("User is not enabled");
-//        }
-//
-//        String accessTokenUser = jwtUtil.generateAccessToken(user);
-//        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
-//
-//        return LoginResponse.builder()
-//                .accessToken(accessTokenUser)
-//                .refreshToken(refreshToken.getRefreshToken())
-//                .role(Collections.singletonList(user.getRole().getName()))
-//                .build();
+        String email = userInfo.get("email").toString();
 
-        return null;
+        Customer customer = customerRepository.findByEmail(email).orElse(null);
+
+        if (customer == null) {
+            customer = new Customer();
+            customer.setEmail(email);
+            customer.setFullName(userInfo.get("name").toString());
+            customer.setActive(true);
+            customer.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            customer.setRegisterDate(LocalDate.now());
+            addRoleCustomer(customer);
+            customer = customerRepository.save(customer);
+        }
+
+        if (!customer.getActive()) {
+            throw new UnauthorizedException("User is disabled");
+        }
+
+        return loginSocial(customer);
     }
+
+    private LoginResponse loginSocial(Customer customer) {
+        String accessToken = jwtUtil.generateAccessToken(customer);
+        String refreshToken = jwtUtil.generateRefreshToken(customer);
+
+        customer.setRefreshToken(refreshToken);
+        customerRepository.save(customer);
+
+        List<String> roles = customer.getUserRoles()
+                .stream()
+                .map(r -> r.getRole().getName().toUpperCase())
+                .toList();
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .roles(roles)
+                .email(customer.getEmail())
+                .build();
+    }
+
+    private void addRoleCustomer(Customer customer) {
+        Role role = roleRepository.findByName("CUSTOMER")
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found: CUSTOMER"));
+
+        UserRole userRole = new UserRole();
+        userRole.setUser(customer);
+        userRole.setRole(role);
+
+        customer.getUserRoles().add(userRole);
+    }
+
+
 }

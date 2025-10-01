@@ -19,6 +19,8 @@ import Profile from "@/pages/user/Profile"
 import AdminLayout from "@/layouts/AdminLayout"
 import UserLayout from "@/layouts/UserLayout"
 import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path"
+import UserLogin from "@/pages/auth/UserLogin"
+import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent"
 
 
 const useRouteElements = () => {
@@ -59,10 +61,15 @@ const useRouteElements = () => {
       ]
     },
 
-    // {
-    //   path: AUTH_PATH.LOGIN_ADMIN,
-    //   element: <LoginAdmin />
-    // },
+    {
+      path: AUTH_PATH.LOGIN_USER,
+      element: <UserLogin />
+    },
+
+    {
+      path: AUTH_PATH.GOOGLE_CALLBACK,
+      element: <AuthCallbackComponent />
+    },
 
     {
       path: "*",
