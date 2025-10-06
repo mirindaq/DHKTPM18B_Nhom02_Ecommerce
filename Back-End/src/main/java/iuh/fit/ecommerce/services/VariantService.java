@@ -16,4 +16,6 @@ public interface VariantService {
     VariantResponse updateVariant(Long id, VariantAddRequest request);
 
     void changeStatusVariant(Long id);
+
+    List<VariantResponse> getVariantsByCategory(Long id);
 }

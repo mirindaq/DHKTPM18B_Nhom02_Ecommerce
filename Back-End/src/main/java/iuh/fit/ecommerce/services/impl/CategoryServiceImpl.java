@@ -84,11 +84,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void changeStatusCategory(Long id) {
         Category category = getCategoryEntityById(id);
-        category.setStatus(!category.isStatus());
+        category.setStatus(!category.getStatus());
         categoryRepository.save(category);
     }
 
-    private Category getCategoryEntityById(Long id) {
+    public Category getCategoryEntityById(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
@@ -146,7 +146,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         // Lấy tên attribute cũ còn active
         Set<String> existingNames = existingAttrs.stream()
-                .filter(Attribute::isStatus)
+                .filter(Attribute::getStatus)
                 .map(a -> a.getName().toLowerCase())
                 .collect(Collectors.toSet());
 
@@ -163,7 +163,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         // Kết hợp danh sách attribute active
         List<Attribute> updatedAttrs = existingAttrs.stream()
-                .filter(Attribute::isStatus)
+                .filter(Attribute::getStatus)
                 .collect(Collectors.toList());
         updatedAttrs.addAll(newAttrs);
 

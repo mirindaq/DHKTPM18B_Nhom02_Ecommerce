@@ -19,8 +19,11 @@ public class RoleServiceImpl implements RoleService {
     private final RoleMapper roleMapper;
 
     @Override
-    public List<RoleResponse> getAllRoles() {
+    public List<RoleResponse> getAllRolesForAdmin() {
         List<Role> roles = roleRepository.findAll();
-        return roles.stream().map(roleMapper::toResponse).collect(Collectors.toList());
+        return roles.stream()
+                .filter(role -> !"CUSTOMER".equalsIgnoreCase(role.getName()))
+                .map(roleMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }

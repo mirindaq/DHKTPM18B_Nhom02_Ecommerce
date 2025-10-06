@@ -22,10 +22,13 @@ public class Feedback {
     private String content;
 
     @Column
-    private String rate;
+    private Double rate;
 
     @Column
-    private LocalDateTime date;
+    private LocalDateTime feedbackTime;
+
+    @Column
+    private Boolean status;
 
     @ManyToOne
     @JoinColumn( name = "product_id")

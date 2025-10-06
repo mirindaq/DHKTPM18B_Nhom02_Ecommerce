@@ -4,8 +4,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, RotateCcw, Trash2 } from "lucide-react"
+import { useQuery } from "@/hooks"
+import { categoryService } from "@/services/category.service"
 import type { Variant, CreateVariantRequest } from "@/types/variant.type"
+import type { CategoryListResponse } from "@/types/category.type"
 
 interface VariantFormProps {
   variant?: Variant | null
@@ -18,10 +22,24 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
   const [formData, setFormData] = useState<CreateVariantRequest>({
     name: "",
     status: true,
+    categoryId: undefined,
     variantValues: []
   })
   const [newVariantValue, setNewVariantValue] = useState("")
   const [allVariantValues, setAllVariantValues] = useState<Array<{id?: number, value: string, status: boolean}>>([])
+
+  // Fetch categories
+  const {
+    data: categoriesData,
+    isLoading: isLoadingCategories
+  } = useQuery<CategoryListResponse>(
+    () => categoryService.getCategories(1, 100, ""),
+    {
+      queryKey: ['categories-for-variant'],
+    }
+  )
+
+  const categories = categoriesData?.data?.data || []
 
   useEffect(() => {
     if (variant) {
@@ -30,6 +48,7 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
       setFormData({
         name: variant.name,
         status: variant.status,
+        categoryId: variant.category?.id,
         variantValues: activeVariantValues.map(value => ({ value: value.value }))
       })
       // Lưu tất cả variant values (cả active và inactive) để quản lý
@@ -43,6 +62,7 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
       setFormData({
         name: "",
         status: true,
+        categoryId: undefined,
         variantValues: []
       })
       setAllVariantValues([])
@@ -51,6 +71,13 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation
+    if (!formData.categoryId) {
+      alert("Vui lòng chọn danh mục")
+      return
+    }
+    
     onSubmit(formData)
   }
 
@@ -123,6 +150,30 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
           required
           disabled={isLoading}
         />
+      </div>
+
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="category" className="text-right font-medium text-gray-700">
+          Danh mục <span className="text-red-500">*</span>
+        </Label>
+        <div className="col-span-3">
+          <Select
+            value={formData.categoryId?.toString() || ""}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: parseInt(value) }))}
+            disabled={isLoading || isLoadingCategories}
+          >
+            <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+              <SelectValue placeholder="Chọn danh mục..." />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 items-center gap-4">

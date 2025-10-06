@@ -1,3 +1,4 @@
+import type { Category } from "./category.type";
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 
 export type VariantValue = {
@@ -11,8 +12,7 @@ export type Variant = {
   id: number;
   name: string;
   status: boolean;
-  createdAt: string;
-  modifiedAt: string;
+  category: Category;
   variantValues: VariantValue[];
 };
 
@@ -23,11 +23,13 @@ export type CreateVariantValueRequest = {
 export type CreateVariantRequest = {
   name: string;
   status?: boolean;
+  categoryId?: number;
   variantValues?: CreateVariantValueRequest[];
 };
 
 export type VariantResponse = ResponseApi<Variant>;
 
 export type VariantListResponse = ResponseApiWithPagination<Variant[]>;
+export type VariantListResponseForCreateProduct = ResponseApi<Variant[]>;
 
 export type VariantValueResponse = ResponseApi<VariantValue[]>;

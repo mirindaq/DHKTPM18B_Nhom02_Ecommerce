@@ -5,9 +5,6 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProductAttributeRequest {
 
     @NotNull(message = "AttributeId không được null")

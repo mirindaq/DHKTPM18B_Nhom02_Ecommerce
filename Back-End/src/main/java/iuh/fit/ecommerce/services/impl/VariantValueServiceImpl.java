@@ -69,12 +69,12 @@ public class VariantValueServiceImpl implements VariantValueService {
 
          // 1. Disable những value không còn trong request
          existingValues.stream()
-                 .filter(ev -> !newValues.contains(ev.getValue()) && ev.isStatus())
+                 .filter(ev -> !newValues.contains(ev.getValue()) && ev.getStatus())
                  .forEach(ev -> ev.setStatus(false));
 
          // 2. Enable lại những value đang inactive nhưng có trong request
          existingValues.stream()
-                 .filter(ev -> newValues.contains(ev.getValue()) && !ev.isStatus())
+                 .filter(ev -> newValues.contains(ev.getValue()) && !ev.getStatus())
                  .forEach(ev -> ev.setStatus(true));
 
          // 3. Thêm value mới (chưa có trong DB)
@@ -132,16 +132,16 @@ public class VariantValueServiceImpl implements VariantValueService {
     @Override
     public void changeStatusVariantValue(Long id) {
         VariantValue value = getVariantValueEntityById(id);
-        value.setStatus(!value.isStatus());
+        value.setStatus(!value.getStatus());
         variantValueRepository.save(value);
     }
 
-    private VariantValue getVariantValueEntityById(Long id) {
+    public VariantValue getVariantValueEntityById(Long id) {
         return variantValueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("VariantValue not found with id: " + id));
     }
 
-    private Variant getVariantEntityById(Long id) {
+     private Variant getVariantEntityById(Long id) {
         return variantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + id));
     }

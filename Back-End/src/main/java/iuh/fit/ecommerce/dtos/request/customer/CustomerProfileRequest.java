@@ -1,6 +1,5 @@
 package iuh.fit.ecommerce.dtos.request.customer;
 
-import iuh.fit.ecommerce.enums.Gender;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,8 +10,6 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class CustomerProfileRequest {
     @NotBlank(message = "Full name is required")
     private String fullName;
@@ -26,5 +23,4 @@ public class CustomerProfileRequest {
     private String avatar;
     private String address;
     private LocalDate dateOfBirth;
-    private Gender gender;
 }

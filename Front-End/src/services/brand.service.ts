@@ -1,8 +1,8 @@
 import axiosClient from '@/configurations/axios.config';
-import type { 
-  CreateBrandRequest, 
-  BrandResponse, 
-  BrandListResponse 
+import type {
+  CreateBrandRequest,
+  BrandResponse,
+  BrandListResponse
 } from '@/types/brand.type';
 
 export const brandService = {

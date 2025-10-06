@@ -2,7 +2,6 @@ package iuh.fit.ecommerce.dtos.request.customer;
 
 import iuh.fit.ecommerce.entities.Cart;
 import iuh.fit.ecommerce.entities.UserRole;
-import iuh.fit.ecommerce.enums.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -16,8 +15,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class CustomerAddRequest {
 
     @NotBlank(message = "Full name is required")
@@ -41,7 +38,6 @@ public class CustomerAddRequest {
 
     private LocalDate dateOfBirth;
 
-    private Gender gender;
     private LocalDate registerDate;
 
     private List<UserRole> userRole;

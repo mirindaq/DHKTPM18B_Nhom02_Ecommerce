@@ -8,6 +8,7 @@ export const ADMIN_PATH = {
   DASHBOARD: "/admin",
   PRODUCTS: "/admin/products",
   PRODUCT_ADD: "/admin/products/add",
+  PRODUCT_EDIT: "/admin/products/edit/:id",
   CATEGORIES: "/admin/categories",
   BRANDS: "/admin/brands",
   EMPLOYEES: "/admin/employees",
@@ -16,6 +17,7 @@ export const ADMIN_PATH = {
   SETTINGS: "/admin/settings",
   ANALYTICS: "/admin/analytics",
   VARIANTS: "/admin/variants",
+  STAFFS: "/admin/staffs",
 };
 export const PUBLIC_PATH = {
   HOME: "/",

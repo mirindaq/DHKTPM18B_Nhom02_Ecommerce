@@ -4,17 +4,17 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
-import type { Brand, CreateBrandRequest } from "@/types/brand.type"
-import BrandForm from "./BrandForm"
+import type { Brand, CreateBrandRequest } from "@/types/brand.type";
+import BrandForm from "./BrandForm";
 
 interface BrandDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  brand?: Brand | null
-  onSubmit: (data: CreateBrandRequest) => void
-  isLoading?: boolean
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  brand?: Brand | null;
+  onSubmit: (data: CreateBrandRequest) => void;
+  isLoading?: boolean;
 }
 
 export default function BrandDialog({
@@ -22,15 +22,15 @@ export default function BrandDialog({
   onOpenChange,
   brand,
   onSubmit,
-  isLoading
+  isLoading,
 }: BrandDialogProps) {
   const handleSubmit = (data: CreateBrandRequest) => {
-    onSubmit(data)
-  }
+    onSubmit(data);
+  };
 
   const handleCancel = () => {
-    onOpenChange(false)
-  }
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -40,10 +40,12 @@ export default function BrandDialog({
             {brand ? "Chỉnh sửa thương hiệu" : "Thêm thương hiệu mới"}
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            {brand ? "Cập nhật thông tin thương hiệu" : "Điền thông tin thương hiệu mới"}
+            {brand
+              ? "Cập nhật thông tin thương hiệu"
+              : "Điền thông tin thương hiệu mới"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <BrandForm
           brand={brand}
           onSubmit={handleSubmit}
@@ -52,5 +54,5 @@ export default function BrandDialog({
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -27,7 +27,9 @@ import {
   LogOut,
   Store,
   Award,
-  Tag
+  Tag,
+
+  UserCheck
 } from "lucide-react"
 
 const navigation = [
@@ -65,6 +67,11 @@ const navigation = [
     title: "Khách hàng",
     icon: Users,
     href: "/admin/customers",
+  },
+  {
+    title: "Nhân viên",
+    icon: UserCheck,
+    href: "/admin/staffs",
   },
   {
     title: "Thống kê",
@@ -106,9 +113,9 @@ export default function AdminLayout() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.1">
                   {navigation.map((item) => {
-                    const isActive = location.pathname === item.href || 
+                    const isActive = location.pathname === item.href ||
                       (item.href !== "/admin" && location.pathname.startsWith(item.href))
-                    
+
                     return (
                       <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton
@@ -133,8 +140,8 @@ export default function AdminLayout() {
           <SidebarFooter>
             <SidebarMenu className="space-y-2">
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
+                <SidebarMenuButton
+                  asChild
                   tooltip="Cài đặt"
                   isActive={location.pathname === "/admin/settings"}
                   className={`h-12 px-4 py-3 ${location.pathname === "/admin/settings" ? "bg-black text-white" : "hover:bg-gray-100 hover:text-gray-900"}`}
