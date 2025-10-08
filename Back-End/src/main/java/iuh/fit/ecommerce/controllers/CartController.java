@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.cart.CartAddRequest;
+import iuh.fit.ecommerce.dtos.request.cart.CartUpdateQuantityRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.cart.CartResponse;
 import iuh.fit.ecommerce.services.CartService;
@@ -56,6 +57,17 @@ public class CartController {
                 OK,
                 "Clear cart success",
                 null
+        ));
+    }
+
+    @PutMapping("/update-quantity")
+    public ResponseEntity<ResponseSuccess<CartResponse>> updateCartItemQuantity(
+            @RequestBody CartUpdateQuantityRequest request
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Update cart item quantity success",
+                cartService.updateProductQuantity(request)
         ));
     }
 }

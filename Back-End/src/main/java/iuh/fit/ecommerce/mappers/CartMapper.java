@@ -16,10 +16,13 @@ public interface CartMapper {
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "cartDetails", target = "items")
     @Mapping(source = "cartDetails", target = "totalPrice", qualifiedByName = "calculateTotalPrice")
+    @Mapping(source = "id", target = "cartId")
     CartResponse toResponse(Cart cart);
 
-    @Mapping(source = "productVariant.id", target = "productId")
+    @Mapping(source = "productVariant.id", target = "productVariantId")
     @Mapping(source = "productVariant.product.name", target = "productName")
+    @Mapping(source = "productVariant.product.thumbnail", target = "productImage")
+    @Mapping(source = "productVariant.sku", target = "sku")
     CartDetailResponse toItemResponse(CartDetail cartDetail);
 
     @Named("calculateTotalPrice")

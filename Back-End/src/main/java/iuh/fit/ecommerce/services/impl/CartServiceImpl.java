@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.cart.CartAddRequest;
+import iuh.fit.ecommerce.dtos.request.cart.CartUpdateQuantityRequest;
 import iuh.fit.ecommerce.dtos.response.cart.CartResponse;
 import iuh.fit.ecommerce.entities.Cart;
 import iuh.fit.ecommerce.entities.CartDetail;
@@ -80,6 +81,28 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+    @Override
+    public CartResponse updateProductQuantity(CartUpdateQuantityRequest request) {
+        Cart cart = findOrCreateCartForCurrentUser();
+        ProductVariant productVariant = findProductVariant(request.getProductVariantId());
+        CartDetail cartDetail = findCartDetail(cart, productVariant);
+
+        if (cartDetail == null) {
+            throw new ResourceNotFoundException("ProductVariant not found in cart");
+        }
+
+        cartDetail.setQuantity(request.getQuantity().longValue());
+        cartDetail.setPrice(productVariant.getPrice() * request.getQuantity());
+
+        if (cartDetail.getQuantity() <= 0) {
+            cart.getCartDetails().remove(cartDetail);
+        }
+
+        updateCartTotalItems(cart);
+        cartRepository.save(cart);
+
+        return cartMapper.toResponse(cart);
+    }
     private Cart findOrCreateCartForCurrentUser() {
         User user = securityUtil.getCurrentUser();
         return cartRepository.findByUser_Id(user.getId())

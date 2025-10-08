@@ -33,6 +33,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
     private final ProductVariantValueRepository productVariantValueRepository;
+    private final ProductAttributeValueRepository productAttributeValueRepository;
 
     @Override
     @Transactional
@@ -46,8 +47,23 @@ public class ProductServiceImpl implements ProductService {
         Product product = buildProduct(productAddRequest, brand, category);
         productRepository.save(product);
 
+
+        saveAttributes(productAddRequest.getAttributes(), product);
+
         saveVariants(productAddRequest.getVariants(), product);
 
+    }
+
+    private void saveAttributes(List<ProductAttributeRequest> attributes, Product product) {
+        for (ProductAttributeRequest req : attributes) {
+            ProductAttributeValue productAttributeValue = ProductAttributeValue.builder()
+                    .value(req.getValue())
+                    .product(product)
+                    .status(true)
+                    .attribute(attributeService.getAttributeEntityById(req.getAttributeId()))
+                    .build();
+            productAttributeValueRepository.save(productAttributeValue);
+        }
     }
 
     @Override
@@ -65,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductBySlug(String slug) {
-        return null;
+        return productMapper.toResponse(productRepository.getProductBySlug(slug));
     }
 
     @Override

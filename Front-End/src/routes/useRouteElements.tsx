@@ -27,9 +27,10 @@ import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH, STAFF_PATH, SHIPPER_PATH } from "@/
 import UserLogin from "@/pages/auth/UserLogin"
 import AdminLogin from "@/pages/auth/AdminLogin"
 import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent"
-import { AdminRoute, StaffRoute, ShipperRoute } from "@/components/auth/ProtectedRoute"
+import { AdminRoute, StaffRoute, ShipperRoute, UserRoute } from "@/components/auth/ProtectedRoute"
 import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
 import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
+import Error401 from "@/pages/error/Error401"
 
 
 const useRouteElements = () => {
@@ -47,9 +48,23 @@ const useRouteElements = () => {
       ),
       children: [
         { index: true, element: <Home /> },
-        { path: "product/:id", element: <ProductDetail /> },
-        { path: "cart", element: <Cart /> },
-        { path: "profile", element: <Profile /> },
+        { path: "product/:slug", element: <ProductDetail /> },
+        { 
+          path: "cart", 
+          element: (
+            <UserRoute>
+              <Cart />
+            </UserRoute>
+          ) 
+        },
+        { 
+          path: "profile", 
+          element: (
+            <UserRoute>
+              <Profile />
+            </UserRoute>
+          ) 
+        },
       ]
     },
 
@@ -129,8 +144,10 @@ const useRouteElements = () => {
         { path: SHIPPER_PATH.DELIVERIES, element: <ShipperOrders /> },
       ]
     },
-
-    // Fallback route
+    {
+      path: "/error-401",
+      element: <Error401 />
+    },
     {
       path: "*",
       element: <Home />

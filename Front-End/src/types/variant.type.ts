@@ -5,6 +5,7 @@ export type VariantValue = {
   id: number;
   value: string;
   variantId: number;
+  variantName?: string;
   status: boolean;
 };
 

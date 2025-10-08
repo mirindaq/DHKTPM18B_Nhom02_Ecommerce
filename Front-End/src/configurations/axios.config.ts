@@ -12,7 +12,6 @@ const axiosClient = axios.create({
   timeout: 10000, // 10s
 });
 
-// ✅ Request interceptor
 axiosClient.interceptors.request.use(
   (config) => {
     const token = LocalStorageUtil.getAccessToken();

@@ -18,6 +18,8 @@ public class CartDetail {
 
     private Double price;
 
+    private Double discount;
+
     private Long quantity;
 
     @ManyToOne
