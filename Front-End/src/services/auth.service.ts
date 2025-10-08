@@ -4,12 +4,17 @@ import type {
   LoginRequest,
   RefreshTokenRequest,
   AuthResponse,
-  RefreshTokenApiResponse
+  RefreshTokenApiResponse,
+  ProfileResponse
 } from '@/types/auth.type';
 import type { ResponseApi } from '@/types/responseApi.type';
 
 export const authService = {
   login: async (request: LoginRequest) => {
+    const response = await axiosClient.post<AuthResponse>('/auth/login', request);
+    return response;
+  },
+  adminLogin: async (request: LoginRequest) => {
     const response = await axiosClient.post<AuthResponse>('/auth/admin/login', request);
     return response;
   },
@@ -24,6 +29,11 @@ export const authService = {
   },
   socialLogin: async (login_type: string) => { 
     const response = await axiosClient.get<ResponseApi<string>>(`/auth/social-login`, { params: { login_type } });
+    return response;
+  },
+
+  getProfile: async () => {
+    const response = await axiosClient.get<ProfileResponse>('/auth/profile');
     return response;
   }
 };

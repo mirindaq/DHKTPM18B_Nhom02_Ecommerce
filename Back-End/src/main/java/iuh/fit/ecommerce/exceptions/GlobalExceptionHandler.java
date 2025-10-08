@@ -151,8 +151,18 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
     }
-
-
+//
+//    @ExceptionHandler(AccessDeniedException.class)
+//    @ResponseStatus(HttpStatus.FORBIDDEN)
+//    public ResponseError handleJwtException(AccessDeniedException ex, WebRequest request) {
+//        return ResponseError.builder()
+//                .timestamp(new Date())
+//                .status(HttpStatus.FORBIDDEN.value())
+//                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+//                .path(request.getDescription(false).replace("uri=", ""))
+//                .message(ex.getMessage())
+//                .build();
+//    }
 
 
 

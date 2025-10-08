@@ -16,6 +16,18 @@ export type LoginResponse = {
   roles: string[];
 };
 
+export type UserProfile = {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+  avatar?: string;
+  phone?: string;
+  address?: string;
+};
+
+export type ProfileResponse = ResponseApi<UserProfile>;
+
 export type RefreshTokenResponse = {
   accessToken: string;
   refreshToken: string;

@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
+import iuh.fit.ecommerce.dtos.response.user.UserProfileResponse;
 import iuh.fit.ecommerce.services.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,29 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/admin/login")
-    public ResponseEntity<ResponseSuccess<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ResponseSuccess<LoginResponse>> loginStaff(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 HttpStatus.OK,
                 "Login Success",
                 authenticationService.staffLogin(loginRequest)
+        ));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ResponseSuccess<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                HttpStatus.OK,
+                "Login Success",
+                authenticationService.userLogin(loginRequest)
+        ));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ResponseSuccess<LoginResponse>> register(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                HttpStatus.OK,
+                "Login Success",
+                authenticationService.userLogin(loginRequest)
         ));
     }
 
@@ -73,4 +92,13 @@ public class AuthenticationController {
         );
     }
 
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseSuccess<UserProfileResponse>> getProfile() {
+        return ResponseEntity.ok().body(
+                new ResponseSuccess<>(HttpStatus.OK,
+                        "Social login callback successfully",
+                        authenticationService.getProfile()
+                ));
+    }
 }
