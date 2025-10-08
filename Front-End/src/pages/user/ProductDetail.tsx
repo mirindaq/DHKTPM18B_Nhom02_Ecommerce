@@ -11,20 +11,21 @@ import {
   MessageCircle,
   Settings,
   ChevronRight,
-  Check,
   Shield,
   Headphones,
   ArrowUp,
   Zap,
   Award,
   Truck,
-  RotateCcw
+  RotateCcw,
+  Check
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
 import { productService } from "@/services/product.service";
 import { AUTH_PATH, PUBLIC_PATH } from "@/constants/path";
 import type { Product } from "@/types/product.type";
+import { toast } from "sonner";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -38,7 +39,6 @@ export default function ProductDetail() {
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -167,6 +167,7 @@ export default function ProductDetail() {
 
     if (!matchingVariant) {
       console.error('Không tìm thấy variant phù hợp với lựa chọn hiện tại');
+      toast.error('Không tìm thấy sản phẩm phù hợp');
       return;
     }
 
@@ -180,10 +181,10 @@ export default function ProductDetail() {
         quantity: 1
       });
 
-      setIsAddedToCart(true);
-      setTimeout(() => setIsAddedToCart(false), 2000);
+      toast.success('Đã thêm vào giỏ hàng thành công!');
     } catch (error) {
       console.error('Lỗi khi thêm vào giỏ hàng:', error);
+      toast.error('Không thể thêm vào giỏ hàng');
     } finally {
       setIsAddingToCart(false);
     }
@@ -611,17 +612,12 @@ export default function ProductDetail() {
                     variant="outline"
                     className="h-16 border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 hover:ring-2 hover:ring-red-200 font-semibold py-3 rounded-xl transition-all duration-300"
                     onClick={handleAddToCart}
-                    disabled={isAddingToCart || isAddedToCart}
+                    disabled={isAddingToCart}
                   >
                     {isAddingToCart ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600 mr-1"></div>
                         Đang thêm...
-                      </>
-                    ) : isAddedToCart ? (
-                      <>
-                        <Check className="w-5 h-5 mr-1" />
-                        Đã thêm
                       </>
                     ) : (
                       <>

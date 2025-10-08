@@ -40,7 +40,7 @@ public class CartServiceImpl implements CartService {
         CartDetail cartDetail = findCartDetail(cart, productVariant);
 
         if (cartDetail != null) {
-            updateCartDetailQuantityAndPrice(cartDetail, request.getQuantity(), productVariant.getPrice());
+            cartDetail.setQuantity(cartDetail.getQuantity() + request.getQuantity());
         } else {
             addNewCartDetail(cart, productVariant, request.getQuantity());
         }
@@ -92,7 +92,6 @@ public class CartServiceImpl implements CartService {
         }
 
         cartDetail.setQuantity(request.getQuantity().longValue());
-        cartDetail.setPrice(productVariant.getPrice() * request.getQuantity());
 
         if (cartDetail.getQuantity() <= 0) {
             cart.getCartDetails().remove(cartDetail);
@@ -126,18 +125,13 @@ public class CartServiceImpl implements CartService {
                 .orElse(null);
     }
 
-    private void updateCartDetailQuantityAndPrice(CartDetail cartDetail, int addedQuantity, double pricePerUnit) {
-        long newQuantity = cartDetail.getQuantity() + addedQuantity;
-        cartDetail.setQuantity(newQuantity);
-        cartDetail.setPrice(newQuantity * pricePerUnit);
-    }
 
     private void addNewCartDetail(Cart cart, ProductVariant productVariant, int quantity) {
         CartDetail cartDetail = CartDetail.builder()
                 .cart(cart)
                 .productVariant(productVariant)
                 .quantity((long) quantity)
-                .price(productVariant.getPrice() * quantity)
+                .price(productVariant.getPrice())
                 .build();
         cart.getCartDetails().add(cartDetail);
     }

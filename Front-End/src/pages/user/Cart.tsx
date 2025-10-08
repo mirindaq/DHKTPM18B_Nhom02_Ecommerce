@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { Cart } from '@/types/cart.type'
 import { toast } from 'sonner'
+import CartItemSkeleton, { CartSummarySkeleton } from '@/components/user/CartItemSkeleton'
 
 export default function Cart() {
   const [cart, setCart] = useState<Cart | null>(null)
@@ -43,14 +44,29 @@ export default function Cart() {
     try {
       setUpdatingItems(prev => new Set(prev).add(productVariantId))
       
-      // Sử dụng API cập nhật số lượng trực tiếp
-      await cartService.updateCartItemQuantity(productVariantId, newQuantity)
+      // Optimistic update - cập nhật UI trước
+      setCart(prevCart => {
+        if (!prevCart) return prevCart
+        
+        return {
+          ...prevCart,
+          items: prevCart.items.map(item => 
+            item.productVariantId === productVariantId 
+              ? { ...item, quantity: newQuantity }
+              : item
+          )
+        }
+      })
 
-      // Reload cart
-      await loadCart()
+      // Gọi API cập nhật
+      await cartService.updateCartItemQuantity(productVariantId, newQuantity)
+      
       toast.success('Đã cập nhật số lượng')
     } catch (error) {
       console.error('Lỗi khi cập nhật số lượng:', error)
+      
+      // Rollback nếu có lỗi
+      await loadCart()
       toast.error('Không thể cập nhật số lượng')
     } finally {
       setUpdatingItems(prev => {
@@ -63,17 +79,40 @@ export default function Cart() {
 
   const handleRemoveItem = async (productVariantId: number) => {
     try {
-      await cartService.removeProductFromCart(productVariantId)
+      setUpdatingItems(prev => new Set(prev).add(productVariantId))
+      
+      // Optimistic update - xóa khỏi UI trước
+      setCart(prevCart => {
+        if (!prevCart) return prevCart
+        
+        return {
+          ...prevCart,
+          items: prevCart.items.filter(item => item.productVariantId !== productVariantId)
+        }
+      })
+      
       setSelectedItems(prev => {
         const newSet = new Set(prev)
         newSet.delete(productVariantId)
         return newSet
       })
-      await loadCart()
+
+      // Gọi API xóa
+      await cartService.removeProductFromCart(productVariantId)
+      
       toast.success('Đã xóa sản phẩm khỏi giỏ hàng')
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm:', error)
+      
+      // Rollback nếu có lỗi
+      await loadCart()
       toast.error('Không thể xóa sản phẩm')
+    } finally {
+      setUpdatingItems(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(productVariantId)
+        return newSet
+      })
     }
   }
 
@@ -100,15 +139,34 @@ export default function Cart() {
   const handleRemoveSelected = async () => {
     if (selectedItems.size === 0) return
 
+    const selectedItemsArray = Array.from(selectedItems)
+    
     try {
-      for (const productVariantId of selectedItems) {
-        await cartService.removeProductFromCart(productVariantId)
-      }
+      // Optimistic update - xóa khỏi UI trước
+      setCart(prevCart => {
+        if (!prevCart) return prevCart
+        
+        return {
+          ...prevCart,
+          items: prevCart.items.filter(item => !selectedItems.has(item.productVariantId))
+        }
+      })
+      
       setSelectedItems(new Set())
-      await loadCart()
-      toast.success(`Đã xóa ${selectedItems.size} sản phẩm`)
+
+      // Gọi API xóa tất cả
+      await Promise.all(
+        selectedItemsArray.map(productVariantId => 
+          cartService.removeProductFromCart(productVariantId)
+        )
+      )
+      
+      toast.success(`Đã xóa ${selectedItemsArray.length} sản phẩm`)
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm:', error)
+      
+      // Rollback nếu có lỗi
+      await loadCart()
       toast.error('Không thể xóa sản phẩm')
     }
   }
@@ -133,9 +191,30 @@ export default function Cart() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <div className="mb-6">
+          <div className="h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-gray-200 rounded w-48 animate-pulse"></div>
         </div>
+
+        {/* Cart Actions Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-4 h-4 bg-gray-200 rounded"></div>
+              <div className="h-5 bg-gray-200 rounded w-32"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cart Items Skeleton */}
+        <div className="space-y-4 mb-8">
+          {[...Array(3)].map((_, index) => (
+            <CartItemSkeleton key={index} />
+          ))}
+        </div>
+
+        {/* Cart Summary Skeleton */}
+        <CartSummarySkeleton />
       </div>
     )
   }
@@ -163,7 +242,7 @@ export default function Cart() {
       </div>
 
       {/* Cart Actions */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 transition-all duration-300">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Checkbox
@@ -178,7 +257,7 @@ export default function Cart() {
               variant="destructive"
               size="sm"
               onClick={handleRemoveSelected}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 transition-all duration-300 hover:scale-105 animate-in slide-in-from-right-5"
             >
               <Trash2 className="w-4 h-4" />
               <span>Xóa đã chọn ({selectedItems.size})</span>
@@ -189,13 +268,22 @@ export default function Cart() {
 
       {/* Cart Items */}
       <div className="space-y-4 mb-8">
-        {cart.items.map((item) => (
-          <div key={item.productVariantId} className="bg-white rounded-lg shadow-sm border p-6">
+        {cart.items.map((item, index) => (
+          <div 
+            key={item.productVariantId} 
+            className={`bg-white rounded-lg shadow-sm border p-6 transition-all duration-300 animate-in slide-in-from-bottom-4 ${
+              updatingItems.has(item.productVariantId) 
+                ? 'opacity-50 pointer-events-none' 
+                : 'opacity-100'
+            }`}
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
             <div className="flex items-start space-x-4">
               {/* Checkbox */}
               <Checkbox
                 checked={selectedItems.has(item.productVariantId)}
                 onCheckedChange={(checked) => handleSelectItem(item.productVariantId, checked as boolean)}
+                disabled={updatingItems.has(item.productVariantId)}
               />
 
               {/* Product Image */}
@@ -203,7 +291,7 @@ export default function Cart() {
                 <img
                   src={item.productImage}
                   alt={item.productName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
                 />
               </div>
 
@@ -216,7 +304,7 @@ export default function Cart() {
                 
                 <div className="flex items-center space-x-2 mb-3">
                   {item.discount > 0 && (
-                    <Badge variant="destructive" className="text-xs">
+                    <Badge variant="destructive" className="text-xs animate-pulse">
                       -{item.discount}%
                     </Badge>
                   )}
@@ -237,23 +325,23 @@ export default function Cart() {
                 {/* Quantity Controls */}
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-600">Số lượng:</span>
-                  <div className="flex items-center border rounded-lg">
+                  <div className="flex items-center border rounded-lg bg-white">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleQuantityChange(item.productVariantId, item.quantity - 1)}
                       disabled={item.quantity <= 1 || updatingItems.has(item.productVariantId)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors duration-200"
                     >
-                      <Minus className="w-4 h-4" />
+                      {updatingItems.has(item.productVariantId) ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Minus className="w-4 h-4" />
+                      )}
                     </Button>
                     
-                    <div className="px-3 py-1 min-w-[60px] text-center">
-                      {updatingItems.has(item.productVariantId) ? (
-                        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                      ) : (
-                        item.quantity
-                      )}
+                    <div className="px-3 py-1 min-w-[60px] text-center font-medium">
+                      {item.quantity}
                     </div>
                     
                     <Button
@@ -261,9 +349,13 @@ export default function Cart() {
                       size="sm"
                       onClick={() => handleQuantityChange(item.productVariantId, item.quantity + 1)}
                       disabled={updatingItems.has(item.productVariantId)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors duration-200"
                     >
-                      <Plus className="w-4 h-4" />
+                      {updatingItems.has(item.productVariantId) ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -281,9 +373,14 @@ export default function Cart() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveItem(item.productVariantId)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  disabled={updatingItems.has(item.productVariantId)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 disabled:opacity-50"
                 >
-                  <Trash2 className="w-4 h-4 mr-1" />
+                  {updatingItems.has(item.productVariantId) ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-1" />
+                  )}
                   Xóa
                 </Button>
               </div>
@@ -293,7 +390,7 @@ export default function Cart() {
       </div>
 
       {/* Cart Summary */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6 transition-all duration-300">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold mb-2">Tổng cộng</h3>
@@ -303,13 +400,13 @@ export default function Cart() {
           </div>
           
           <div className="text-right">
-            <div className="text-2xl font-bold text-red-600 mb-2">
+            <div className="text-2xl font-bold text-red-600 mb-2 transition-all duration-300">
               {formatPrice(calculateTotal())}
             </div>
             
             <Button 
               size="lg" 
-              className="w-full"
+              className="w-full transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
               disabled={selectedItems.size === 0}
             >
               <CheckCircle className="w-5 h-5 mr-2" />
