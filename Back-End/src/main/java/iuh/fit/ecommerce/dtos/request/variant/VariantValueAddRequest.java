@@ -4,9 +4,6 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class VariantValueAddRequest {
     @NotBlank(message = "Variant value is required")
     private String value;

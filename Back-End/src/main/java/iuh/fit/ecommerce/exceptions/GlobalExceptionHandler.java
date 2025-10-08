@@ -1,8 +1,10 @@
 package iuh.fit.ecommerce.exceptions;
 
+import io.jsonwebtoken.JwtException;
 import iuh.fit.ecommerce.dtos.response.base.ResponseError;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
+import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.validation.FieldError;
@@ -126,6 +128,41 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseError handleUnauthorizedException(UnauthorizedException ex, WebRequest request) {
+        return ResponseError.builder()
+                .timestamp(new Date())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(JwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseError handleJwtException(JwtException ex, WebRequest request) {
+        return ResponseError.builder()
+                .timestamp(new Date())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .message(ex.getMessage())
+                .build();
+    }
+//
+//    @ExceptionHandler(AccessDeniedException.class)
+//    @ResponseStatus(HttpStatus.FORBIDDEN)
+//    public ResponseError handleJwtException(AccessDeniedException ex, WebRequest request) {
+//        return ResponseError.builder()
+//                .timestamp(new Date())
+//                .status(HttpStatus.FORBIDDEN.value())
+//                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+//                .path(request.getDescription(false).replace("uri=", ""))
+//                .message(ex.getMessage())
+//                .build();
+//    }
 
 
 

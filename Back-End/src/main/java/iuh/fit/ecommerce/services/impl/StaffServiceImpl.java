@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class StaffServiceImpl implements StaffService {
     private final RoleRepository roleRepository;
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -107,7 +109,7 @@ public class StaffServiceImpl implements StaffService {
                 .avatar(staffAddRequest.getAvatar())
                 .email(staffAddRequest.getEmail())
                 .fullName(staffAddRequest.getFullName())
-                .password(staffAddRequest.getPassword())
+                .password(passwordEncoder.encode(staffAddRequest.getPassword()))
                 .phone(staffAddRequest.getPhone())
                 .dateOfBirth(staffAddRequest.getDateOfBirth())
                 .active(staffAddRequest.isActive())
@@ -116,7 +118,7 @@ public class StaffServiceImpl implements StaffService {
                 .build();
 
         List<UserRole> userRoles = mapRoleIdsToUserRoles(staffAddRequest.getRoleIds(), staff);
-        staff.setUserRole(userRoles);
+        staff.setUserRoles(userRoles);
 
         return staff;
     }
@@ -133,9 +135,9 @@ public class StaffServiceImpl implements StaffService {
         // Map roles mới nếu có
         if (staffUpdateRequest.getRoleIds() != null) {
             List<UserRole> newUserRoles = mapRoleIdsToUserRoles(staffUpdateRequest.getRoleIds(), staff);
-            staff.getUserRole().clear();
+            staff.getUserRoles().clear();
 
-            staff.getUserRole().addAll(newUserRoles);
+            staff.getUserRoles().addAll(newUserRoles);
         }
     }
 

@@ -48,7 +48,7 @@ export default function Staffs() {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const r = await staffService.getRoles();
+        const r = await staffService.getRolesForAdmin();
         setRoles(r || []);
       } catch (err) {
         console.error("Error loading roles", err);

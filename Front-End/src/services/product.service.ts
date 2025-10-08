@@ -6,7 +6,7 @@ import type {
 } from '@/types/product.type'
 
 export const productService = {
-  getProducts: async (page: number = 1, size: number = 10, search: string = "") => {
+  getProducts: async (page: number = 1, size: number = 7, search: string = "") => {
     const response = await axiosClient.get<ProductListResponse>(
       `/products?page=${page}&size=${size}&search=${search}`
     )
@@ -32,4 +32,10 @@ export const productService = {
     const response = await axiosClient.patch<ProductResponse>(`/products/${id}/status`)
     return response.data
   },
+
+  getProductBySlug: async (slug: string) => {
+    const response = await axiosClient.get<ProductResponse>(`/products/slug/${slug}`)
+    return response.data
+  },
+
 }

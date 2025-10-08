@@ -1,7 +1,5 @@
 // src/routes/useRouteElements.tsx
 import { useRoutes } from "react-router"
-
-// ======================= ADMIN PAGES =======================
 import Dashboard from "@/pages/admin/Dashboard"
 import Products from "@/pages/admin/Products"
 import AddProduct from "@/pages/admin/AddProduct"
@@ -14,44 +12,92 @@ import Analytics from "@/pages/admin/Analytics"
 import Brands from "@/pages/admin/Brands"
 import Variants from "@/pages/admin/Variants"
 import Staffs from "@/pages/admin/Staff"
-
-// ======================= USER PAGES =======================
-
 import Home from "@/pages/user/Home"
 import ProductDetail from "@/pages/user/ProductDetail"
 import Cart from "@/pages/user/Cart"
 import Profile from "@/pages/user/Profile"
-// ======================= AUTH PAGES =======================
-// import LoginUser from "@/pages/auth/LoginUser"
-// import LoginAdmin from "@/pages/auth/LoginAdmin"
-
-// ======================= LAYOUTS =======================
 import AdminLayout from "@/layouts/AdminLayout"
 import UserLayout from "@/layouts/UserLayout"
-
-// ======================= CONSTANTS =======================
-import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH } from "@/constants/path"
+import StaffLayout from "@/layouts/StaffLayout"
+import ShipperLayout from "@/layouts/ShipperLayout"
+import StaffDashboard from "@/pages/staff/StaffDashboard"
+import ShipperDashboard from "@/pages/shipper/ShipperDashboard"
+import ShipperOrders from "@/pages/shipper/ShipperOrders"
+import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH, STAFF_PATH, SHIPPER_PATH } from "@/constants/path"
+import UserLogin from "@/pages/auth/UserLogin"
+import AdminLogin from "@/pages/auth/AdminLogin"
+import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent"
+import { AdminRoute, StaffRoute, ShipperRoute, UserRoute } from "@/components/auth/ProtectedRoute"
+import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
+import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
+import Error401 from "@/pages/error/Error401"
 
 
 const useRouteElements = () => {
   return useRoutes([
-    // ======================= USER ROUTES =======================
+    {
+      path: "/",
+      element: <RoleBasedRedirect />
+    },
     {
       path: PUBLIC_PATH.HOME,
-      element: <UserLayout />,
+      element: (
+        <RoleBasedAuthWrapper>
+          <UserLayout />
+        </RoleBasedAuthWrapper>
+      ),
       children: [
         { index: true, element: <Home /> },
-        { path: "product/:id", element: <ProductDetail /> },
-        { path: "cart", element: <Cart /> },
-        { path: "profile", element: <Profile /> },
-        // { path: AUTH_PATH.LOGIN_USER, element: <LoginUser /> }
+        { path: "product/:slug", element: <ProductDetail /> },
+        { 
+          path: "cart", 
+          element: (
+            <UserRoute>
+              <Cart />
+            </UserRoute>
+          ) 
+        },
+        { 
+          path: "profile", 
+          element: (
+            <UserRoute>
+              <Profile />
+            </UserRoute>
+          ) 
+        },
       ]
     },
 
-    // ======================= ADMIN ROUTES =======================
+    // Auth routes
+    {
+      path: AUTH_PATH.LOGIN_USER,
+      element: (
+        <RoleBasedAuthWrapper>
+          <UserLogin />
+        </RoleBasedAuthWrapper>
+      )
+    },
+    {
+      path: AUTH_PATH.LOGIN_ADMIN,
+      element: (
+        <RoleBasedAuthWrapper>
+          <AdminLogin />
+        </RoleBasedAuthWrapper>
+      )
+    },
+    {
+      path: AUTH_PATH.GOOGLE_CALLBACK,
+      element: <AuthCallbackComponent />
+    },
+
+    // Admin routes (chỉ admin mới truy cập được)
     {
       path: ADMIN_PATH.DASHBOARD,
-      element: <AdminLayout />,
+      element: (
+        <AdminRoute>
+          <AdminLayout />
+        </AdminRoute>
+      ),
       children: [
         { index: true, element: <Dashboard /> },
         { path: ADMIN_PATH.PRODUCTS, element: <Products /> },
@@ -68,13 +114,40 @@ const useRouteElements = () => {
       ]
     },
 
-    // ======================= AUTH ROUTES =======================
-    // {
-    //   path: AUTH_PATH.LOGIN_ADMIN,
-    //   element: <LoginAdmin />
-    // },
+    // Staff routes (admin và staff có thể truy cập)
+    {
+      path: STAFF_PATH.DASHBOARD,
+      element: (
+        <StaffRoute>
+          <StaffLayout />
+        </StaffRoute>
+      ),
+      children: [
+        { index: true, element: <StaffDashboard /> },
+        { path: STAFF_PATH.PRODUCTS, element: <Products /> },
+        { path: STAFF_PATH.ORDERS, element: <Orders /> },
+        { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
+      ]
+    },
 
-    // ======================= FALLBACK =======================
+    // Shipper routes (chỉ shipper mới truy cập được)
+    {
+      path: SHIPPER_PATH.DASHBOARD,
+      element: (
+        <ShipperRoute>
+          <ShipperLayout />
+        </ShipperRoute>
+      ),
+      children: [
+        { index: true, element: <ShipperDashboard /> },
+        { path: SHIPPER_PATH.ORDERS, element: <ShipperOrders /> },
+        { path: SHIPPER_PATH.DELIVERIES, element: <ShipperOrders /> },
+      ]
+    },
+    {
+      path: "/error-401",
+      element: <Error401 />
+    },
     {
       path: "*",
       element: <Home />

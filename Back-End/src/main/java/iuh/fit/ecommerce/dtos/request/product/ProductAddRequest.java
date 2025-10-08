@@ -7,9 +7,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProductAddRequest {
 
     @NotBlank(message = "Tên sản phẩm không được để trống")

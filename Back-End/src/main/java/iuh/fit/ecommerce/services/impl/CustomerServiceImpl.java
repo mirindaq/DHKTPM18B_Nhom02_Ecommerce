@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +31,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
-    private final CustomerRepository userRepository;
     private final RoleRepository roleRepository;
     private final CartRepository cartRepository;
     private final UserRoleRepository userRoleRepository;
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -44,7 +45,8 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new RuntimeException("Role CUSTOMER not exist"));
 
         Customer customer = customerMapper.toCustomer(request);
-        userRepository.save(customer);
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+        customerRepository.save(customer);
         UserRole userRole = UserRole.builder()
                 .user(customer)
                 .role(role)
@@ -88,13 +90,13 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setAddress(customerProfileRequest.getAddress());
         customer.setAvatar(customerProfileRequest.getAvatar());
         customer.setDateOfBirth(customerProfileRequest.getDateOfBirth());
-        userRepository.save(customer);
+        customerRepository.save(customer);
         return customerMapper.toResponse(customer);
     }
 
 
     public Customer findById(long id) {
-        return userRepository.findById(id)
+        return customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id = " + id));
     }
 
@@ -103,7 +105,7 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteCustomer(long id) {
         Customer customer = findById(id);
         cartRepository.deleteByUser(customer);
-        userRepository.delete(customer);
+        customerRepository.delete(customer);
     }
 
     @Override

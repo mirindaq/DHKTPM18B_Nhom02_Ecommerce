@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface StaffRepository extends JpaRepository<Staff, Long> {
     boolean existsByEmail(String email);
@@ -31,4 +32,5 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
             Pageable pageable
     );
 
+    Optional<Staff> findByEmail(String email);
 }

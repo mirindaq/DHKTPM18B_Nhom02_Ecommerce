@@ -23,6 +23,21 @@ export const ADMIN_PATH = {
   STAFFS: "/admin/staffs",
 };
 
+// Staff paths
+export const STAFF_PATH = {
+  DASHBOARD: "/staff",
+  PRODUCTS: "/staff/products",
+  ORDERS: "/staff/orders",
+  CUSTOMERS: "/staff/customers",
+};
+
+// Shipper paths
+export const SHIPPER_PATH = {
+  DASHBOARD: "/shipper",
+  ORDERS: "/shipper/orders",
+  DELIVERIES: "/shipper/deliveries",
+};
+
 // Public (user) paths
 export const PUBLIC_PATH = {
   HOME: "/",
