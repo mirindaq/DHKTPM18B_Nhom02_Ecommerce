@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer className="bg-gray-100 text-sm text-gray-700 mt-10 border-t">
-      <div className="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="container grid-cols-1 md:grid-cols-4 gap-6 max-w-7xl mx-auto flex items-center justify-between pb-6 pt-10 space-x-4">
         {/* Cột 1 */}
         <div>
           <h3 className="font-semibold mb-2">Tổng đài hỗ trợ miễn phí</h3>
