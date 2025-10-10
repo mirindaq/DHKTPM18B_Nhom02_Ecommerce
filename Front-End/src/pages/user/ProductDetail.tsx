@@ -15,17 +15,18 @@ import {
   Headphones,
   ArrowUp,
   Zap,
-  Award,
   Truck,
   RotateCcw,
-  Check
+  Check,
+  GitCompareArrows
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
 import { productService } from "@/services/product.service";
-import { AUTH_PATH, PUBLIC_PATH } from "@/constants/path";
+import { PUBLIC_PATH } from "@/constants/path";
 import type { Product } from "@/types/product.type";
 import { toast } from "sonner";
+import LoginModal from "@/components/user/LoginModal";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -42,6 +43,7 @@ export default function ProductDetail() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Load product data from API
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      navigate(AUTH_PATH.LOGIN_USER);
+      setShowLoginModal(true);
       return;
     }
 
@@ -192,7 +194,7 @@ export default function ProductDetail() {
 
   const handleBuyNow = () => {
     if (!isAuthenticated) {
-      navigate(AUTH_PATH.LOGIN_USER);
+      setShowLoginModal(true);
       return;
     }
 
@@ -312,84 +314,33 @@ export default function ProductDetail() {
           {/* Left Column - Product Images & Info */}
           <div className="lg:col-span-7 space-y-8">
             {/* Product Title */}
-            <Card className="p-6">
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-3 leading-tight">{product.name}</h1>
-                    <p className="text-gray-600 text-lg">CORE 5-210H/16GB/512GB PCIE/VGA 6GB RTX3050/16.0 WUXGA...</p>
-                  </div>
-                  <Badge variant="secondary" className="ml-4 bg-green-100 text-green-800 hover:bg-green-100">
-                    <Zap className="w-3 h-3 mr-1" />
-                    Mới
-                  </Badge>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3">
-                  <Button variant="outline" size="lg" className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all">
-                    <Heart className="w-4 h-4" />
-                    Yêu thích
-                  </Button>
-                  <Button variant="outline" size="lg" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all">
-                    <MessageCircle className="w-4 h-4" />
-                    Hỏi đáp
-                  </Button>
-                  <Button variant="outline" size="lg" className="flex items-center gap-2 hover:bg-gray-50 transition-all">
-                    <Settings className="w-4 h-4" />
-                    Thông số
-                  </Button>
-                </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+            <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+              <div className="flex items-center space-x-1">
+                <Heart className="w-4 h-4 text-gray-400" />
+                <span>Yêu thích</span>
               </div>
-            </Card>
+              <div className="flex items-center space-x-1">
+                 <GitCompareArrows className="w-4 h-4 text-gray-400" />
+                <span>So sánh</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <MessageCircle className="w-4 h-4 text-gray-400" />
+                <span>Hỏi đáp</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Settings className="w-4 h-4 text-gray-400" />
+                <span>Thông số</span>
+              </div>
+            </div>
 
             {/* Featured Section */}
             <Card className="overflow-hidden">
-              <div className="bg-gradient-to-r from-pink-500 via-red-500 to-red-600 p-8 text-white">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="relative group">
-                      <img
-                        src={product.thumbnail}
-                        alt={product.name}
-                        className="w-full h-72 object-cover rounded-xl shadow-2xl transition-transform group-hover:scale-105"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                          <Star className="w-3 h-3 mr-1" />
-                          Nổi bật
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="font-bold text-lg">CORE 5-210H | RTX 3050</p>
-                      <p className="text-white/90">16GB 512GB 16" WUXGA</p>
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                        <Award className="w-6 h-6" />
-                        TÍNH NĂNG NỔI BẬT
-                      </h2>
-                      <ul className="space-y-4 text-sm">
-                        <li className="flex items-start gap-3">
-                          <div className="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
-                          <span>Trang bị vi xử lý Intel Core 5-210H, máy mang lại khả năng xử lý mượt mà cho mọi trò chơi và ứng dụng nặng.</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                          <div className="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
-                          <span>Với 16GB RAM và ổ cứng 512GB PCIe, bạn có không gian lưu trữ rộng rãi và khả năng đa nhiệm ấn tượng.</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                          <div className="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
-                          <span>Màn hình 16.0 inch WUXGA 144Hz cung cấp hình ảnh sắc nét và mượt mà.</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <img
+                src={product.thumbnail}
+                alt={product.name}
+                className="w-full h-90 object-cover rounded-xl transition-transform group-hover:scale-105"
+              />  
             </Card>
 
             {/* Product Image Gallery */}
@@ -628,7 +579,7 @@ export default function ProductDetail() {
                   </Button>
                 </div>
 
-              
+
               </CardContent>
             </Card>
           </div>
@@ -697,6 +648,9 @@ export default function ProductDetail() {
           </Button>
         </div>
       )}
+
+      {/* Login Modal */}
+      <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
     </div>
   );
 }

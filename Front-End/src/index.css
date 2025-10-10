@@ -61,7 +61,7 @@
   --secondary-foreground: oklch(0.2 0.02 245);
 
   /* nhấn */
-  --accent: oklch(0.75 0.1 220);
+  /* --accent: oklch(0.75 0.1 220); */
   --accent-foreground: oklch(0.2 0.02 250);
 
   /* trạng thái */
