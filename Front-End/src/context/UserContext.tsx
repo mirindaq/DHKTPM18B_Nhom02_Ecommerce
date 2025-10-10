@@ -24,7 +24,7 @@ interface UserContextType {
   isCustomer: boolean;
   isShipper: boolean;
   login: (user: UserProfile) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -60,9 +60,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     LocalStorageUtil.setUserData(userData);
   }, []);
 
-  const logout = React.useCallback(() => {
-    setUser(null);
-    LocalStorageUtil.clearAllData();
+  const logout = React.useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+        console.error('Logout API error:', error);
+    } finally {
+      setUser(null);
+      LocalStorageUtil.clearAllData();
+    }
   }, []);
 
   const refreshProfile = React.useCallback(async () => {

@@ -91,4 +91,14 @@ public class JwtUtil {
             default -> throw new InvalidParameterException("Invalid token type");
         }
     }
+
+    public Date getExpirationDateFromToken(String token, TokenType type) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignInKey(type))
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+    }
+
 }

@@ -50,6 +50,11 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Bỏ qua interceptor cho request refresh token để tránh vòng lặp
+    if (originalRequest._skipAuthInterceptor) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // Nếu đang refresh token, thêm request vào queue
@@ -70,8 +75,10 @@ axiosClient.interceptors.response.use(
       
       if (refreshToken) {
         try {
+          console.log('chay vo day 1', refreshToken);
           const response = await authService.refreshToken({ refreshToken });
-          const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+          console.log('chay vo day 2', response);
+          const { accessToken, refreshToken: newRefreshToken } = (response.data as any).data;
           
           LocalStorageUtil.setTokens({ accessToken, refreshToken: newRefreshToken });
           
@@ -80,8 +87,10 @@ axiosClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return axiosClient(originalRequest);
         } catch (refreshError) {
+          console.log('chay vo day 3', refreshError);
           processQueue(refreshError, null);
-          // Refresh token cũng hết hạn, logout user
+
+          await authService.logout();
           LocalStorageUtil.clearAllData();
           window.location.href = '/login';
           return Promise.reject(refreshError);
@@ -89,21 +98,25 @@ axiosClient.interceptors.response.use(
           isRefreshing = false;
         }
       } else {
-        // Không có refresh token, logout user
+        await authService.logout();
         LocalStorageUtil.clearAllData();
         window.location.href = '/login';
         return Promise.reject(error);
       }
+    } else if (error.response?.status === 401) {
+      await authService.logout();
+      LocalStorageUtil.clearAllData();
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
 
     if (error.response) {
-      // Xử lý lỗi chung (403, 500...)
       if (error.response.status === 403) {
         toast.error("Không có quyền truy cập");
       } else if (error.response.status === 500) {
         toast.error("Lỗi server, vui lòng thử lại sau");
       }
-      throw error.response.data; // backend trả message
+      throw error.response.data;
     }
     throw error;
   }

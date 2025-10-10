@@ -1,5 +1,6 @@
 
 import axiosClient from '@/configurations/axios.config';
+import LocalStorageUtil from '@/utils/localStorage.util';
 import type {
   LoginRequest,
   RefreshTokenRequest,
@@ -20,7 +21,10 @@ export const authService = {
   },
 
   refreshToken: async (request: RefreshTokenRequest) => {
-    const response = await axiosClient.post<RefreshTokenApiResponse>('/auth/refresh-token', request);
+    const response = await axiosClient.post<RefreshTokenApiResponse>('/auth/refresh-token', request, {
+      // @ts-ignore - Custom property để bỏ qua interceptor
+      _skipAuthInterceptor: true // Bỏ qua interceptor để tránh vòng lặp
+    });
     return response;
   },
   socialLoginCallback: async (login_type: string, code: string) => {
@@ -34,6 +38,16 @@ export const authService = {
 
   getProfile: async () => {
     const response = await axiosClient.get<ProfileResponse>('/auth/profile');
+    return response;
+  },
+
+  logout: async () => {
+    const refreshToken = LocalStorageUtil.getRefreshToken();
+    const response = await axiosClient.post('/auth/logout', {}, {
+      headers: {
+        'Refresh-Token': refreshToken || ''
+      }
+    });
     return response;
   }
 };

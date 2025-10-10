@@ -53,8 +53,9 @@ public class User implements UserDetails {
     @Column
     private Boolean active;
 
-    @Column
-    private String refreshToken;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UserRole> userRoles = new ArrayList<>();

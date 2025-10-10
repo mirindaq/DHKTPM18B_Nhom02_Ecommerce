@@ -17,10 +17,7 @@ import iuh.fit.ecommerce.enums.TokenType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
 import iuh.fit.ecommerce.mappers.UserMapper;
-import iuh.fit.ecommerce.repositories.CustomerRepository;
-import iuh.fit.ecommerce.repositories.RoleRepository;
-import iuh.fit.ecommerce.repositories.StaffRepository;
-import iuh.fit.ecommerce.repositories.UserRepository;
+import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.AuthenticationService;
 import iuh.fit.ecommerce.utils.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,12 +34,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+
+import static iuh.fit.ecommerce.enums.TokenType.ACCESS_TOKEN;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final SecurityUtil securityUtil;
@@ -106,11 +105,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new JwtException("Invalid or expired refresh token");
         }
         String email = jwtUtil.getUserNameFromJwtToken(refreshToken, TokenType.REFRESH_TOKEN);
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + email));
 
-        if (!refreshToken.equals(user.getRefreshToken())) {
-            throw new BadCredentialsException("Invalid refresh token");
+        RefreshToken dbToken = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new BadCredentialsException("Refresh token not found"));
+
+        if (!dbToken.getUser().getId().equals(user.getId())) {
+            throw new BadCredentialsException("Refresh token does not belong to user");
+        }
+
+        if (dbToken.getRevoked()) {
+            throw new UnauthorizedException("Refresh token revoked");
+        }
+
+        if (dbToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new JwtException("Refresh token expired");
         }
 
         if (!user.getActive()) {
@@ -118,6 +129,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         String accessToken = jwtUtil.generateAccessToken(user);
+
         return RefreshTokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -128,6 +140,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(HttpServletRequest request) {
+        User currentUser = securityUtil.getCurrentUser();
+
+        String refreshTokenHeader = request.getHeader("Refresh-Token");
+        if (refreshTokenHeader == null || refreshTokenHeader.isBlank()) {
+            List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(currentUser.getId());
+            tokens.forEach(t -> {
+                t.setRevoked(true);
+            });
+            refreshTokenRepository.saveAll(tokens);
+            return;
+        }
+
+        refreshTokenRepository.findByToken(refreshTokenHeader)
+                .ifPresent(token -> {
+                    if (!token.getUser().getId().equals(currentUser.getId())) {
+                        throw new AccessDeniedException("Token does not belong to current user");
+                    }
+                    token.setRevoked(true);
+                    refreshTokenRepository.save(token);
+                });
 
     }
 
@@ -218,9 +250,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         String token = jwtUtil.generateAccessToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String refreshTokenStr  = jwtUtil.generateRefreshToken(user);
+        Date expiryDate = jwtUtil.getExpirationDateFromToken(refreshTokenStr, TokenType.REFRESH_TOKEN);
 
-        user.setRefreshToken(refreshToken);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(refreshTokenStr)
+                .expiryDate(expiryDate.toInstant())
+                .deviceInfo(loginRequest.getDeviceInfo())
+                .revoked(false)
+                .user(user)
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
         saveUser.apply(user);
 
         List<String> roles = user.getUserRoles()
@@ -230,7 +271,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return LoginResponse.builder()
                 .accessToken(token)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshTokenStr)
                 .roles(roles)
                 .email(user.getEmail())
                 .build();
@@ -238,10 +279,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private LoginResponse loginSocial(Customer customer) {
         String accessToken = jwtUtil.generateAccessToken(customer);
-        String refreshToken = jwtUtil.generateRefreshToken(customer);
+        String refreshTokenStr = jwtUtil.generateRefreshToken(customer);
+        Date expiryDate = jwtUtil.getExpirationDateFromToken(refreshTokenStr, TokenType.REFRESH_TOKEN);
 
-        customer.setRefreshToken(refreshToken);
-        customerRepository.save(customer);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(refreshTokenStr)
+                .expiryDate(expiryDate.toInstant())
+                .deviceInfo("social-login")
+                .revoked(false)
+                .user(customer)
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
 
         List<String> roles = customer.getUserRoles()
                 .stream()
@@ -250,7 +299,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshTokenStr)
                 .roles(roles)
                 .email(customer.getEmail())
                 .build();

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,6 +35,6 @@ public class Cart {
     @OneToMany(mappedBy = "cart",
             cascade = {CascadeType.MERGE, CascadeType.PERSIST},
             orphanRemoval = true)
-    private List<CartDetail> cartDetails;
+    private List<CartDetail> cartDetails = new ArrayList<>();
 
 }
