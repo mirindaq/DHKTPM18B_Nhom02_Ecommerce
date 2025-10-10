@@ -235,7 +235,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Giỏ hàng của bạn</h1>
         <p className="text-gray-600">{cart.items.length} sản phẩm trong giỏ hàng</p>

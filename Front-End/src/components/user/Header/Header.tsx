@@ -7,7 +7,7 @@ import {
   User,
   ChevronDown,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/context/UserContext";
 import { useNavigate } from "react-router";
 import { cartService } from "@/services/cart.service";
@@ -22,6 +22,7 @@ export default function Header() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCartDropdown, setShowCartDropdown] = useState(false);
   const [cart, setCart] = useState<Cart | null>(null);
+  const cartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -30,6 +31,15 @@ export default function Header() {
       setCart(null);
     }
   }, [isAuthenticated, user]);
+
+  // Cleanup timeout khi component unmount
+  useEffect(() => {
+    return () => {
+      if (cartTimeoutRef.current) {
+        clearTimeout(cartTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadCart = async () => {
     try {
@@ -51,6 +61,20 @@ export default function Header() {
     }
   };
 
+  const handleCartMouseEnter = () => {
+    if (cartTimeoutRef.current) {
+      clearTimeout(cartTimeoutRef.current);
+      cartTimeoutRef.current = null;
+    }
+    setShowCartDropdown(true);
+  };
+
+  const handleCartMouseLeave = () => {
+    cartTimeoutRef.current = setTimeout(() => {
+      setShowCartDropdown(false);
+    }, 150); // Delay 150ms để người dùng có thời gian di chuyển chuột
+  };
+
 
   // Shared button style for consistency
   const redButtonStyle =
@@ -61,7 +85,9 @@ export default function Header() {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2 space-x-4">
         {/* Logo */}
         <div className="flex items-center space-x-1 font-bold text-2xl tracking-tighter">
-          <span className="text-white">CellphoneS</span>
+          <a href={PUBLIC_PATH.HOME}>
+            <span className="text-white">CellphoneS</span>
+          </a>
         </div>
 
         {/* Danh mục */}
@@ -94,8 +120,8 @@ export default function Header() {
           <button
             className="flex items-center space-x-2 px-2 py-1 hover:bg-[#AC0014] rounded-lg"
             onClick={handleCartClick}
-            onMouseEnter={() => setShowCartDropdown(true)}
-            onMouseLeave={() => setShowCartDropdown(false)}
+            onMouseEnter={handleCartMouseEnter}
+            onMouseLeave={handleCartMouseLeave}
           >
             <div className="relative">
               <ShoppingCart size={24} />
@@ -108,14 +134,14 @@ export default function Header() {
             <span className="text-sm">Giỏ hàng</span>
           </button>
 
-          {/* Cart Dropdown Logic remains the same */}
+          {/* Cart Dropdown với bridge để tránh mất hover */}
           {showCartDropdown && isAuthenticated && cart && (
             <div
-              className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border z-50"
-              onMouseEnter={() => setShowCartDropdown(true)}
-              onMouseLeave={() => setShowCartDropdown(false)}
+              className="absolute right-0 top-full mt-2 w-90 bg-white rounded-sm shadow-lg border z-50"
+              onMouseEnter={handleCartMouseEnter}
+              onMouseLeave={handleCartMouseLeave}
             >
-              {/* ... Nội dung dropdown giữ nguyên ... */}
+              <div className="absolute -top-2 left-0 right-0 h-2 bg-transparent"></div>
               <div className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Giỏ hàng của bạn</h3>
                 {cart.items.length === 0 ? (
