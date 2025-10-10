@@ -5,6 +5,7 @@ import lombok.*;
 import iuh.fit.ecommerce.enums.OrderStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -38,10 +39,21 @@ public class Order extends BaseEntity {
     @Column
     private String note;
 
-    @Column( name = "total_price")
+    // Tổng tiền gốc của đơn (chưa giảm)
+    @Column(name = "total_price", nullable = false)
     private Double totalPrice;
+
+    // Tổng giảm từ khuyến mãi
+    @Column(name = "total_discount", nullable = false)
+    private Double totalDiscount = 0.0;
+
+    // Tổng tiền cuối cùng phải thanh toán = totalPrice - totalDiscount
+    @Column(name = "final_total_price", nullable = false)
+    private Double finalTotalPrice;
 
     @ManyToOne( fetch = FetchType.EAGER )
     private User user;
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<OrderDetail> orderDetails;
 }
