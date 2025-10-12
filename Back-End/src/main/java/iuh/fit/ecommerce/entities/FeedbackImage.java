@@ -3,28 +3,27 @@ package iuh.fit.ecommerce.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
-@Table(name = "attributes")
+@Table(name = "feedback_images")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attribute extends BaseEntity{
+public class FeedbackImage {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    private String name;
-
-    @Column
-    private String slug;
+    private String imgUrl;
 
     @ManyToOne
-    private Category category;
+    @JoinColumn(name = "feedback_id")
+    private Feedback feedback;
 
-    @Column(nullable = false)
-    private Boolean status = true;
+
 }

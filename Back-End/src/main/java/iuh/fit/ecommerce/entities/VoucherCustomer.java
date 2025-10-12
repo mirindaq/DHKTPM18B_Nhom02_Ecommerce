@@ -6,25 +6,24 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "attributes")
+@Table(name = "voucher_customers")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attribute extends BaseEntity{
-
+public class VoucherCustomer extends BaseEntity{
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    private String name;
-
-    @Column
-    private String slug;
+    private String code;
 
     @ManyToOne
-    private Category category;
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
 
-    @Column(nullable = false)
-    private Boolean status = true;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
 }

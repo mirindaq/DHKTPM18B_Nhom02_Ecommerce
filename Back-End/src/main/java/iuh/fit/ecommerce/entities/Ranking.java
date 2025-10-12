@@ -6,12 +6,11 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "attributes")
+@Table(name = "rankings")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attribute extends BaseEntity{
-
+public class Ranking extends BaseEntity{
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,11 +19,16 @@ public class Attribute extends BaseEntity{
     private String name;
 
     @Column
-    private String slug;
+    private String description;
 
-    @ManyToOne
-    private Category category;
+    @Column
+    private Double minSpending;
 
-    @Column(nullable = false)
-    private Boolean status = true;
+    @Column
+    private Double maxSpending;
+
+    @Column
+    private Double discountRate;
+
+
 }

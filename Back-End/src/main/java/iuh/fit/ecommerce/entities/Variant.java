@@ -24,6 +24,9 @@ public class Variant extends BaseEntity{
     @Column(nullable = false)
     private Boolean status = true;
 
+    @Column
+    private String slug;
+
     @ManyToOne
     @JoinColumn( name = "category_id", nullable = false)
     private Category category;

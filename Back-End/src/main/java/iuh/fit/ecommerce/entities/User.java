@@ -29,9 +29,6 @@ public class User implements UserDetails {
     private Long id;
 
     @Column
-    private String address;
-
-    @Column
     private String avatar;
 
     @Column(unique = true, nullable = false)

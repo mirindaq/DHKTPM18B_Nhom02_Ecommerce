@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -120,7 +121,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new UnauthorizedException("Refresh token revoked");
         }
 
-        if (dbToken.getExpiryDate().isBefore(Instant.now())) {
+        if (dbToken.getExpiryDate().isBefore(LocalDate.now())) {
             throw new JwtException("Refresh token expired");
         }
 
@@ -220,7 +221,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             customer.setFullName(userInfo.get("name").toString());
             customer.setActive(true);
             customer.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-            customer.setRegisterDate(LocalDate.now());
+//            customer.setRegisterDate(LocalDate.now());
             addRoleCustomer(customer);
             customer = customerRepository.save(customer);
         }
@@ -251,11 +252,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String token = jwtUtil.generateAccessToken(user);
         String refreshTokenStr  = jwtUtil.generateRefreshToken(user);
-        Date expiryDate = jwtUtil.getExpirationDateFromToken(refreshTokenStr, TokenType.REFRESH_TOKEN);
+        LocalDate expiryDate = jwtUtil.getExpirationDateFromToken(refreshTokenStr, TokenType.REFRESH_TOKEN);
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenStr)
-                .expiryDate(expiryDate.toInstant())
+                .expiryDate(expiryDate)
                 .deviceInfo(loginRequest.getDeviceInfo())
                 .revoked(false)
                 .user(user)
@@ -280,11 +281,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private LoginResponse loginSocial(Customer customer) {
         String accessToken = jwtUtil.generateAccessToken(customer);
         String refreshTokenStr = jwtUtil.generateRefreshToken(customer);
-        Date expiryDate = jwtUtil.getExpirationDateFromToken(refreshTokenStr, TokenType.REFRESH_TOKEN);
+        LocalDate expiryDate = jwtUtil.getExpirationDateFromToken(refreshTokenStr, TokenType.REFRESH_TOKEN);
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenStr)
-                .expiryDate(expiryDate.toInstant())
+                .expiryDate(expiryDate)
                 .deviceInfo("social-login")
                 .revoked(false)
                 .user(customer)

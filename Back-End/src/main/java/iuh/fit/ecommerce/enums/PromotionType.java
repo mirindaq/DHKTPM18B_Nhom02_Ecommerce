@@ -2,8 +2,8 @@ package iuh.fit.ecommerce.enums;
 
 
 public enum PromotionType {
-    ORDER,
     CATEGORY,
+    BRAND,
     PRODUCT,
     PRODUCT_VARIANT
 }

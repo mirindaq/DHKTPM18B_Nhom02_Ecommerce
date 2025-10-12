@@ -30,4 +30,8 @@ public class PromotionTarget {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
     private Category category; // Giảm cho danh mục
+
+    @ManyToOne
+    @JoinColumn(name = "brand_id", nullable = true)
+    private Brand brand; // Giảm cho brand
 }

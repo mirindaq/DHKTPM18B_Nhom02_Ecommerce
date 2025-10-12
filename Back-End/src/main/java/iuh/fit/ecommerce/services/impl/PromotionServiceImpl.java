@@ -68,14 +68,14 @@ public class PromotionServiceImpl implements PromotionService {
     public PromotionResponse updatePromotion(Long id, PromotionUpdateRequest request) {
         Promotion promotion = findById(id);
 
-        promotion.setName(request.getName());
-        promotion.setType(request.getType());
-        promotion.setDiscountType(request.getDiscountType());
-        promotion.setDiscountValue(request.getDiscountValue());
-        promotion.setPriority(request.getPriority());
-        promotion.setDescription(request.getDescription());
-        promotion.setStartDate(request.getStartDate());
-        promotion.setEndDate(request.getEndDate());
+//        promotion.setName(request.getName());
+//        promotion.setType(request.getType());
+//        promotion.setDiscountType(request.getDiscountType());
+//        promotion.setDiscountValue(request.getDiscountValue());
+//        promotion.setPriority(request.getPriority());
+//        promotion.setDescription(request.getDescription());
+//        promotion.setStartDate(request.getStartDate());
+//        promotion.setEndDate(request.getEndDate());
 
         promotionRepository.save(promotion);
 

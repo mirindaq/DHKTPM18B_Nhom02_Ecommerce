@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -34,4 +35,7 @@ public class DeliveryAssignment extends BaseEntity{
 
     @Column
     private String note;
+
+    @OneToMany(mappedBy = "deliveryAssignment")
+    private List<DeliveryImage> deliveryImages;
 }

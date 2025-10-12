@@ -21,9 +21,12 @@ public class Staff extends User {
 
     @Column(name = "work_status")
     @Enumerated(EnumType.STRING)
-    private WorkStatus workStatus; // Enum: ACTIVE, INACTIVE, PROBATION
+    private WorkStatus workStatus;
 
     @Column
     private Boolean leader;
+
+    @Column
+    private String address;
 
 }

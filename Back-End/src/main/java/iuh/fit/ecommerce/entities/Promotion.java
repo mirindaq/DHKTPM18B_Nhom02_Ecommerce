@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.enums.PromotionType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,16 +23,13 @@ public class Promotion {
     @Enumerated(EnumType.STRING)
     private PromotionType type;
 
-    @Enumerated(EnumType.STRING)
-    private DiscountType discountType;
-
-    private Double discountValue;     // 10 (%), hoặc 50000 (VNĐ)
+    private Double discount;
     private Boolean active;
     private Integer priority;
     private String description;
 
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @OneToMany(mappedBy = "promotion", fetch = FetchType.LAZY)
     private List<PromotionTarget> promotionTargets;

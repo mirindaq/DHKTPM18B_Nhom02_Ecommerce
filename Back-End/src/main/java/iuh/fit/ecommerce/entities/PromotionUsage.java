@@ -20,9 +20,5 @@ public class PromotionUsage {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "order_detail_id", nullable = true)
-    private OrderDetail orderDetail; // nếu giảm riêng từng sản phẩm
-
-    private Double discountAmount; // số tiền giảm
+    private Double discountAmount;
 }

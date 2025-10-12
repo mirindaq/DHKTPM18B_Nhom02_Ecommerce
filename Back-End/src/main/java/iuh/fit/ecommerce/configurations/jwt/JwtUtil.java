@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import java.security.InvalidParameterException;
 import java.security.Key;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,13 +94,17 @@ public class JwtUtil {
         }
     }
 
-    public Date getExpirationDateFromToken(String token, TokenType type) {
-        return Jwts.parserBuilder()
+    public LocalDate getExpirationDateFromToken(String token, TokenType type) {
+        Date expirationDate = Jwts.parserBuilder()
                 .setSigningKey(getSignInKey(type))
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getExpiration();
+
+        return expirationDate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 
 }

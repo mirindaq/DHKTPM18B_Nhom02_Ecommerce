@@ -39,6 +39,10 @@ public class Order extends BaseEntity {
     @Column
     private String note;
 
+    @Column
+    private Boolean isPickup;
+
+
     // Tổng tiền gốc của đơn (chưa giảm)
     @Column(name = "total_price", nullable = false)
     private Double totalPrice;

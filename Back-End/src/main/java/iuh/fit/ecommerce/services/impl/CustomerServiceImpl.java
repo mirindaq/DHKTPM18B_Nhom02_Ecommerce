@@ -87,7 +87,6 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setFullName(customerProfileRequest.getFullName());
         customer.setPhone(customerProfileRequest.getPhone());
         customer.setEmail(customerProfileRequest.getEmail());
-        customer.setAddress(customerProfileRequest.getAddress());
         customer.setAvatar(customerProfileRequest.getAvatar());
         customer.setDateOfBirth(customerProfileRequest.getDateOfBirth());
         customerRepository.save(customer);

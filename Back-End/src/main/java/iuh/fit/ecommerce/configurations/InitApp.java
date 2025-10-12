@@ -1,10 +1,12 @@
 package iuh.fit.ecommerce.configurations;
 
 
+import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.entities.Role;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.entities.UserRole;
 import iuh.fit.ecommerce.enums.WorkStatus;
+import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.repositories.RoleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class InitApp {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RankingRepository rankingRepository;
 
 
     @Bean
@@ -81,6 +84,17 @@ public class InitApp {
                 staff.getUserRoles().add(adminRole);
 
                 staffRepository.save(staff);
+
+
+                Ranking ranking = Ranking.builder()
+                        .name("S-NEW")
+                        .description("New Membership")
+                        .minSpending(0.0)
+                        .maxSpending(15000000.0)
+                        .discountRate(2.0)
+                        .build();
+                rankingRepository.save(ranking);
+
             }
 
 
