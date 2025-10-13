@@ -21,12 +21,9 @@ public class PromotionAddRequest {
     @NotBlank(message = "Promotion type must not be blank")
     private PromotionType type;
 
-    @NotBlank(message = "Discount type must not be blank")
-    private DiscountType discountType;
-
-    @NotNull(message = "Discount value must not be null")
-    @Positive(message = "Discount value must be greater than 0")
-    private Double discountValue;
+    @NotNull(message = "Discount must not be null")
+    @Positive(message = "Discount must be greater than 0")
+    private Double discount;
 
     @NotNull(message = "Active status must not be null")
     private Boolean active;
@@ -39,10 +36,10 @@ public class PromotionAddRequest {
     private String description;
 
     @NotNull(message = "Start date must not be null")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @NotNull(message = "End date must not be null")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     @Valid
     private List<PromotionTargetRequest> targets;

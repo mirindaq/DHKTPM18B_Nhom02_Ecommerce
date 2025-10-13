@@ -18,4 +18,7 @@ public class PromotionTargetRequest {
 
     @Positive(message = "categoryId must be greater than 0")
     private Long categoryId;
+
+    @Positive(message = "brandId must be greater than 0")
+    private Long brandId;
 }

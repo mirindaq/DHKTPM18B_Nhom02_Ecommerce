@@ -14,6 +14,7 @@ public class PromotionTargetValidator implements ConstraintValidator<ValidPromot
         if (target.getProductId() != null) count++;
         if (target.getProductVariantId() != null) count++;
         if (target.getCategoryId() != null) count++;
+        if (target.getBrandId() != null) count++;
 
         return count == 1; // chỉ có đúng 1 field được set
     }

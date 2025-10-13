@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,4 +21,5 @@ public class PromotionResponse {
     private String description;
     private LocalDate startDate;
     private LocalDate endDate;
+    private List<PromotionTargetResponse> promotionTargets;
 }
