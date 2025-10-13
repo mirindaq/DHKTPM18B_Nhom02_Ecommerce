@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.promotion;
 
+import iuh.fit.ecommerce.enums.PromotionType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,9 +14,8 @@ import java.util.List;
 public class PromotionResponse {
     private Long id;
     private String name;
-    private String type;
-    private String discountType;
-    private Double discountValue;
+    private PromotionType promotionType;
+    private Double discount;
     private Boolean active;
     private Integer priority;
     private String description;

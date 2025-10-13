@@ -14,7 +14,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     @Query("""
             SELECT p FROM Promotion p
             WHERE (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
-            AND (:type IS NULL OR p.type = :type)
+            AND (:type IS NULL OR p.promotionType = :type)
             AND (:active IS NULL OR p.active = :active)
             AND (:startDate IS NULL OR p.startDate >= :startDate)
             AND (:endDate IS NULL OR p.endDate <= :endDate)

@@ -18,8 +18,8 @@ public class PromotionAddRequest {
     @Size(max = 255, message = "Promotion name must be at most 255 characters")
     private String name;
 
-    @NotBlank(message = "Promotion type must not be blank")
-    private PromotionType type;
+    @NotNull(message = "Promotion type must not be blank")
+    private PromotionType promotionType;
 
     @NotNull(message = "Discount must not be null")
     @Positive(message = "Discount must be greater than 0")
@@ -42,5 +42,5 @@ public class PromotionAddRequest {
     private LocalDate endDate;
 
     @Valid
-    private List<PromotionTargetRequest> targets;
+    private List<PromotionTargetRequest> promotionTargets;
 }

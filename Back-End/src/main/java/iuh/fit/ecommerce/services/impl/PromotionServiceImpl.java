@@ -33,15 +33,19 @@ public class PromotionServiceImpl implements PromotionService {
     @Transactional
     public PromotionResponse createPromotion(PromotionAddRequest request) {
         Promotion promotion = promotionMapper.toPromotion(request);
+
         promotionRepository.save(promotion);
 
-        // Mapping targets nếu có
-        if (request.getTargets() != null) {
-            promotionTargetRepository.saveAll(promotionMapper.toPromotionTargets(request.getTargets(), promotion));
+        if (request.getPromotionTargets() != null) {
+            List<PromotionTarget> promotionTargets = promotionMapper.toPromotionTargets(request.getPromotionTargets(), promotion);
+
+            promotion.setPromotionTargets(promotionTargets);
+            promotionTargetRepository.saveAll(promotionTargets);
         }
 
         return promotionMapper.toResponse(promotion);
     }
+
 
     @Override
     public PromotionResponse getPromotionById(Long id) {

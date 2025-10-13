@@ -13,7 +13,7 @@ import java.util.List;
 @Table(name = "promotions")
 @Getter @Setter @Builder
 @NoArgsConstructor @AllArgsConstructor
-public class Promotion {
+public class Promotion extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +21,7 @@ public class Promotion {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private PromotionType type;
+    private PromotionType promotionType;
 
     private Double discount;
     private Boolean active;

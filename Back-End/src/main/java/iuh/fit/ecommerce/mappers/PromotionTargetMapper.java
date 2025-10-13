@@ -14,5 +14,4 @@ public interface PromotionTargetMapper {
     @Mapping(source = "category.id", target = "categoryId")
     @Mapping(source = "brand.id", target = "brandId")
     PromotionTargetResponse toResponse(PromotionTarget request);
-
 }
