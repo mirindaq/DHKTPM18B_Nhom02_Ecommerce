@@ -51,12 +51,12 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
 
   // Get customers for group selection
   const { data: customersData } = useQuery(
-    () => customerService.getCustomers({ 
-      page: 1, 
-      size: 100, 
-      name: searchCustomer || undefined 
+    () => customerService.getCustomers({
+      page: 1,
+      size: 100,
+      name: searchCustomer || undefined
     }),
-    { 
+    {
       queryKey: ["customers", searchCustomer],
       enabled: voucherType === "GROUP"
     }
@@ -82,7 +82,7 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
     setSelectedRankId(null);
     setSelectedCustomerIds([]);
     setValue("voucherType", type);
-    
+
     if (type === "ALL") {
       setValue("rankId", undefined);
       setValue("voucherCustomers", undefined);
@@ -98,7 +98,7 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
     const newSelectedIds = selectedCustomerIds.includes(customerId)
       ? selectedCustomerIds.filter(id => id !== customerId)
       : [...selectedCustomerIds, customerId];
-    
+
     setSelectedCustomerIds(newSelectedIds);
     setValue("voucherCustomers", newSelectedIds.map(id => ({ customerId: id })));
   };
@@ -186,7 +186,7 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
               <Input
                 id="discount"
                 type="number"
-                {...register("discount", { 
+                {...register("discount", {
                   required: "Giá trị giảm là bắt buộc",
                   min: { value: 0, message: "Giá trị phải lớn hơn 0" }
                 })}
@@ -269,7 +269,7 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
                 value={selectedRankId?.toString() || ""}
                 onValueChange={(value) => handleRankSelect(parseInt(value))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Chọn hạng thành viên" />
                 </SelectTrigger>
                 <SelectContent>
@@ -349,11 +349,10 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
                               </td>
                               <td className="px-4 py-2 text-sm">
                                 {voucherCustomer?.voucherCustomerStatus ? (
-                                  <span className={`px-2 py-1 rounded-full text-xs ${
-                                    voucherCustomer.voucherCustomerStatus === 'SENT' 
-                                      ? 'bg-green-100 text-green-800' 
+                                  <span className={`px-2 py-1 rounded-full text-xs ${voucherCustomer.voucherCustomerStatus === 'SENT'
+                                      ? 'bg-green-100 text-green-800'
                                       : 'bg-yellow-100 text-yellow-800'
-                                  }`}>
+                                    }`}>
                                     {voucherCustomer.voucherCustomerStatus === 'SENT' ? 'Đã gửi' : 'Nháp'}
                                   </span>
                                 ) : (
@@ -406,14 +405,14 @@ export default function VoucherForm({ voucher, onSubmit, onSendNotification, isL
           </div>
         </form>
       </CardContent>
-      
+
       {/* Send notification dialog */}
       <AlertDialog open={showSendNotificationDialog} onOpenChange={setShowSendNotificationDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Gửi thông báo voucher</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có muốn gửi thông báo voucher đến khách hàng đã chọn không? 
+              Bạn có muốn gửi thông báo voucher đến khách hàng đã chọn không?
               Thông báo sẽ được gửi qua email đến tất cả khách hàng trong danh sách.
             </AlertDialogDescription>
           </AlertDialogHeader>

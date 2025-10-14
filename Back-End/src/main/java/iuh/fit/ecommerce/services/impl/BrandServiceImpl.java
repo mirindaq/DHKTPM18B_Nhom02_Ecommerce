@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -93,5 +94,6 @@ public class BrandServiceImpl implements BrandService {
         brand.setImage(request.getImage());
         brand.setOrigin(request.getOrigin());
         brand.setStatus(Boolean.TRUE.equals(request.getStatus()));
+        brand.setSlug(StringUtils.normalizeString(request.getName()));
     }
 }
