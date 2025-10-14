@@ -4,6 +4,7 @@ import axios from 'axios';
 import LocalStorageUtil from '@/utils/localStorage.util';
 import type {
   LoginRequest,
+  RegisterRequest,
   RefreshTokenRequest,
   AuthResponse,
   RefreshTokenApiResponse,
@@ -18,6 +19,11 @@ export const authService = {
   },
   adminLogin: async (request: LoginRequest) => {
     const response = await axiosClient.post<AuthResponse>('/auth/admin/login', request);
+    return response;
+  },
+
+  register: async (request: RegisterRequest) => {
+    const response = await axiosClient.post<AuthResponse>('/auth/register', request);
     return response;
   },
 

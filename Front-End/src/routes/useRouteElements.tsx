@@ -32,6 +32,7 @@ import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
 import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
 import Error401 from "@/pages/error/Error401"
 import Promotions from "@/pages/admin/Promotions"
+import UserRegister from "@/pages/auth/UserRegister"
 
 
 const useRouteElements = () => {
@@ -50,21 +51,21 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <Home /> },
         { path: "product/:slug", element: <ProductDetail /> },
-        { 
-          path: "cart", 
+        {
+          path: "cart",
           element: (
             <UserRoute>
               <Cart />
             </UserRoute>
-          ) 
+          )
         },
-        { 
-          path: "profile", 
+        {
+          path: "profile",
           element: (
             <UserRoute>
               <Profile />
             </UserRoute>
-          ) 
+          )
         },
       ]
     },
@@ -75,6 +76,14 @@ const useRouteElements = () => {
       element: (
         <RoleBasedAuthWrapper>
           <UserLogin />
+        </RoleBasedAuthWrapper>
+      )
+    },
+    {
+      path: AUTH_PATH.REGISTER_USER,
+      element: (
+        <RoleBasedAuthWrapper>
+          <UserRegister />
         </RoleBasedAuthWrapper>
       )
     },
@@ -112,7 +121,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
         { path: ADMIN_PATH.STAFFS, element: <Staffs /> },
-        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> }  
+        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> }
       ]
     },
 

@@ -5,6 +5,15 @@ export type LoginRequest = {
   password: string;
 };
 
+export type RegisterRequest = {
+  fullName: string;
+  dateOfBirth: string;
+  phone: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
 export type RefreshTokenRequest = {
   refreshToken: string;
 };

@@ -9,11 +9,13 @@ import io.jsonwebtoken.JwtException;
 import iuh.fit.ecommerce.configurations.jwt.JwtUtil;
 import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
+import iuh.fit.ecommerce.dtos.request.authentication.RegisterRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
 import iuh.fit.ecommerce.dtos.response.user.UserProfileResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.enums.TokenType;
+import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
 import iuh.fit.ecommerce.mappers.UserMapper;
@@ -46,6 +48,7 @@ import static iuh.fit.ecommerce.enums.TokenType.ACCESS_TOKEN;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
+    private final RankingRepository rankingRepository;
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
 
@@ -97,6 +100,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public UserProfileResponse getProfile() {
         User user = securityUtil.getCurrentUser();
         return userMapper.toUserProfileResponse(user);
+    }
+
+    @Override
+    public void register(RegisterRequest registerRequest) {
+        if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
+            throw new BadCredentialsException("Password and confirm password do not match");
+        }
+
+        if (customerRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new ConflictException("Email already registered: " + registerRequest.getEmail());
+        }
+
+        if (customerRepository.existsByPhone(registerRequest.getPhone())) {
+            throw new ConflictException("Phone already registered: " + registerRequest.getPhone());
+        }
+
+        Customer customer = Customer.builder()
+                .email(registerRequest.getEmail())
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .fullName(registerRequest.getFullName())
+                .dateOfBirth(registerRequest.getDateOfBirth())
+                .active(true)
+                .totalSpending(0.0)
+                .ranking(rankingRepository.findByName("S-NEW"))
+                .userRoles(new ArrayList<>())
+                .build();
+
+        addRoleCustomer(customer);
+
+        customerRepository.save(customer);
     }
 
     @Override
