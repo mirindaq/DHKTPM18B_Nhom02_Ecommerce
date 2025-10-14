@@ -64,6 +64,11 @@ const navigation = [
     href: "/admin/orders",
   },
   {
+    title: "Khuyến mãi",
+    icon: Tag,
+    href: "/admin/promotions",
+  },
+  {
     title: "Khách hàng",
     icon: Users,
     href: "/admin/customers",
@@ -78,6 +83,7 @@ const navigation = [
     icon: BarChart3,
     href: "/admin/analytics",
   },
+
 ]
 
 export default function AdminLayout() {

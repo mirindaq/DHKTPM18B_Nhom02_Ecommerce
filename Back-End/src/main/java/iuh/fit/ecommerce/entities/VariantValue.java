@@ -22,6 +22,9 @@ public class VariantValue extends BaseEntity{
     @Column(nullable = false)
     private Boolean status = true;
 
+    @Column
+    private String slug;
+
     @ManyToOne
     @JoinColumn(name = "variant_id")
     private Variant variant;

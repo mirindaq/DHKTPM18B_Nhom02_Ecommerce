@@ -125,9 +125,9 @@ export default function Header() {
           >
             <div className="relative">
               <ShoppingCart size={24} />
-              {cart && cart.items.length > 0 && (
+              {cart && cart.items && cart.items?.length > 0 && (
                 <span className="absolute -top-1 -right-1.5 bg-yellow-400 text-red-600 text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                  {cart.items.length}
+                  {cart.items?.length}
                 </span>
               )}
             </div>

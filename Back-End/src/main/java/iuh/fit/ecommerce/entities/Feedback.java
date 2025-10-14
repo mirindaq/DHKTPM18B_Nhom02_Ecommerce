@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Feedback {
+public class Feedback extends BaseEntity {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
@@ -25,9 +25,6 @@ public class Feedback {
     private Double rate;
 
     @Column
-    private LocalDateTime feedbackTime;
-
-    @Column
     private Boolean status;
 
     @ManyToOne
@@ -37,8 +34,5 @@ public class Feedback {
     @ManyToOne
     @JoinColumn( name = "user_id")
     private User user;
-
-
-
 
 }

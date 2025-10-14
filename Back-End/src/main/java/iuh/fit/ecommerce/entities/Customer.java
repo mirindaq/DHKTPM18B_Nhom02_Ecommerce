@@ -15,8 +15,11 @@ import java.time.LocalDate;
 @SuperBuilder
 public class Customer extends User {
 
-    @Column(name = "register_date")
-    private LocalDate registerDate;
+    @Column
+    private Double totalSpending;
 
+    @ManyToOne
+    @JoinColumn(name = "ranking_id")
+    private Ranking ranking;
 
 }

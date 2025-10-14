@@ -14,14 +14,18 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-    @Query("SELECT c FROM Customer c WHERE " +
+//    @Query("SELECT c FROM Customer c WHERE " +
+//            "(:name IS NULL OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+//            "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
+//            "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
+//            "(:status IS NULL OR c.active = :status) AND "+
+//            "(:startDate IS NULL OR c.createdAt >= :startDate) AND " +
+//            "(:endDate IS NULL OR c.registerDate <= :endDate)")
+        @Query("SELECT c FROM Customer c WHERE " +
             "(:name IS NULL OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
             "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-            "(:status IS NULL OR c.active = :status) AND "+
-            "(:startDate IS NULL OR c.registerDate >= :startDate) AND " +
-            "(:endDate IS NULL OR c.registerDate <= :endDate)")
-
+            "(:status IS NULL OR c.active = :status)")
     Page<Customer> searchCustomers(@Param("name") String name,
                                    @Param("phone") String phone,
                                    @Param("email") String email,

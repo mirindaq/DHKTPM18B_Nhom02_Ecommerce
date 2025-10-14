@@ -84,7 +84,7 @@ const RoleBasedAuthWrapper: React.FC<RoleBasedAuthWrapperProps> = ({ children })
   useEffect(() => {
     if (shouldLogout) {
       console.log('RoleBasedAuthWrapper - Logging out due to role mismatch');
-      logout();
+      logout().catch(console.error);
     }
   }, [shouldLogout, logout]);
 

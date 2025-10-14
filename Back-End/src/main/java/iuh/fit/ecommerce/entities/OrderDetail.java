@@ -16,9 +16,17 @@ public class OrderDetail {
     @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private Double price;
 
+    @Column(nullable = false)
     private Long quantity;
+
+    @Column(nullable = false)
+    private Double discount = 0.0;
+
+    @Column(nullable = false)
+    private Double finalPrice;
 
     @ManyToOne
     @JoinColumn( name = "product_variant_id" )

@@ -19,6 +19,9 @@ public class ProductAttributeValue extends BaseEntity {
     @Column
     private String value;
 
+    @Column
+    private String slug;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

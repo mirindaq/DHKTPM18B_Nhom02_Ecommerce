@@ -31,6 +31,7 @@ import { AdminRoute, StaffRoute, ShipperRoute, UserRoute } from "@/components/au
 import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
 import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
 import Error401 from "@/pages/error/Error401"
+import Promotions from "@/pages/admin/Promotions"
 
 
 const useRouteElements = () => {
@@ -110,7 +111,8 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
-        { path: ADMIN_PATH.STAFFS, element: <Staffs /> }
+        { path: ADMIN_PATH.STAFFS, element: <Staffs /> },
+        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> }  
       ]
     },
 

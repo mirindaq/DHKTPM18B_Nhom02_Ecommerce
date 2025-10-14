@@ -30,6 +30,9 @@ public class Category extends BaseEntity {
     @Column
     private Boolean status;
 
+    @Column
+    private String slug;
+
     @OneToMany( mappedBy = "category", fetch = FetchType.LAZY)
     private List<Attribute> attributes;
 }

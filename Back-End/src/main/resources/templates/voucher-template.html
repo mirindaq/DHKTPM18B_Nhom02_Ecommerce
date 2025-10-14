@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light only" />
+    <title th:text="${voucher.name}">Voucher Ưu Đãi</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f6f7fb;font-family:'Segoe UI',Roboto,Arial,sans-serif;color:#202124;">
+<table role="presentation" width="100%" style="max-width:600px;margin:auto;background-color:#ffffff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);border-collapse:collapse;">
+    <!-- Header -->
+    <tr>
+        <td style="background:linear-gradient(135deg,#2b7de9,#1a5fc1);padding:24px 32px;color:#ffffff;border-top-left-radius:10px;border-top-right-radius:10px;">
+            <h1 th:text="${voucher.name}" style="margin:0;font-size:22px;font-weight:600;">Ưu Đãi Đặc Biệt</h1>
+            <p style="margin:6px 0 0;font-size:14px;opacity:0.9;">Mã giảm giá dành riêng cho bạn</p>
+        </td>
+    </tr>
+
+    <!-- Body -->
+    <tr>
+        <td style="padding:28px 32px;">
+            <p th:if="${voucher.description != null}" th:text="${voucher.description}" style="font-size:15px;color:#5f6368;line-height:1.6;margin-top:0;margin-bottom:24px;">
+                Giảm ngay 15% cho đơn hàng của bạn – áp dụng cho mọi sản phẩm!
+            </p>
+
+            <!-- Voucher Details -->
+            <table role="presentation" width="100%" style="border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;margin-bottom:24px;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:10px 0;font-size:15px;color:#202124;">Giá trị giảm:</td>
+                    <td style="padding:10px 0;font-size:15px;font-weight:600;color:#1a5fc1;text-align:right;"
+                        th:text="${#numbers.formatDecimal(voucher.discount, 0, 'COMMA', 0, 'POINT')} + '%'">
+                        15%
+                    </td>
+                </tr>
+
+                <tr th:if="${voucher.minOrderAmount != null}">
+                    <td style="padding:10px 0;font-size:15px;color:#202124;">Đơn hàng tối thiểu:</td>
+                    <td style="padding:10px 0;font-size:15px;font-weight:600;color:#1a5fc1;text-align:right;"
+                        th:text="${#numbers.formatDecimal(voucher.minOrderAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                        500.000 ₫
+                    </td>
+                </tr>
+
+                <tr th:if="${voucher.maxDiscountAmount != null}">
+                    <td style="padding:10px 0;font-size:15px;color:#202124;">Giảm tối đa:</td>
+                    <td style="padding:10px 0;font-size:15px;font-weight:600;color:#1a5fc1;text-align:right;"
+                        th:text="${#numbers.formatDecimal(voucher.maxDiscountAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                        100.000 ₫
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px 0;font-size:15px;color:#202124;">Hiệu lực:</td>
+                    <td style="padding:10px 0;font-size:15px;font-weight:600;color:#1a5fc1;text-align:right;">
+                        <th:block th:text="${#temporals.format(voucher.startDate, 'dd/MM/yyyy')}"></th:block>
+                        &nbsp;→&nbsp;
+                        <th:block th:text="${#temporals.format(voucher.endDate, 'dd/MM/yyyy')}"></th:block>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Voucher Code -->
+            <div style="background-color:#eef3ff;border:2px dashed #2b7de9;border-radius:10px;padding:16px 20px;text-align:center;margin-bottom:20px;">
+                <p style="margin:0 0 8px;font-size:14px;color:#5f6368;">Mã giảm giá của bạn</p>
+                <div th:text="${code}" style="display:inline-block;font-family:'Courier New',monospace;font-size:24px;letter-spacing:2px;font-weight:700;color:#1a5fc1;background:#ffffff;padding:10px 18px;border-radius:8px;user-select:all;">
+                    ABC123XYZ
+                </div>
+                <p style="margin:10px 0 0;font-size:13px;color:#5f6368;">(Chọn hoặc nhấn giữ để sao chép mã)</p>
+            </div>
+
+            <p style="font-size:14px;color:#5f6368;margin-top:10px;">
+                ⚠️ Lưu ý: Mỗi mã chỉ được sử dụng một lần, không áp dụng cùng các chương trình khác.
+            </p>
+        </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td style="background-color:#f6f7fb;text-align:center;padding:16px 20px;font-size:13px;color:#5f6368;border-top:1px solid #e0e0e0;border-bottom-left-radius:10px;border-bottom-right-radius:10px;">
+            Phát hành bởi <strong style="color:#1a5fc1;">Ecommerce</strong><br />
+            <em>Cảm ơn bạn đã đồng hành cùng chúng tôi!</em>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

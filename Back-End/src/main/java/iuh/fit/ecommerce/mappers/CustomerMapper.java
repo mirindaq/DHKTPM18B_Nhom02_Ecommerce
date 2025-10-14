@@ -14,7 +14,6 @@ public interface CustomerMapper {
 
     CustomerResponse toResponse(Customer customer);
 
-    @Mapping(target = "registerDate", expression = "java(LocalDate.now())")
     @Mapping(target = "active", constant = "true")
     Customer toCustomer(CustomerAddRequest request);
 }
