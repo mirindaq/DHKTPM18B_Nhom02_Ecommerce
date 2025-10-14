@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherAddRequest;
+import iuh.fit.ecommerce.dtos.request.voucher.VoucherCustomerRequest;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherAvailableResponse;
@@ -69,19 +70,7 @@ public class VoucherServiceImpl implements VoucherService {
         voucherRepository.save(voucher);
 
         if (request.getVoucherType() == VoucherType.GROUP && request.getVoucherCustomers() != null) {
-            List<VoucherCustomer> targets = request.getVoucherCustomers().stream().map(vc -> {
-                Customer customer = customerService.getCustomerEntityById(vc.getCustomerId());
-
-                return VoucherCustomer.builder()
-                        .voucher(voucher)
-                        .customer(customer)
-                        .code( CodeGenerator.generateVoucherCode("VC" + voucher.getId()))
-                        .voucherCustomerStatus(VoucherCustomerStatus.DRAFT)
-                        .build();
-            }).toList();
-
-            voucherCustomerRepository.saveAll(targets);
-            voucher.setVoucherCustomers(targets);
+            build(voucher, request.getVoucherCustomers());
         }
 
         return voucherMapper.toResponse(voucher);
@@ -118,16 +107,49 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional
     public VoucherResponse updateVoucher(Long id, VoucherUpdateRequest request) {
         Voucher voucher = findById(id);
-//
-//        voucherMapper.updateVoucherFromDto(request, voucher);
-//        voucherRepository.save(voucher);
-//
-//        voucherCustomerRepository.deleteByVoucher(voucher);
-//        if (request.getVoucherCustomers() != null) {
-//            voucherCustomerRepository.saveAll(voucherMapper.toVoucherCustomers(request.getVoucherCustomers(), voucher));
-//        }
 
+        voucher.setName(request.getName());
+        voucher.setDescription(request.getDescription());
+        voucher.setDiscount(request.getDiscount());
+        voucher.setStartDate(request.getStartDate());
+        voucher.setEndDate(request.getEndDate());
+        voucher.setActive(request.getActive());
+
+        if (voucher.getVoucherType() == VoucherType.RANK && request.getRankId() != null) {
+            Ranking ranking = rankingService.getRankingEntityById(request.getRankId());
+            voucher.setRanking(ranking);
+        }
+
+        // Nếu là GROUP và voucherCustomerStatus vẫn là DRAFT, cho phép thay nhóm người
+        if (voucher.getVoucherType() == VoucherType.GROUP && request.getVoucherCustomers() != null) {
+            List<VoucherCustomer> currentTargets = voucherCustomerRepository.findAllByVoucher_Id(voucher.getId());
+            boolean allDraft = currentTargets.stream()
+                    .allMatch(vc -> vc.getVoucherCustomerStatus() == VoucherCustomerStatus.DRAFT);
+
+            if (!allDraft) {
+                throw new ConflictException("Cannot change customers for already issued vouchers");
+            }
+
+            voucherCustomerRepository.deleteAll(currentTargets);
+            build(voucher, request.getVoucherCustomers());
+        }
+
+        voucherRepository.save(voucher);
         return voucherMapper.toResponse(voucher);
+    }
+
+    private void build(Voucher voucher, List<VoucherCustomerRequest> voucherCustomers) {
+        List<VoucherCustomer> newTargets = voucherCustomers.stream().map(vc -> {
+            Customer customer = customerService.getCustomerEntityById(vc.getCustomerId());
+            return VoucherCustomer.builder()
+                    .voucher(voucher)
+                    .customer(customer)
+                    .code(CodeGenerator.generateVoucherCode("VC" + voucher.getId()))
+                    .voucherCustomerStatus(VoucherCustomerStatus.DRAFT)
+                    .build();
+        }).toList();
+        voucherCustomerRepository.saveAll(newTargets);
+        voucher.setVoucherCustomers(newTargets);
     }
 
     @Override

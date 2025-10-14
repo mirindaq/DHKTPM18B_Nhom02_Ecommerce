@@ -1,43 +1,47 @@
 package iuh.fit.ecommerce.dtos.request.voucher;
 
-import iuh.fit.ecommerce.enums.DiscountType;
 import iuh.fit.ecommerce.enums.VoucherType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
+@Getter
+@Setter
 public class VoucherUpdateRequest {
-    @NotBlank
-    private String code;
 
-    @NotBlank
+    @NotBlank(message = "Voucher name must not be blank")
     private String name;
 
-    @Size(max = 500)
+    @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
 
-    @NotNull
+    @NotNull(message = "Start date must not be null")
     private LocalDate startDate;
 
-    @NotNull
+    @NotNull(message = "End date must not be null")
     private LocalDate endDate;
 
-    @NotNull
-    private DiscountType discountType;
+    @NotNull(message = "Discount value must not be null")
+    @Positive(message = "Discount value must be greater than 0")
+    private Double discount;
 
-    @NotNull
-    @Positive
-    private Double discountValue;
-
-    @PositiveOrZero
+    @PositiveOrZero(message = "Minimum order amount must be zero or positive")
     private Double minOrderAmount;
 
-    @PositiveOrZero
+    @PositiveOrZero(message = "Maximum discount amount must be zero or positive")
     private Double maxDiscountAmount;
 
-    @NotNull
+    @NotNull(message = "Active status must not be null")
     private Boolean active;
 
-    @NotNull
-    private VoucherType voucherType;
+    private String code;
+
+    @Valid
+    private List<VoucherCustomerRequest> voucherCustomers;
+
+    private Long rankId;
 }
