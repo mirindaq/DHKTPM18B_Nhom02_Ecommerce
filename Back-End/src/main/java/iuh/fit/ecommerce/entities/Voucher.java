@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -35,13 +36,16 @@ public class Voucher extends BaseEntity{
     private LocalDate endDate;
 
     @Column
+    private Boolean active;
+
+    @Column
     private Double minOrderAmount;
 
     @Column
     private Double maxDiscountAmount;
 
     @Column
-    private DiscountType discountType;
+    private Double discount;
 
     @Column
     private VoucherType voucherType;
@@ -49,5 +53,8 @@ public class Voucher extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "ranking_id")
     private Ranking ranking;
+
+    @OneToMany( mappedBy = "voucher", fetch = FetchType.LAZY)
+    private List<VoucherCustomer> voucherCustomers;
 
 }

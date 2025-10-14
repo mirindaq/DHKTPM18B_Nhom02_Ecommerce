@@ -61,7 +61,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerResponse getCustomerById(long id) {
-        Customer customer = findById(id);
+        Customer customer = getCustomerEntityById(id);
         return customerMapper.toResponse(customer);
     }
 
@@ -83,7 +83,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerResponse updateCustomer(long id, CustomerProfileRequest customerProfileRequest) {
-        Customer customer = findById(id);
+        Customer customer = getCustomerEntityById(id);
         customer.setFullName(customerProfileRequest.getFullName());
         customer.setPhone(customerProfileRequest.getPhone());
         customer.setEmail(customerProfileRequest.getEmail());
@@ -93,24 +93,24 @@ public class CustomerServiceImpl implements CustomerService {
         return customerMapper.toResponse(customer);
     }
 
-
-    public Customer findById(long id) {
-        return customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id = " + id));
-    }
-
     @Override
     @Transactional
     public void deleteCustomer(long id) {
-        Customer customer = findById(id);
+        Customer customer = getCustomerEntityById(id);
         cartRepository.deleteByUser(customer);
         customerRepository.delete(customer);
     }
 
     @Override
     public void changeStatusCustomer(Long id) {
-        Customer customer = findById(id);
+        Customer customer = getCustomerEntityById(id);
         customerRepository.save(customer);
+    }
+
+    @Override
+    public Customer getCustomerEntityById(Long id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id = " + id));
     }
 
 

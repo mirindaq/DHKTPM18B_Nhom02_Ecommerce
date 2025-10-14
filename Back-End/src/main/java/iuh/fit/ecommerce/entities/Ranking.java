@@ -30,5 +30,4 @@ public class Ranking extends BaseEntity{
     @Column
     private Double discountRate;
 
-
 }

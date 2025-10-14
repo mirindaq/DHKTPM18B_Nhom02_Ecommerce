@@ -85,7 +85,9 @@ public class InitApp {
 
                 staffRepository.save(staff);
 
+            }
 
+            if ( !rankingRepository.existsByName("S-NEW")) {
                 Ranking ranking = Ranking.builder()
                         .name("S-NEW")
                         .description("New Membership")
@@ -94,7 +96,6 @@ public class InitApp {
                         .discountRate(2.0)
                         .build();
                 rankingRepository.save(ranking);
-
             }
 
 
