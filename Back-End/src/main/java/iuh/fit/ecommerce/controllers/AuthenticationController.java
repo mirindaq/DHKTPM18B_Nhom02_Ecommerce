@@ -2,6 +2,7 @@ package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
+import iuh.fit.ecommerce.dtos.request.authentication.RegisterRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
@@ -42,11 +43,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseSuccess<LoginResponse>> register(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ResponseSuccess<Void>> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        authenticationService.register(registerRequest);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 HttpStatus.OK,
                 "Login Success",
-                authenticationService.userLogin(loginRequest)
+                null
         ));
     }
 
