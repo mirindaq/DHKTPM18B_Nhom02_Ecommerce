@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.entities;
 
+import iuh.fit.ecommerce.enums.VoucherCustomerStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,10 @@ public class VoucherCustomer extends BaseEntity{
 
     @Column
     private String code;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VoucherCustomerStatus voucherCustomerStatus;
 
     @ManyToOne
     @JoinColumn(name = "voucher_id")

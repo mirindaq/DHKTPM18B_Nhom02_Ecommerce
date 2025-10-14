@@ -7,6 +7,7 @@ import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.entities.VoucherCustomer;
+import iuh.fit.ecommerce.enums.VoucherCustomerStatus;
 import iuh.fit.ecommerce.enums.VoucherType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.VoucherMapper;
@@ -14,6 +15,7 @@ import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.repositories.VoucherCustomerRepository;
 import iuh.fit.ecommerce.repositories.VoucherRepository;
 import iuh.fit.ecommerce.services.CustomerService;
+import iuh.fit.ecommerce.services.EmailService;
 import iuh.fit.ecommerce.services.RankingService;
 import iuh.fit.ecommerce.services.VoucherService;
 import iuh.fit.ecommerce.utils.CodeGenerator;
@@ -35,7 +37,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final VoucherCustomerRepository voucherCustomerRepository;
     private final VoucherMapper voucherMapper;
-    private final RankingRepository  rankingRepository;
+    private final EmailService emailService;
     private final CustomerService customerService;
     private final RankingService rankingService;
 
@@ -65,6 +67,7 @@ public class VoucherServiceImpl implements VoucherService {
                         .voucher(voucher)
                         .customer(customer)
                         .code( CodeGenerator.generateVoucherCode("VC" + voucher.getId()))
+                        .voucherCustomerStatus(VoucherCustomerStatus.DRAFT)
                         .build();
             }).toList();
 
@@ -124,6 +127,33 @@ public class VoucherServiceImpl implements VoucherService {
         Voucher voucher = findById(id);
         voucher.setActive(!voucher.getActive());
         voucherRepository.save(voucher);
+    }
+
+    @Override
+    public void sendVoucherToCustomers(Long id) {
+        Voucher voucher = getVoucherEntityById(id);
+
+        if (!voucher.getActive()) {
+            throw new IllegalArgumentException("Voucher is not active yet, cannot send");
+        }
+
+        List<VoucherCustomer> voucherCustomers = voucherCustomerRepository.findAllByVoucher_Id(id);
+
+        for (VoucherCustomer vc : voucherCustomers) {
+            if (vc.getVoucherCustomerStatus() == VoucherCustomerStatus.DRAFT) {
+                vc.setVoucherCustomerStatus(VoucherCustomerStatus.SENT);
+
+                emailService.sendVoucher(vc.getCustomer().getEmail(), voucher, vc.getCode());
+            }
+        }
+
+        voucherCustomerRepository.saveAll(voucherCustomers);
+    }
+
+    @Override
+    public Voucher getVoucherEntityById(Long id) {
+        return voucherRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
     }
 
     private Voucher findById(Long id) {

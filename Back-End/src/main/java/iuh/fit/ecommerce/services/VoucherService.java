@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.request.voucher.VoucherAddRequest;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
+import iuh.fit.ecommerce.entities.Voucher;
 import jakarta.validation.Valid;
 
 import java.time.LocalDate;
@@ -20,4 +21,8 @@ public interface VoucherService {
     VoucherResponse updateVoucher(Long id,  VoucherUpdateRequest request);
 
     void changeStatusVoucher(Long id);
+
+    void sendVoucherToCustomers(Long id);
+
+    Voucher getVoucherEntityById(Long id);
 }

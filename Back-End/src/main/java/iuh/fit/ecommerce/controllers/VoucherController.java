@@ -39,6 +39,16 @@ public class VoucherController {
         ));
     }
 
+    @PutMapping("/{id}/send")
+    public ResponseEntity<ResponseSuccess<Void>> sendVoucherToCustomers(@PathVariable Long id) {
+        voucherService.sendVoucherToCustomers(id);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Send voucher to customers success",
+                null
+        ));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResponseSuccess<VoucherResponse>> getVoucherById(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(

@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.voucher;
 
+import iuh.fit.ecommerce.enums.VoucherCustomerStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,4 +12,5 @@ public class VoucherCustomerResponse {
     private String customerName;
     private String email;
     private String code;
+    private VoucherCustomerStatus voucherCustomerStatus;
 }
