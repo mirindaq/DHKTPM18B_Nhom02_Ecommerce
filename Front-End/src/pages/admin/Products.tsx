@@ -93,7 +93,7 @@ export default function Products() {
         </div>
         <Button
           onClick={handleOpenAddDialog}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          size="lg"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm sản phẩm

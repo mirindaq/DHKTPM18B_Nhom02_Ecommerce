@@ -120,21 +120,44 @@ public class VoucherServiceImpl implements VoucherService {
             voucher.setRanking(ranking);
         }
 
-        // Nếu là GROUP và voucherCustomerStatus vẫn là DRAFT, cho phép thay nhóm người
+        voucherRepository.save(voucher);
+
         if (voucher.getVoucherType() == VoucherType.GROUP && request.getVoucherCustomers() != null) {
             List<VoucherCustomer> currentTargets = voucherCustomerRepository.findAllByVoucher_Id(voucher.getId());
-            boolean allDraft = currentTargets.stream()
-                    .allMatch(vc -> vc.getVoucherCustomerStatus() == VoucherCustomerStatus.DRAFT);
 
-            if (!allDraft) {
-                throw new ConflictException("Cannot change customers for already issued vouchers");
+            List<Long> newCustomerIds = request.getVoucherCustomers().stream()
+                    .map(VoucherCustomerRequest::getCustomerId)
+                    .toList();
+
+            // Xác định những khách hàng đã được phát (không còn ở trạng thái DRAFT)
+            List<VoucherCustomer> issuedCustomers = currentTargets.stream()
+                    .filter(vc -> vc.getVoucherCustomerStatus() != VoucherCustomerStatus.DRAFT)
+                    .toList();
+
+            // Nếu trong danh sách issued có ai bị xóa khỏi request → lỗi
+            boolean hasRemovedIssued = issuedCustomers.stream()
+                    .anyMatch(vc -> !newCustomerIds.contains(vc.getCustomer().getId()));
+
+            if (hasRemovedIssued) {
+                throw new ConflictException("Cannot remove customers who have already received the voucher");
             }
 
-            voucherCustomerRepository.deleteAll(currentTargets);
-            build(voucher, request.getVoucherCustomers());
+            // Xác định danh sách hiện tại (tất cả id đã có trong DB)
+            List<Long> existingCustomerIds = currentTargets.stream()
+                    .map(vc -> vc.getCustomer().getId())
+                    .toList();
+
+            // Tạo danh sách khách hàng mới (chưa có trong DB)
+            List<VoucherCustomerRequest> newRequests = request.getVoucherCustomers().stream()
+                    .filter(req -> !existingCustomerIds.contains(req.getCustomerId()))
+                    .toList();
+
+            if (!newRequests.isEmpty()) {
+                build( voucher, newRequests);
+            }
         }
 
-        voucherRepository.save(voucher);
+
         return voucherMapper.toResponse(voucher);
     }
 

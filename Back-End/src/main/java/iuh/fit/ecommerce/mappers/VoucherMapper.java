@@ -13,7 +13,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {RankingMapper.class})
 public interface VoucherMapper {
 
     @Mapping(target = "code", ignore = true)
@@ -32,5 +32,4 @@ public interface VoucherMapper {
 
     List<VoucherCustomerResponse> toVoucherCustomerResponses(List<VoucherCustomer> voucherCustomers);
 
-    RankVoucherResponse toRankVoucherResponse(Ranking ranking);
 }

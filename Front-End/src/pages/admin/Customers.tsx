@@ -117,7 +117,7 @@ export default function Customers() {
           <p className="text-lg text-gray-600">Quản lý và theo dõi thông tin khách hàng.</p>
         </div>
         <Button
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          size="lg"
           onClick={() => {
             setEditingCustomer(null);
             setIsAddEditDialogOpen(true);
