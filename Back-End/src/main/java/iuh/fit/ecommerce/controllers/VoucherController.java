@@ -7,12 +7,14 @@ import iuh.fit.ecommerce.dtos.request.voucher.VoucherUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.promotion.PromotionResponse;
+import iuh.fit.ecommerce.dtos.response.voucher.VoucherAvailableResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
 import iuh.fit.ecommerce.services.PromotionService;
 import iuh.fit.ecommerce.services.VoucherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -29,6 +31,7 @@ public class VoucherController {
     private final VoucherService voucherService;
 
     @PostMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<VoucherResponse>> createVoucher(
             @Valid @RequestBody VoucherAddRequest request
     ) {
@@ -40,6 +43,7 @@ public class VoucherController {
     }
 
     @PutMapping("/{id}/send")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<Void>> sendVoucherToCustomers(@PathVariable Long id) {
         voucherService.sendVoucherToCustomers(id);
         return ResponseEntity.ok(new ResponseSuccess<>(
@@ -50,6 +54,7 @@ public class VoucherController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<VoucherResponse>> getVoucherById(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
@@ -58,7 +63,19 @@ public class VoucherController {
         ));
     }
 
+    @GetMapping("/available")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ResponseSuccess<List<VoucherAvailableResponse>>> getAvailableVouchers( ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get available vouchers success",
+                voucherService.getAvailableVouchersForCustomer()
+        ));
+    }
+
+
     @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<VoucherResponse>>>> getAllVouchers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
@@ -76,6 +93,7 @@ public class VoucherController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<VoucherResponse>> updateVoucher(
             @PathVariable Long id,
             @Valid @RequestBody VoucherUpdateRequest request
@@ -89,6 +107,7 @@ public class VoucherController {
 
 
     @PutMapping("/change-status/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<Void>> changeStatusVoucher(@PathVariable Long id) {
         voucherService.changeStatusVoucher(id);
         return ResponseEntity.ok(new ResponseSuccess<>(

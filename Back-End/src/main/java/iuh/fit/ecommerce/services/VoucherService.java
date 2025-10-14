@@ -4,6 +4,7 @@ package iuh.fit.ecommerce.services;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherAddRequest;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.voucher.VoucherAvailableResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
 import iuh.fit.ecommerce.entities.Voucher;
 import jakarta.validation.Valid;
@@ -25,4 +26,6 @@ public interface VoucherService {
     void sendVoucherToCustomers(Long id);
 
     Voucher getVoucherEntityById(Long id);
+
+    List<VoucherAvailableResponse> getAvailableVouchersForCustomer();
 }

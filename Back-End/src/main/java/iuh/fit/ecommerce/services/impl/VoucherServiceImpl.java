@@ -3,12 +3,14 @@ package iuh.fit.ecommerce.services.impl;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherAddRequest;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.voucher.VoucherAvailableResponse;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.entities.VoucherCustomer;
 import iuh.fit.ecommerce.enums.VoucherCustomerStatus;
 import iuh.fit.ecommerce.enums.VoucherType;
+import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.VoucherMapper;
 import iuh.fit.ecommerce.repositories.RankingRepository;
@@ -19,6 +21,7 @@ import iuh.fit.ecommerce.services.EmailService;
 import iuh.fit.ecommerce.services.RankingService;
 import iuh.fit.ecommerce.services.VoucherService;
 import iuh.fit.ecommerce.utils.CodeGenerator;
+import iuh.fit.ecommerce.utils.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,7 +31,9 @@ import org.springframework.stereotype.Service;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final EmailService emailService;
     private final CustomerService customerService;
     private final RankingService rankingService;
+    private final SecurityUtil securityUtil;
 
     @Override
     @Transactional
@@ -49,6 +55,9 @@ public class VoucherServiceImpl implements VoucherService {
         Voucher voucher = voucherMapper.toVoucher(request);
 
         if (request.getVoucherType() == VoucherType.ALL && request.getCode() != null) {
+            if ( voucherRepository.existsByCode(request.getCode())) {
+                throw new ConflictException("Voucher with code already exists: " + request.getCode());
+            }
             voucher.setCode(request.getCode());
         }
 
@@ -154,6 +163,34 @@ public class VoucherServiceImpl implements VoucherService {
     public Voucher getVoucherEntityById(Long id) {
         return voucherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
+    }
+
+    @Override
+    public List<VoucherAvailableResponse> getAvailableVouchersForCustomer() {
+        Customer customer = securityUtil.getCurrentCustomer();
+        LocalDate now = LocalDate.now();
+
+        List<VoucherAvailableResponse> customerVoucherResponses =
+                voucherCustomerRepository
+                        .findAllByCustomerIdAndVoucherDateBetweenAndReady(customer.getId(), now, now)
+                        .stream()
+                        .map(vc -> {
+                            VoucherAvailableResponse dto = voucherMapper.toVoucherAvailableResponse(vc.getVoucher());
+                            dto.setCode(vc.getCode());
+                            return dto;
+                        })
+                        .toList();
+
+        List<VoucherAvailableResponse> globalVoucherResponses =
+                voucherRepository
+                        .findAllByVoucherTypeAndEndDateGreaterThanEqualAndStartDateLessThanEqual(VoucherType.ALL, now, now)
+                        .stream()
+                        .map(voucherMapper::toVoucherAvailableResponse)
+                        .toList();
+
+        return Stream.concat(customerVoucherResponses.stream(), globalVoucherResponses.stream())
+                .distinct()
+                .toList();
     }
 
     private Voucher findById(Long id) {

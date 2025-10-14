@@ -1,5 +1,6 @@
 
 import axiosClient from '@/configurations/axios.config';
+import axios from 'axios';
 import LocalStorageUtil from '@/utils/localStorage.util';
 import type {
   LoginRequest,
@@ -43,9 +44,11 @@ export const authService = {
 
   logout: async () => {
     const refreshToken = LocalStorageUtil.getRefreshToken();
-    const response = await axiosClient.post('/auth/logout', {}, {
+    // Sử dụng axios thông thường thay vì axiosClient để tránh interceptor
+    const response = await axios.post('http://localhost:8080/api/v1/auth/logout', {}, {
       headers: {
-        'Refresh-Token': refreshToken || ''
+        'Refresh-Token': refreshToken || '',
+        'Content-Type': 'application/json'
       }
     });
     return response;

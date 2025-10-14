@@ -2,6 +2,7 @@ package iuh.fit.ecommerce.mappers;
 
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherAddRequest;
 import iuh.fit.ecommerce.dtos.response.voucher.RankVoucherResponse;
+import iuh.fit.ecommerce.dtos.response.voucher.VoucherAvailableResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherCustomerResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
 import iuh.fit.ecommerce.entities.Ranking;
@@ -26,6 +27,8 @@ public interface VoucherMapper {
     @Mapping(target = "customerName", source = "customer.fullName")
     @Mapping(target = "email", source = "customer.email")
     VoucherCustomerResponse toVoucherCustomerResponse(VoucherCustomer voucherCustomer);
+
+    VoucherAvailableResponse toVoucherAvailableResponse(Voucher voucher);
 
     List<VoucherCustomerResponse> toVoucherCustomerResponses(List<VoucherCustomer> voucherCustomers);
 

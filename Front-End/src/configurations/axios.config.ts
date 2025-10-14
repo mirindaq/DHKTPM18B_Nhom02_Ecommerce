@@ -90,22 +90,46 @@ axiosClient.interceptors.response.use(
           console.log('chay vo day 3', refreshError);
           processQueue(refreshError, null);
 
-          await authService.logout();
+          // Xóa dữ liệu local trước khi logout để tránh vòng lặp
           LocalStorageUtil.clearAllData();
+          
+          // Thử logout nhưng không cần đợi kết quả
+          try {
+            await authService.logout();
+          } catch (logoutError) {
+            console.log('Logout failed, but continuing with redirect:', logoutError);
+          }
+          
           window.location.href = '/login';
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
         }
       } else {
-        await authService.logout();
+        // Xóa dữ liệu local trước khi logout để tránh vòng lặp
         LocalStorageUtil.clearAllData();
+        
+        // Thử logout nhưng không cần đợi kết quả
+        try {
+          await authService.logout();
+        } catch (logoutError) {
+          console.log('Logout failed, but continuing with redirect:', logoutError);
+        }
+        
         window.location.href = '/login';
         return Promise.reject(error);
       }
     } else if (error.response?.status === 401) {
-      await authService.logout();
+      // Xóa dữ liệu local trước khi logout để tránh vòng lặp
       LocalStorageUtil.clearAllData();
+      
+      // Thử logout nhưng không cần đợi kết quả
+      try {
+        await authService.logout();
+      } catch (logoutError) {
+        console.log('Logout failed, but continuing with redirect:', logoutError);
+      }
+      
       window.location.href = '/login';
       return Promise.reject(error);
     }
