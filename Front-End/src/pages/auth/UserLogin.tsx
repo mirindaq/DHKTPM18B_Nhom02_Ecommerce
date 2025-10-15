@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useMutation } from '@/hooks/useMutation'
 import { authService } from '@/services/auth.service'
-import { PUBLIC_PATH } from '@/constants/path'
+import { AUTH_PATH, PUBLIC_PATH } from '@/constants/path'
 import { FcGoogle } from "react-icons/fc"
 import { useUser } from '@/context/UserContext'
 import LocalStorageUtil from '@/utils/localStorage.util'
@@ -330,9 +330,9 @@ export default function UserLogin() {
             <div className="text-center">
               <p className="text-gray-600">
                 Bạn chưa có tài khoản?{' '}
-                <a href="#" className="text-red-600 font-medium hover:text-red-700">
+                <button onClick={() => navigate(AUTH_PATH.REGISTER_USER)} className="hover:cursor-pointer text-red-600 font-medium hover:text-red-700">
                   Đăng ký ngay
-                </a>
+                </button>
               </p>
             </div>
           </form>

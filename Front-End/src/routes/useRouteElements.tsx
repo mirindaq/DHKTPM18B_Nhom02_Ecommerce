@@ -34,6 +34,7 @@ import Error401 from "@/pages/error/Error401"
 import Promotions from "@/pages/admin/Promotions"
 import Vouchers from "@/pages/admin/Vouchers"
 import VoucherForm from "@/pages/admin/VoucherForm"
+import UserRegister from "@/pages/auth/UserRegister"
 
 
 const useRouteElements = () => {
@@ -52,21 +53,21 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <Home /> },
         { path: "product/:slug", element: <ProductDetail /> },
-        { 
-          path: "cart", 
+        {
+          path: "cart",
           element: (
             <UserRoute>
               <Cart />
             </UserRoute>
-          ) 
+          )
         },
-        { 
-          path: "profile", 
+        {
+          path: "profile",
           element: (
             <UserRoute>
               <Profile />
             </UserRoute>
-          ) 
+          )
         },
       ]
     },
@@ -77,6 +78,14 @@ const useRouteElements = () => {
       element: (
         <RoleBasedAuthWrapper>
           <UserLogin />
+        </RoleBasedAuthWrapper>
+      )
+    },
+    {
+      path: AUTH_PATH.REGISTER_USER,
+      element: (
+        <RoleBasedAuthWrapper>
+          <UserRegister />
         </RoleBasedAuthWrapper>
       )
     },
@@ -117,7 +126,8 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> },
         { path: ADMIN_PATH.VOUCHERS, element: <Vouchers /> },
         { path: "/admin/vouchers/create", element: <VoucherForm /> },
-        { path: "/admin/vouchers/edit/:id", element: <VoucherForm /> }  
+        { path: "/admin/vouchers/edit/:id", element: <VoucherForm /> },
+        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> }
       ]
     },
 

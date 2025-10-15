@@ -2,6 +2,7 @@ package iuh.fit.ecommerce.services;
 
 import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
+import iuh.fit.ecommerce.dtos.request.authentication.RegisterRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
 import iuh.fit.ecommerce.dtos.response.user.UserProfileResponse;
@@ -24,4 +25,6 @@ public interface AuthenticationService {
     LoginResponse userLogin(LoginRequest loginRequest);
 
     UserProfileResponse getProfile();
+
+    void register(@Valid RegisterRequest registerRequest);
 }
