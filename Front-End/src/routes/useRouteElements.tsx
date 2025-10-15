@@ -32,6 +32,8 @@ import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
 import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
 import Error401 from "@/pages/error/Error401"
 import Promotions from "@/pages/admin/Promotions"
+import Vouchers from "@/pages/admin/Vouchers"
+import VoucherForm from "@/pages/admin/VoucherForm"
 import UserRegister from "@/pages/auth/UserRegister"
 
 
@@ -121,6 +123,10 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
         { path: ADMIN_PATH.STAFFS, element: <Staffs /> },
+        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> },
+        { path: ADMIN_PATH.VOUCHERS, element: <Vouchers /> },
+        { path: "/admin/vouchers/create", element: <VoucherForm /> },
+        { path: "/admin/vouchers/edit/:id", element: <VoucherForm /> },
         { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> }
       ]
     },

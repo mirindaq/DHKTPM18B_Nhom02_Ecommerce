@@ -4,6 +4,7 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.entities.Category;
 import iuh.fit.ecommerce.services.CategoryService;
+import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -105,6 +106,7 @@ public class VariantServiceImpl implements VariantService {
 
     private void mapVariantFields(Variant variant, VariantAddRequest request) {
         variant.setName(request.getName());
+        variant.setSlug(StringUtils.normalizeString(request.getName()));
         if (request.getStatus() != null) {
             variant.setStatus(request.getStatus());
         }

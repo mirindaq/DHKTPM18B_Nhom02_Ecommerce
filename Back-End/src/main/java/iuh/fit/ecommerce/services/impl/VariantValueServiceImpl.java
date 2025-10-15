@@ -1,5 +1,6 @@
  package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import iuh.fit.ecommerce.dtos.request.variant.VariantValueAddRequest;
@@ -50,6 +51,7 @@ public class VariantValueServiceImpl implements VariantValueService {
                      VariantValue value = new VariantValue();
                      value.setValue(req.getValue());
                      value.setVariant(variant);
+                     value.setSlug(StringUtils.normalizeString(req.getValue()));
                      return value;
                  })
                  .collect(Collectors.toList());

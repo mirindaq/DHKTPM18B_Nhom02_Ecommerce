@@ -22,6 +22,7 @@ export const ADMIN_PATH = {
   VARIANTS: "/admin/variants",
   STAFFS: "/admin/staffs",
   PROMOTIONS: "/admin/promotions",
+  VOUCHERS: "/admin/vouchers",
 };
 
 // Staff paths

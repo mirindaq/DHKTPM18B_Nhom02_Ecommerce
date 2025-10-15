@@ -53,7 +53,7 @@
   --popover-foreground: oklch(0.15 0.01 250);
 
   /* chủ đạo */
-  --primary: oklch(0.55 0.15 245); /* xanh biển trung bình */
+  --primary: oklch(0.25 0.01 250); /* xám đen */
   --primary-foreground: oklch(0.99 0 0); /* trắng */
 
   /* phụ */
@@ -71,7 +71,7 @@
   --destructive: oklch(0.65 0.2 25);
   --border: oklch(0.92 0.01 250); /* viền xám xanh nhạt */
   --input: oklch(0.92 0.01 250);
-  --ring: oklch(0.7 0.15 245); /* xanh sáng (focus) */
+  --ring: oklch(0.4 0.01 250); /* xám đậm (focus) */
 
   /* chart colors */
   --chart-1: oklch(0.55 0.15 245); /* xanh biển */
@@ -79,14 +79,14 @@
   --chart-3: oklch(0.78 0.18 70); /* vàng cam */
   --chart-4: oklch(0.6 0.15 160); /* xanh lá non */
   --chart-5: oklch(0.65 0.16 305); /* tím pastel */
-  --sidebar: oklch(0.45 0.12 245); /* xanh nước biển sáng */
+  --sidebar: oklch(0.15 0.01 250); /* xám đen */
   --sidebar-foreground: oklch(0.99 0 0); /* chữ trắng */
-  --sidebar-primary: oklch(0.55 0.15 245); /* xanh biển trung bình */
+  --sidebar-primary: oklch(0.25 0.01 250); /* xám đen */
   --sidebar-primary-foreground: oklch(0.99 0 0); /* chữ trắng */
-  --sidebar-accent: oklch(0.92 0.01 250); /* xám xanh rất nhạt */
-  --sidebar-accent-foreground: oklch(0.25 0.02 250); /* chữ xám đậm */
+  /* --sidebar-accent: oklch(0.92 0.01 250)
+  --sidebar-accent-foreground: oklch(0.25 0.02 250);  */
   --sidebar-border: oklch(0.95 0 0 / 20%); /* viền trắng nhạt */
-  --sidebar-ring: oklch(0.7 0.15 245); /* xanh biển sáng (focus) */
+  --sidebar-ring: oklch(0.4 0.01 250); /* xám đậm (focus) */
   /* xanh sáng (focus) */
 
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui,

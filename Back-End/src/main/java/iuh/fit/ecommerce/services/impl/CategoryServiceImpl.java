@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -108,6 +109,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
         category.setImage(request.getImage());
         category.setStatus(Boolean.TRUE.equals(request.getStatus()));
+        category.setSlug(StringUtils.normalizeString(request.getName()));
     }
 
     /**
