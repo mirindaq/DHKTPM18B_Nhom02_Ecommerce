@@ -9,23 +9,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  MoreHorizontal,
+  Search,
   Edit,
   Trash2,
-  Eye,
-  Search,
+  Power,
+  PowerOff,
+  Loader2,
   Image as ImageIcon,
-  Package,
-  DollarSign
+  Package
 } from "lucide-react";
 import type { Product } from "@/types/product.type";
 
@@ -34,10 +27,10 @@ interface ProductTableProps {
   onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
   onToggleStatus: (id: number) => void;
-  isLoading: boolean;
+  isLoading?: boolean;
   onSearch: (searchTerm: string) => void;
-  currentPage: number;
-  pageSize: number;
+  currentPage?: number;
+  pageSize?: number;
 }
 
 export default function ProductTable({
@@ -45,16 +38,18 @@ export default function ProductTable({
   onEdit,
   onDelete,
   onToggleStatus,
-  isLoading,
   onSearch,
-  currentPage,
-  pageSize,
+  isLoading,
+  currentPage = 1,
+  pageSize = 7
 }: ProductTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(searchTerm);
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSearch(searchTerm);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -68,96 +63,85 @@ export default function ProductTable({
     return `${(discount * 100).toFixed(0)}%`;
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {/* Search bar skeleton */}
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-10 w-80" />
-          <Skeleton className="h-10 w-20" />
-        </div>
-
-        {/* Table skeleton */}
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Hình ảnh</TableHead>
-                <TableHead>Tên sản phẩm</TableHead>
-                <TableHead>SPU</TableHead>
-                <TableHead>Giá</TableHead>
-                <TableHead>Giảm giá</TableHead>
-                <TableHead>Tồn kho</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: pageSize }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell><Skeleton className="h-12 w-12 rounded" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      {/* Search bar */}
-      <form onSubmit={handleSearch} className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Tìm kiếm sản phẩm..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Tìm kiếm sản phẩm..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              disabled={isLoading}
+              onKeyDown={handleSearch}
+            />
+          </div>
+          <Button
+            onClick={() => onSearch(searchTerm)}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Tìm kiếm
+          </Button>
         </div>
-        <Button type="submit" variant="outline">
-          Tìm kiếm
-        </Button>
-      </form>
 
-      {/* Products table */}
-      <div className="border rounded-lg">
+        <div className="text-sm text-gray-600">
+          Tổng cộng: <span className="font-semibold text-gray-900">{products.length}</span> sản phẩm
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-20">Hình ảnh</TableHead>
-              <TableHead>Tên sản phẩm</TableHead>
-              <TableHead className="w-24">SPU</TableHead>
-              <TableHead className="w-32">Giá</TableHead>
-              <TableHead className="w-24">Giảm giá</TableHead>
-              <TableHead className="w-24">Tồn kho</TableHead>
-              <TableHead className="w-24">Trạng thái</TableHead>
-              <TableHead className="w-20">Thao tác</TableHead>
+            <TableRow className="bg-gray-50 hover:bg-gray-50">
+              <TableHead className="font-semibold text-gray-700">STT</TableHead>
+              <TableHead className="font-semibold text-gray-700">Hình ảnh</TableHead>
+              <TableHead className="font-semibold text-gray-700">Tên sản phẩm</TableHead>
+              <TableHead className="font-semibold text-gray-700">SPU</TableHead>
+              <TableHead className="font-semibold text-gray-700">Giá</TableHead>
+              <TableHead className="font-semibold text-gray-700">Giảm giá</TableHead>
+              <TableHead className="font-semibold text-gray-700">Tồn kho</TableHead>
+              <TableHead className="font-semibold text-gray-700">Trạng thái</TableHead>
+              <TableHead className="font-semibold text-gray-700">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 ? (
+            {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  <div className="flex flex-col items-center space-y-2">
-                    <Package className="h-8 w-8 text-gray-400" />
-                    <p>Không có sản phẩm nào</p>
+                <TableCell colSpan={9} className="text-center py-12">
+                  <div className="flex flex-col items-center space-y-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                    <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-24 text-gray-500">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Package className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-gray-600">
+                        {searchTerm ? "Không tìm thấy sản phẩm nào" : "Chưa có sản phẩm nào"}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {searchTerm ? "Thử tìm kiếm với từ khóa khác" : "Hãy thêm sản phẩm đầu tiên"}
+                      </p>
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              products.map((product) => (
-                <TableRow key={product.id} className="hover:bg-gray-50">
+              products.map((product, index) => (
+                <TableRow key={product.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <TableCell className="text-center font-medium text-gray-600">
+                    {(currentPage - 1) * pageSize + index + 1}
+                  </TableCell>
                   <TableCell>
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden border">
                       {product.thumbnail ? (
@@ -173,21 +157,14 @@ export default function ProductTable({
                       )}
                     </div>
                   </TableCell>
-
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="font-medium text-gray-900 line-clamp-2 ">
-                        {product.name}
-                      </p>
-                    </div>
+                  <TableCell className="font-semibold text-gray-900 max-w-xs truncate" title={product.name}>
+                    {product.name}
                   </TableCell>
-
                   <TableCell>
                     <code className="text-xs bg-gray-100 px-2 py-1 rounded">
                       {product.spu}
                     </code>
                   </TableCell>
-
                   <TableCell>
                     <div className="space-y-1">
                       {product.variants && product.variants.length > 0 ? (
@@ -206,7 +183,6 @@ export default function ProductTable({
                       )}
                     </div>
                   </TableCell>
-
                   <TableCell>
                     {product.discount > 0 ? (
                       <Badge variant="destructive" className="text-xs">
@@ -216,7 +192,6 @@ export default function ProductTable({
                       <span className="text-gray-400 text-sm">Không</span>
                     )}
                   </TableCell>
-
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <Package className="h-4 w-4 text-gray-400" />
@@ -225,43 +200,48 @@ export default function ProductTable({
                       </span>
                     </div>
                   </TableCell>
-
                   <TableCell>
-                    <Badge
-                      variant={product.status ? "default" : "secondary"}
-                      className={product.status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-                    >
+                    <Badge variant={product.status ? "default" : "secondary"} className={
+                      product.status
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : "bg-gray-100 text-gray-800 border-gray-200"
+                    }>
                       {product.status ? "Hoạt động" : "Tạm dừng"}
                     </Badge>
                   </TableCell>
-
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(product)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Chỉnh sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onToggleStatus(product.id)}
-                          className={product.status ? "text-orange-600" : "text-green-600"}
-                        >
-                          {product.status ? "Tạm dừng" : "Kích hoạt"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(product.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(product)}
+                        className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                        disabled={isLoading}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onToggleStatus(product.id)}
+                        className={`${product.status
+                          ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                          : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                          }`}
+                        disabled={isLoading}
+                      >
+                        {product.status ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onDelete(product.id)}
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

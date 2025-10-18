@@ -382,7 +382,7 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-center w-24 h-24 border-1 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer">
                     <ChevronRight className="w-6 h-6 text-gray-400" />
                   </div>
                 </div>
@@ -436,7 +436,7 @@ export default function ProductDetail() {
           {/* Right Column - Purchase Options */}
           <div className="space-y-6 lg:col-span-5">
             {/* Price */}
-            <Card className="border-2 border-red-100">
+            <Card className="border-1 border-red-100">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Zap className="w-5 h-5 text-red-600" />
@@ -512,8 +512,8 @@ export default function ProductDetail() {
                           {availableVariants[variantName].map((value) => (
                             <button
                               key={value}
-                              className={`p-4 text-sm border-2 rounded-xl transition-all duration-300 group ${selectedVariants[variantName] === value
-                                ? 'border-red-500 bg-red-50 text-red-700 font-semibold shadow-md scale-105'
+                              className={`p-4 text-sm border-1 rounded-xl transition-all duration-300 group ${selectedVariants[variantName] === value
+                                ? 'border-red-500 text-red-700 font-semibold shadow-md scale-105'
                                 : 'border-gray-200 hover:border-red-300 hover:bg-gray-50 text-gray-700 hover:shadow-sm hover:scale-102'
                                 }`}
                               onClick={() => handleVariantSelection(variantName, value)}

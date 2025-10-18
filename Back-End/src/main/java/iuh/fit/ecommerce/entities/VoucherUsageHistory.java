@@ -1,20 +1,16 @@
 package iuh.fit.ecommerce.entities;
 
-import iuh.fit.ecommerce.enums.DiscountType;
-import iuh.fit.ecommerce.enums.VoucherType;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "voucher_histories")
+@Table(name = "voucher_usage_histories")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VoucherHistory extends BaseEntity{
+public class VoucherUsageHistory extends BaseEntity{
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
