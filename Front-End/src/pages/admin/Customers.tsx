@@ -72,15 +72,16 @@ export default function Customers() {
   });
 
   const toggleStatusMutation = useMutation((id: number) => customerService.changeStatusCustomer(id), {
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Thay đổi trạng thái thành công");
-      refetchCustomers();
+      await refetchCustomers(); // ⚡ load lại danh sách từ backend
     },
     onError: (error) => {
       console.error("Error toggling customer status:", error);
       toast.error("Không thể thay đổi trạng thái khách hàng");
     },
   });
+  
 
   // form submit
   const handleFormSubmit = (data: CreateCustomerRequest | UpdateCustomerProfileRequest) => {

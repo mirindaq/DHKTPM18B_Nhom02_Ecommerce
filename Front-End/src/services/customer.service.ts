@@ -87,5 +87,10 @@ getCustomerDetails: async (id: number) => {
   // Xóa khách hàng (nếu backend hỗ trợ)
   deleteCustomer: async (id: number) => {
     await axiosClient.delete(`/customers/${id}`);
-  }
+  },
+  toggleCustomerStatus: async (id: number) => {
+    await axiosClient.put(`/customers/change-status/${id}`);
+  },
+  
+  
 };

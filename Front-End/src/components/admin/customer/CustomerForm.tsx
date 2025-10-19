@@ -29,7 +29,10 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
       dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth) : null,
       avatar: customer.avatar ?? "",
       password: "",
-      registerDate: customer.registerDate ? new Date(customer.registerDate) : new Date(),
+      
+      // ✅ Thêm wardCode và provinceCode vào nhánh này
+      wardCode: "", 
+      provinceCode: "", // THÊM VÀO ĐÂY
     };
   }
 
@@ -38,10 +41,11 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
     email: "",
     phone: "",
     password: "",
-    registerDate: new Date(),
+    
     address: "",
+    wardCode: "",
+    provinceCode: "", // Đã có ở đây
     dateOfBirth: null,
-    gender: undefined,
     avatar: "",
   };
 };
@@ -105,61 +109,144 @@ export default function CustomerForm({
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    if (!validateForm(formData, !!customer)) {
+  //   if (!validateForm(formData, !!customer)) {
+  //     return;
+  //   }
+
+  //   let finalAvatarUrl = customer?.avatar || "";
+  //   if (selectedFile) {
+  //     setIsUploading(true);
+  //     try {
+  //       const uploadResponse = await uploadService.uploadImage([selectedFile]);
+  //       finalAvatarUrl = uploadResponse.data[0];
+  //     } catch (error) {
+  //       toast.error("Upload ảnh đại diện thất bại.");
+  //       setIsUploading(false);
+  //       return;
+  //     } finally {
+  //       setIsUploading(false);
+  //     }
+  //   }
+
+  //   // Nếu chưa có avatar thì gán avatar mặc định
+  //   if (!finalAvatarUrl) {
+  //     finalAvatarUrl = "/assets/avatar.jpg";
+  //   }
+
+  //   const formattedDateOfBirth = formData.dateOfBirth
+  //     ? format(formData.dateOfBirth, "yyyy-MM-dd")
+  //     : null;
+
+  //   if (customer) {
+  //     const payload: UpdateCustomerProfileRequest = {
+  //       fullName: formData.fullName,
+  //       email: formData.email,
+  //       phone: formData.phone,
+  //       address: formData.address,
+  //       dateOfBirth: formattedDateOfBirth,
+  //       avatar: finalAvatarUrl,
+  //     };
+  //     onSubmit(payload);
+  //   } else {
+  //     const payload: CreateCustomerRequest = {
+  //       fullName: formData.fullName,
+  //       email: formData.email,
+  //       phone: formData.phone,
+  //       password: formData.password!,
+  //       registerDate: formData.registerDate || new Date(),
+  //       address: {
+  //         subAddress: formData.address,
+  //         wardCode: formData.wardCode,
+  //         provinceCode: formData.provinceCode,
+  //       },
+  //       dateOfBirth: formattedDateOfBirth,
+  //       avatar: finalAvatarUrl,
+  //     };
+      
+  //     onSubmit(payload);
+  //   }
+  // };
+
+// ... (các hàm khác)
+
+// Thay thế hàm handleSubmit hiện tại bằng đoạn này
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // A. IN DỮ LIỆU FORM HIỆN TẠI VÀO CONSOLE
+  console.log("=========================================");
+  console.log("1. Dữ liệu Form hiện tại (formData):", formData);
+  console.log("2. Selected File:", selectedFile);
+  console.log("=========================================");
+
+  // B. CHẠY VÀ IN KẾT QUẢ VALIDATION
+  const isEdit = !!customer;
+  const isValid = validateForm(formData, isEdit);
+  console.log("3. Kết quả Validation (isValid):", isValid);
+
+  if (!isValid) {
+      // Validation thất bại, form đã bị chặn. Lỗi đã được toast.error hiển thị.
+      console.log("4. THẤT BẠI: Validation không hợp lệ. Vui lòng kiểm tra các toast error.");
       return;
-    }
+  }
 
-    let finalAvatarUrl = customer?.avatar || "";
-    if (selectedFile) {
-      setIsUploading(true);
-      try {
-        const uploadResponse = await uploadService.uploadImage([selectedFile]);
-        finalAvatarUrl = uploadResponse.data[0];
-      } catch (error) {
-        toast.error("Upload ảnh đại diện thất bại.");
-        setIsUploading(false);
-        return;
-      } finally {
-        setIsUploading(false);
-      }
-    }
+  // Nếu validation thành công, tiếp tục logic upload
+  console.log("4. THÀNH CÔNG: Validation hợp lệ. Tiếp tục xử lý...");
 
-    // Nếu chưa có avatar thì gán avatar mặc định
-    if (!finalAvatarUrl) {
-      finalAvatarUrl = "/assets/avatar.jpg";
+  let finalAvatarUrl = customer?.avatar || "";
+  if (selectedFile) {
+    setIsUploading(true);
+    try {
+      const uploadResponse = await uploadService.uploadImage([selectedFile]);
+      finalAvatarUrl = uploadResponse.data[0];
+    } catch (error) {
+      toast.error("Upload ảnh đại diện thất bại.");
+      setIsUploading(false);
+      return;
+    } finally {
+      setIsUploading(false);
     }
+  }
 
-    const formattedDateOfBirth = formData.dateOfBirth
-      ? format(formData.dateOfBirth, "yyyy-MM-dd")
-      : null;
+  // Nếu chưa có avatar thì gán avatar mặc định
+  if (!finalAvatarUrl) {
+    finalAvatarUrl = "/assets/avatar.jpg";
+  }
 
-    if (customer) {
-      const payload: UpdateCustomerProfileRequest = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        dateOfBirth: formattedDateOfBirth,
-        avatar: finalAvatarUrl,
-      };
-      onSubmit(payload);
-    } else {
-      const payload: CreateCustomerRequest = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password!,
-        registerDate: formData.registerDate || new Date(),
-        address: formData.address,
-        dateOfBirth: formattedDateOfBirth,
-        avatar: finalAvatarUrl,
-      };
-      onSubmit(payload);
-    }
-  };
+  const formattedDateOfBirth = formData.dateOfBirth
+    ? format(formData.dateOfBirth, "yyyy-MM-dd")
+    : null;
+
+  if (customer) {
+    // Logic cập nhật (không xảy ra khi tạo mới)
+    // ...
+  } else {
+    // C. TẠO PAYLOAD VÀ IN RA CONSOLE
+    const payload: CreateCustomerRequest = {
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password!, // Lưu ý: Dùng `!` có thể ẩn lỗi nếu password là chuỗi rỗng
+      
+      address: {
+        subAddress: formData.address,
+        wardCode: formData.wardCode ?? "", // Đảm bảo không phải undefined
+        provinceCode: formData.provinceCode ?? "",
+      },
+      dateOfBirth: formattedDateOfBirth,
+      avatar: finalAvatarUrl,
+    };
+    
+    console.log("5. Payload sẽ được gửi (CreateCustomerRequest):", payload);
+    onSubmit(payload);
+  }
+};
+
+// ... (phần return JSX)
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -225,14 +312,61 @@ export default function CustomerForm({
             </div>
           </>
         )}
+{/* Thêm trường Tỉnh/Thành phố (Province) */}
+<div className="space-y-1">
+    <Label>Tỉnh/Thành phố</Label>
+    <select
+        className="border border-gray-300 rounded-md w-full p-2"
+        value={formData.provinceCode || ""}
+        onChange={(e) => handleValueChange("provinceCode", e.target.value)}
+    >
+        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+        <option value="HCM">Hồ Chí Minh</option>
+        <option value="HN">Hà Nội</option>
+        <option value="DN">Đà Nẵng</option>
+    </select>
+</div>
 
-        <div className="space-y-1">
-          <Label>Địa chỉ</Label>
-          <Input
-            defaultValue={formData.address}
-            onChange={(e) => handleValueChange("address", e.target.value)}
-          />
-        </div>
+<div className="space-y-1">
+    <Label>Phường/Xã</Label>
+    <select
+        className="border border-gray-300 rounded-md w-full p-2"
+        value={formData.wardCode || ""}
+        onChange={(e) => {
+            const selectedWardCode = e.target.value;
+            handleValueChange("wardCode", selectedWardCode);
+
+            // 💡 LOGIC: Tự động set provinceCode dựa trên wardCode đã chọn
+            let newProvinceCode = "";
+            switch (selectedWardCode) {
+                case "P1HCM":
+                case "P7HCM":
+                    newProvinceCode = "HCM";
+                    break;
+                case "P2HN":
+                    newProvinceCode = "HN";
+                    break;
+                case "P5DN":
+                    newProvinceCode = "DN";
+                    break;
+                default:
+                    newProvinceCode = "";
+            }
+            handleValueChange("provinceCode", newProvinceCode);
+        }} 
+    >
+        <option value="">-- Chọn Phường/Xã --</option>
+        
+        {/* ✅ Dữ liệu từ bảng Wards của bạn */}
+        <option value="P1HCM">Phường 1 (HCM)</option> 
+        <option value="P2HN">Phường Tràng Tiền (HN)</option>
+        <option value="P5DN">Phường Hải Châu 1 (DN)</option>
+        <option value="P7HCM">Phường 7 (HCM)</option>
+        
+    </select>
+</div>
+
+
 
         <div className="space-y-1">
           <Label>Ngày sinh</Label>

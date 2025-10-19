@@ -23,7 +23,7 @@ interface CustomerTableProps {
 }
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price || 0);
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "—";
@@ -59,17 +59,18 @@ export default function CustomerTable({
               <TableHead className="font-semibold">Khách hàng</TableHead>
               <TableHead className="font-semibold">Liên hệ</TableHead>
               <TableHead className="font-semibold">Địa chỉ</TableHead>
-              <TableHead className="font-semibold">Tổng chi tiêu</TableHead>
-              <TableHead className="font-semibold">Trạng thái</TableHead>
-              <TableHead className="font-semibold">Ngày tham gia</TableHead>
-              <TableHead className="font-semibold">Thao tác</TableHead>
+              <TableHead className="font-semibold text-center">Tổng chi tiêu</TableHead>
+              <TableHead className="font-semibold text-center">Hạng</TableHead>
+              <TableHead className="font-semibold text-center">Trạng thái</TableHead>
+            
+              <TableHead className="font-semibold text-center">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-12 text-center">
+                <TableCell colSpan={9} className="py-12 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <p className="text-gray-500 font-medium">
@@ -80,10 +81,7 @@ export default function CustomerTable({
               </TableRow>
             ) : customers.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="py-24 text-center text-gray-500"
-                >
+                <TableCell colSpan={9} className="py-24 text-center text-gray-500">
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                       <Search className="h-8 w-8 text-gray-400" />
@@ -101,10 +99,7 @@ export default function CustomerTable({
               </TableRow>
             ) : (
               customers.map((customer, index) => (
-                <TableRow
-                  key={customer.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
+                <TableRow key={customer.id} className="hover:bg-gray-50 transition-colors">
                   <TableCell className="text-center font-medium text-gray-600">
                     {(currentPage - 1) * pageSize + index + 1}
                   </TableCell>
@@ -118,10 +113,13 @@ export default function CustomerTable({
                   <TableCell className="text-gray-600">
                     {customer.address || "—"}
                   </TableCell>
-                  <TableCell className="text-gray-600">
-                    {formatPrice(customer.totalSpent)}
+                  <TableCell className="text-center text-gray-600">
+                    {formatPrice(customer.totalSpending)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center text-gray-600">
+                    {customer.rankingName || "Chưa có"}
+                  </TableCell>
+                  <TableCell className="text-center">
                     <Badge
                       className={
                         customer.active
@@ -132,11 +130,11 @@ export default function CustomerTable({
                       {customer.active ? "Hoạt động" : "Không hoạt động"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-600">
+                  {/* <TableCell className="text-center text-gray-600">
                     {formatDate(customer.registerDate)}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-center">
                       <Button
                         variant="outline"
                         size="sm"
