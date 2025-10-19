@@ -15,7 +15,7 @@ import lombok.Setter;
 public class Address {
 
     @Id
-    @GeneratedValue( strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
@@ -30,7 +30,20 @@ public class Address {
     @Column
     private Boolean isDefault;
 
+
     @ManyToOne
-    @JoinColumn( name = "customer_id")
+    @JoinColumn(name = "ward_code")
+    private Ward ward;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
     private Customer customer;
+
+
+    public String getFullAddress() {
+        if (ward == null || ward.getProvince() == null) {
+            return subAddress; // tránh lỗi NullPointerException
+        }
+        return subAddress + ", " + ward.getName() + ", " + ward.getProvince().getName();
+    }
 }

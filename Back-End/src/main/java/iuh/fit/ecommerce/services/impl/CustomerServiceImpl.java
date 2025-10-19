@@ -102,10 +102,16 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
     public void changeStatusCustomer(Long id) {
-        Customer customer = getCustomerEntityById(id);
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+        customer.setActive(!customer.getActive());
         customerRepository.save(customer);
+
+
     }
+
 
     @Override
     public Customer getCustomerEntityById(Long id) {

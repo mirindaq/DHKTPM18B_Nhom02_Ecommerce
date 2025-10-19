@@ -25,4 +25,7 @@ public class CustomerResponse {
     private LocalDate dateOfBirth;
     private List<String> roles;
 
+    private Double totalSpending;
+    private String rankingName;
+
 }
