@@ -25,6 +25,7 @@ public class Customer extends User {
     private Ranking ranking;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Address> addresses = new ArrayList<>();
 
 }

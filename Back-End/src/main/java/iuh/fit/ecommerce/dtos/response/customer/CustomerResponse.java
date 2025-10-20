@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.customer;
 
+import iuh.fit.ecommerce.dtos.response.address.AddressResponse;
 import iuh.fit.ecommerce.entities.Customer;
 import lombok.*;
 
@@ -18,14 +19,13 @@ public class CustomerResponse {
     private String fullName;
     private String phone;
     private String email;
-    private String address;
     private String avatar;
     private boolean active;
-    private LocalDate registerDate;
     private LocalDate dateOfBirth;
-    private List<String> roles;
 
     private Double totalSpending;
     private String rankingName;
 
+    private List<AddressResponse> addresses;
+    private List<String> roles;
 }

@@ -4,16 +4,10 @@ import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
-import iuh.fit.ecommerce.entities.Cart;
-import iuh.fit.ecommerce.entities.Customer;
-import iuh.fit.ecommerce.entities.Role;
-import iuh.fit.ecommerce.entities.UserRole;
+import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.CustomerMapper;
-import iuh.fit.ecommerce.repositories.CartRepository;
-import iuh.fit.ecommerce.repositories.CustomerRepository;
-import iuh.fit.ecommerce.repositories.RoleRepository;
-import iuh.fit.ecommerce.repositories.UserRoleRepository;
+import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,6 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RankingRepository rankingRepository;
 
     @Override
     @Transactional
@@ -102,22 +98,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    @Transactional
     public void changeStatusCustomer(Long id) {
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-        customer.setActive(!customer.getActive());
+        Customer customer = getCustomerEntityById(id);
         customerRepository.save(customer);
-
-
     }
-
 
     @Override
     public Customer getCustomerEntityById(Long id) {
         return customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id = " + id));
     }
-
 
 }
