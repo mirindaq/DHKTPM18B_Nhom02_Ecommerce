@@ -14,10 +14,6 @@ export type RegisterRequest = {
   confirmPassword: string;
 };
 
-export type RefreshTokenRequest = {
-  refreshToken: string;
-};
-
 export type LoginResponse = {
   accessToken: string;
   refreshToken: string;

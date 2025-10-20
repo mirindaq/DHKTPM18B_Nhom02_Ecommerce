@@ -16,6 +16,7 @@ import Home from "@/pages/user/Home"
 import ProductDetail from "@/pages/user/ProductDetail"
 import Cart from "@/pages/user/Cart"
 import Profile from "@/pages/user/Profile"
+import Membership from "@/pages/user/Membership"
 import AdminLayout from "@/layouts/AdminLayout"
 import UserLayout from "@/layouts/UserLayout"
 import StaffLayout from "@/layouts/StaffLayout"
@@ -67,7 +68,13 @@ const useRouteElements = () => {
             <UserRoute>
               <Profile />
             </UserRoute>
-          )
+          ),
+          children: [
+            {
+              path: "membership",
+              element: <Membership />
+            }
+          ]
         },
       ]
     },

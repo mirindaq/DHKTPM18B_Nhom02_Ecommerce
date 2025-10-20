@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { authService } from '@/services/auth.service';
 import type { UserProfile } from '@/types/auth.type';
 import LocalStorageUtil from '@/utils/localStorage.util';
+import AuthStorageUtil from '@/utils/authStorage.util';
 
 export const ROLES = {
   ADMIN: 'ADMIN',
@@ -67,7 +68,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         console.error('Logout API error:', error);
     } finally {
       setUser(null);
-      LocalStorageUtil.clearAllData();
+      AuthStorageUtil.clearAll();
     }
   }, []);
 
@@ -102,12 +103,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           // Clear invalid data
           console.log('UserContext - Invalid data, clearing...');
           setUser(null);
-          LocalStorageUtil.clearAllData();
+          AuthStorageUtil.clearAll();
         }
       } catch (error) {
         console.error('Error loading user:', error);
         setUser(null);
-        LocalStorageUtil.clearAllData();
+        AuthStorageUtil.clearAll();
       } finally {
         setLoading(false);
       }

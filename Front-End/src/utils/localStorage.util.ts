@@ -1,52 +1,45 @@
 /**
- * Utility để quản lý localStorage với 1 access token và 1 refresh token duy nhất
- * Không phân biệt user/admin, chỉ lưu token hiện tại
+ * Utility để quản lý localStorage
+ * Chỉ xử lý các thao tác liên quan đến localStorage
  */
-
-export interface TokenData {
-  accessToken: string;
-  refreshToken: string;
-}
 
 import type { UserProfile } from '@/types/auth.type';
 
 class LocalStorageUtil {
-  // Keys cho token duy nhất
+  // Keys
   private static readonly ACCESS_TOKEN_KEY = 'accessToken';
-  private static readonly REFRESH_TOKEN_KEY = 'refreshToken';
   private static readonly USER_DATA_KEY = 'userData';
 
   /**
-   * Lưu token
+   * Lưu access token vào localStorage
    */
-  static setTokens(tokens: TokenData): void {
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, tokens.accessToken);
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, tokens.refreshToken);
+  static setAccessToken(accessToken: string): void {
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
   }
 
   /**
-   * Lấy access token
+   * Lấy access token từ localStorage
    */
   static getAccessToken(): string | null {
     return localStorage.getItem(this.ACCESS_TOKEN_KEY);
   }
 
   /**
-   * Lấy refresh token
+   * Xóa access token khỏi localStorage
    */
-  static getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  static removeAccessToken(): void {
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }
 
   /**
-   * Lưu thông tin user
+   * Lưu thông tin user vào localStorage
    */
   static setUserData(userData: UserProfile): void {
     localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData));
   }
 
   /**
-   * Lấy thông tin user
+   * Lấy thông tin user từ localStorage
    */
   static getUserData(): UserProfile | null {
     const data = localStorage.getItem(this.USER_DATA_KEY);
@@ -54,42 +47,32 @@ class LocalStorageUtil {
   }
 
   /**
-   * Xóa tất cả token và data
+   * Xóa thông tin user khỏi localStorage
    */
-  static clearAllData(): void {
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+  static removeUserData(): void {
     localStorage.removeItem(this.USER_DATA_KEY);
   }
 
   /**
-   * Kiểm tra có token không
+   * Xóa tất cả dữ liệu khỏi localStorage
    */
-  static hasToken(): boolean {
+  static clearAll(): void {
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    localStorage.removeItem(this.USER_DATA_KEY);
+  }
+
+  /**
+   * Kiểm tra có access token không
+   */
+  static hasAccessToken(): boolean {
     return this.getAccessToken() !== null;
   }
 
   /**
-   * Kiểm tra có data không
+   * Kiểm tra có user data không
    */
-  static hasData(): boolean {
+  static hasUserData(): boolean {
     return this.getUserData() !== null;
-  }
-
-  /**
-   * Lưu token và data
-   */
-  static setTokensAndData(tokens: TokenData, data: UserProfile): void {
-    this.setTokens(tokens);
-    this.setUserData(data);
-  }
-
-  /**
-   * Xóa token cũ và lưu token mới
-   */
-  static updateTokens(tokens: TokenData): void {
-    this.clearAllData();
-    this.setTokens(tokens);
   }
 }
 

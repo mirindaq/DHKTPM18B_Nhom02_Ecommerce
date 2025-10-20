@@ -13,7 +13,7 @@ import { authService } from '@/services/auth.service'
 import { AUTH_PATH, PUBLIC_PATH } from '@/constants/path'
 import { FcGoogle } from "react-icons/fc"
 import { useUser } from '@/context/UserContext'
-import LocalStorageUtil from '@/utils/localStorage.util'
+import AuthStorageUtil from '@/utils/authStorage.util'
 import type { RegisterRequest, AuthResponse, UserProfile } from '@/types/auth.type'
 
 // Schema validation cho form đăng ký
@@ -58,7 +58,7 @@ export default function UserRegister() {
           }
 
           // Lưu token và data cùng lúc
-          LocalStorageUtil.setTokensAndData({ accessToken, refreshToken }, userProfile)
+          AuthStorageUtil.setTokensAndData({ accessToken, refreshToken }, userProfile)
 
           // Sử dụng UserContext để login
           login(userProfile)

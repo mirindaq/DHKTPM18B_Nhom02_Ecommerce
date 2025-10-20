@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import io.jsonwebtoken.JwtException;
 import iuh.fit.ecommerce.configurations.jwt.JwtUtil;
 import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
-import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RegisterRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
@@ -22,6 +21,7 @@ import iuh.fit.ecommerce.mappers.UserMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.AuthenticationService;
 import iuh.fit.ecommerce.utils.SecurityUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -133,8 +133,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.getRefreshToken();
+    public RefreshTokenResponse refreshToken(HttpServletRequest request) {
+        String refreshToken = getRefreshTokenFromCookie(request);
+
+        if (refreshToken == null) {
+           throw new BadCredentialsException("Refresh token not found in cookies");
+        }
+
         if (!jwtUtil.validateJwtToken(refreshToken, TokenType.REFRESH_TOKEN)) {
             throw new JwtException("Invalid or expired refresh token");
         }
@@ -144,7 +149,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + email));
 
         RefreshToken dbToken = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new BadCredentialsException("Refresh token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
 
         if (!dbToken.getUser().getId().equals(user.getId())) {
             throw new BadCredentialsException("Refresh token does not belong to user");
@@ -175,9 +180,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void logout(HttpServletRequest request) {
         User currentUser = securityUtil.getCurrentUser();
+        String refreshToken = getRefreshTokenFromCookie(request);
 
-        String refreshTokenHeader = request.getHeader("Refresh-Token");
-        if (refreshTokenHeader == null || refreshTokenHeader.isBlank()) {
+        if (refreshToken == null) {
             List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(currentUser.getId());
             tokens.forEach(t -> {
                 t.setRevoked(true);
@@ -186,7 +191,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return;
         }
 
-        refreshTokenRepository.findByToken(refreshTokenHeader)
+        refreshTokenRepository.findByToken(refreshToken)
                 .ifPresent(token -> {
                     if (!token.getUser().getId().equals(currentUser.getId())) {
                         throw new AccessDeniedException("Token does not belong to current user");
@@ -195,6 +200,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     refreshTokenRepository.save(token);
                 });
 
+    }
+
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = null;
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        return refreshToken;
     }
 
     @Override

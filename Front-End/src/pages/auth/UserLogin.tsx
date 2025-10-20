@@ -12,7 +12,7 @@ import { authService } from '@/services/auth.service'
 import { AUTH_PATH, PUBLIC_PATH } from '@/constants/path'
 import { FcGoogle } from "react-icons/fc"
 import { useUser } from '@/context/UserContext'
-import LocalStorageUtil from '@/utils/localStorage.util'
+import AuthStorageUtil from '@/utils/authStorage.util'
 import type { LoginRequest, AuthResponse, UserProfile } from '@/types/auth.type'
 
 // Schema validation cho form đăng nhập
@@ -46,7 +46,7 @@ export default function UserLogin() {
           }
 
           // Lưu token và data cùng lúc
-          LocalStorageUtil.setTokensAndData({ accessToken, refreshToken }, userProfile)
+          AuthStorageUtil.setTokensAndData({ accessToken, refreshToken }, userProfile)
 
           // Sử dụng UserContext để login
           login(userProfile)
@@ -81,7 +81,7 @@ export default function UserLogin() {
         roles: data.data.roles,
       }
 
-      LocalStorageUtil.setTokensAndData({
+      AuthStorageUtil.setTokensAndData({
         accessToken: data.data.accessToken,
         refreshToken: data.data.refreshToken
       }, userProfile)
