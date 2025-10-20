@@ -1,11 +1,8 @@
 
 import axiosClient from '@/configurations/axios.config';
-import axios from 'axios';
-import LocalStorageUtil from '@/utils/localStorage.util';
 import type {
   LoginRequest,
   RegisterRequest,
-  RefreshTokenRequest,
   AuthResponse,
   RefreshTokenApiResponse,
   ProfileResponse
@@ -27,17 +24,20 @@ export const authService = {
     return response;
   },
 
-  refreshToken: async (request: RefreshTokenRequest) => {
-    const response = await axiosClient.post<RefreshTokenApiResponse>('/auth/refresh-token', request, {
+  refreshToken: async () => {
+    const response = await axiosClient.post<RefreshTokenApiResponse>('/auth/refresh-token', {}, {
+      withCredentials: true, // Gửi cookie (refresh token) kèm theo request
       // @ts-ignore - Custom property để bỏ qua interceptor
       _skipAuthInterceptor: true // Bỏ qua interceptor để tránh vòng lặp
     });
     return response;
   },
+  
   socialLoginCallback: async (login_type: string, code: string) => {
     const response = await axiosClient.get<AuthResponse>(`/auth/social-login/callback`, { params: { login_type, code } });
     return response;
   },
+  
   socialLogin: async (login_type: string) => { 
     const response = await axiosClient.get<ResponseApi<string>>(`/auth/social-login`, { params: { login_type } });
     return response;
@@ -49,13 +49,8 @@ export const authService = {
   },
 
   logout: async () => {
-    const refreshToken = LocalStorageUtil.getRefreshToken();
-    // Sử dụng axios thông thường thay vì axiosClient để tránh interceptor
-    const response = await axios.post('http://localhost:8080/api/v1/auth/logout', {}, {
-      headers: {
-        'Refresh-Token': refreshToken || '',
-        'Content-Type': 'application/json'
-      }
+    const response = await axiosClient.post('/auth/logout', {}, {
+      withCredentials: true, // Gửi cookie (refresh token) kèm theo request
     });
     return response;
   }

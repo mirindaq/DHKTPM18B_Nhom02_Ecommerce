@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
+import iuh.fit.ecommerce.dtos.response.rank.RankResponse;
 import iuh.fit.ecommerce.dtos.response.role.RoleResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.RankVoucherResponse;
 import iuh.fit.ecommerce.services.RankingService;
@@ -23,7 +24,7 @@ public class RankingController {
     private final RankingService rankingService;
 
     @GetMapping("")
-    public ResponseEntity<ResponseSuccess<List<RankVoucherResponse>>> getAllRank() {
+    public ResponseEntity<ResponseSuccess<List<RankResponse>>> getAllRank() {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get rankings success",

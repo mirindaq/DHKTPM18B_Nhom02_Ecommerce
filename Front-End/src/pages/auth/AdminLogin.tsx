@@ -11,7 +11,7 @@ import { useMutation } from '@/hooks/useMutation'
 import { authService } from '@/services/auth.service'
 import { ADMIN_PATH, SHIPPER_PATH, STAFF_PATH } from '@/constants/path'
 import { ROLES, useUser } from '@/context/UserContext'
-import LocalStorageUtil from '@/utils/localStorage.util'
+import AuthStorageUtil from '@/utils/authStorage.util'
 import type { LoginRequest, AuthResponse, UserProfile } from '@/types/auth.type'
 
 // Schema validation cho form đăng nhập admin
@@ -45,7 +45,7 @@ export default function AdminLogin() {
         roles: data.data.roles,
       }
 
-      LocalStorageUtil.setTokensAndData({
+      AuthStorageUtil.setTokensAndData({
         accessToken: data.data.accessToken,
         refreshToken: data.data.refreshToken
       }, userProfile)
