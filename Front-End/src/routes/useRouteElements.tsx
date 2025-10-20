@@ -63,20 +63,18 @@ const useRouteElements = () => {
           )
         },
         {
-          path: "membership",
-          element: (
-            <UserRoute>
-              <Membership />
-            </UserRoute>
-          )
-        },
-        {
           path: "profile",
           element: (
             <UserRoute>
               <Profile />
             </UserRoute>
-          )
+          ),
+          children: [
+            {
+              path: "membership",
+              element: <Membership />
+            }
+          ]
         },
       ]
     },

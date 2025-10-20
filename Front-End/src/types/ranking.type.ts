@@ -20,4 +20,4 @@ export type Rank = {
   discountRate: number;
 };
 
-export type RankResponse = ResponseApi<Rank>;
+export type RankResponse = ResponseApi<Rank[]>;
