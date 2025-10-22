@@ -38,4 +38,13 @@ public class ProvinceController {
                 provinceService.getWardsByProvince(provinceCode)
         ));
     }
+    @GetMapping("/wards")
+    public ResponseEntity<ResponseSuccess<List<WardResponse>>> getAllWards() {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all wards success",
+                provinceService.getAllWards()
+        ));
+    }
+
 }

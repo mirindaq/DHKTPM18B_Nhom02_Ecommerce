@@ -41,7 +41,9 @@ public class AddressServiceImpl implements AddressService {
 
         Address address = Address.builder()
                 .customer(customer)
-                .fullName(customer.getFullName())
+                // ✅ SỬA LỖI: Lấy tên người nhận từ REQUEST
+                .fullName(request.getFullName())
+                // ✅ SỬA LỖI: Lấy SĐT người nhận từ REQUEST
                 .phone(customer.getPhone())
                 .subAddress(request.getSubAddress())
                 .isDefault(Boolean.TRUE.equals(request.getIsDefault()))
@@ -82,6 +84,10 @@ public class AddressServiceImpl implements AddressService {
             ward = wardRepository.findById(request.getWardCode())
                     .orElseThrow(() -> new ResourceNotFoundException("Ward not found"));
         }
+
+        // ✅ CẬP NHẬT TÊN VÀ SĐT: Khi cập nhật cũng phải lấy từ REQUEST
+        address.setFullName(request.getFullName());
+        address.setPhone(request.getPhone());
 
         address.setSubAddress(request.getSubAddress());
         address.setWard(ward);

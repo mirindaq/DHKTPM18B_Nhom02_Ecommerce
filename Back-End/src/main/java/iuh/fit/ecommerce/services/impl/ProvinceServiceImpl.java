@@ -31,6 +31,12 @@ public class ProvinceServiceImpl implements ProvinceService {
                 .map(w -> new WardResponse(w.getCode(), w.getName(), w.getProvince().getCode()))
                 .collect(Collectors.toList());
     }
+    @Override
+    public List<WardResponse> getAllWards() {
+        return wardRepository.findAll().stream()
+                .map(w -> new WardResponse(w.getCode(), w.getName(), w.getProvince().getCode()))
+                .collect(Collectors.toList());
+    }
 
 
 }

@@ -39,9 +39,14 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse createCustomer(CustomerAddRequest request) {
         Role role = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new RuntimeException("Role CUSTOMER not exist"));
-
         Customer customer = customerMapper.toCustomer(request);
         customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+        customer.setActive(true);
+        if (customer.getAddresses() != null && !customer.getAddresses().isEmpty()) {
+            for (Address address : customer.getAddresses()) {
+                address.setCustomer(customer);
+            }
+        }
         customerRepository.save(customer);
         UserRole userRole = UserRole.builder()
                 .user(customer)
@@ -63,6 +68,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 
     @Override
+    @Transactional
     public ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String name,
                                                                           String phone, String email,
                                                                           Boolean status, LocalDate startDate, LocalDate endDate ) {
@@ -98,8 +104,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
     public void changeStatusCustomer(Long id) {
         Customer customer = getCustomerEntityById(id);
+        Boolean currentStatus = customer.getActive();
+        Boolean newStatus = (currentStatus == null) ? Boolean.TRUE : !currentStatus;
+        customer.setActive(newStatus);
         customerRepository.save(customer);
     }
 
