@@ -41,7 +41,7 @@ public class AddressServiceImpl implements AddressService {
 
         Address address = Address.builder()
                 .customer(customer)
-                .fullName(customer.getFullName())
+                .fullName(request.getFullName())
                 .phone(customer.getPhone())
                 .subAddress(request.getSubAddress())
                 .isDefault(Boolean.TRUE.equals(request.getIsDefault()))
@@ -82,6 +82,8 @@ public class AddressServiceImpl implements AddressService {
             ward = wardRepository.findById(request.getWardCode())
                     .orElseThrow(() -> new ResourceNotFoundException("Ward not found"));
         }
+        address.setFullName(request.getFullName());
+        address.setPhone(request.getPhone());
 
         address.setSubAddress(request.getSubAddress());
         address.setWard(ward);

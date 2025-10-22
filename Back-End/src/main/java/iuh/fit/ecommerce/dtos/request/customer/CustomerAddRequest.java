@@ -34,8 +34,9 @@ public class CustomerAddRequest {
     private String email;
 
     private String avatar;
+//    private Double totalSpending;
 
-    private String address;
+    private AddressRequest address;
 
     private LocalDate dateOfBirth;
 

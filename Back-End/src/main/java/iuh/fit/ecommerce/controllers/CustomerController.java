@@ -53,13 +53,13 @@ public class CustomerController {
             @RequestParam(required = false) Boolean status,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) Long rankingId)
+            @RequestParam(required = false) String rank)
 
     {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customers success",
-                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate, rankingId)
+                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate, rank)
         ));
     }
 

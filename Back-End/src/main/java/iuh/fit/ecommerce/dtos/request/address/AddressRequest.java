@@ -13,7 +13,11 @@ public class AddressRequest {
     @NotBlank(message = "Sub address is required")
     private String subAddress;
 
-    private Boolean isDefault;
     private String wardCode;
+    private String provinceCode;
+    private String fullName;
+    private String phone;
+    private Boolean isDefault;
+    private String addressName;
 }
 
