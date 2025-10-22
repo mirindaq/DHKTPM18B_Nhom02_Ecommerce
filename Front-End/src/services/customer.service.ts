@@ -57,13 +57,8 @@ interface GetCustomersParams {
   endDate?: string;
 }
 
-// --------------------------------------------------------
-// 🧩 SERVICE CHÍNH CHO KHÁCH HÀNG
-// --------------------------------------------------------
 export const customerService = {
-  /**
-   * ✅ Lấy danh sách khách hàng (có filter + phân trang)
-   */
+ 
   getCustomers: async (params: GetCustomersParams) => {
     const queryParams = new URLSearchParams({
       page: params.page.toString(),
@@ -94,9 +89,8 @@ export const customerService = {
     return response.data.data;
   },
 
-  /**
-   * ✅ Thêm địa chỉ cho khách hàng cụ thể
-   */
+ 
+
   createAddressForCustomer: async (
     customerId: number,
     request: CreateAddressRequest
@@ -108,48 +102,32 @@ export const customerService = {
     return response.data.data;
   },
 
-  /**
-   * ✅ Lấy chi tiết khách hàng (bao gồm đơn hàng, thống kê, ...)
-   */
   getCustomerDetails: async (id: number) => {
     const response = await axiosClient.get<CustomerDetailResponse>(`/customers/${id}`);
     return response.data;
   },
 
-  /**
-   * ✅ Lấy thông tin khách hàng cơ bản
-   */
+
   getCustomerById: async (id: number) => {
     const response = await axiosClient.get<CustomerResponse>(`/customers/${id}`);
     return response.data;
   },
 
-  /**
-   * ✅ Tạo mới khách hàng
-   */
   createCustomer: async (request: CreateCustomerRequest) => {
     const response = await axiosClient.post<CustomerResponse>('/customers', request);
     return response.data;
   },
 
-  /**
-   * ✅ Cập nhật thông tin khách hàng
-   */
   updateCustomer: async (id: number, data: UpdateCustomerProfileRequest) => {
     const response = await axiosClient.put<CustomerResponse>(`/customers/${id}`, data);
     return response.data;
   },
 
-  /**
-   * ✅ Thay đổi trạng thái hoạt động (active/inactive)
-   */
+ 
   changeStatusCustomer: async (id: number) => {
     await axiosClient.put(`/customers/change-status/${id}`);
   },
 
-  /**
-   * ✅ Xóa khách hàng
-   */
   deleteCustomer: async (id: number) => {
     await axiosClient.delete(`/customers/${id}`);
   },
@@ -157,9 +135,7 @@ export const customerService = {
   deleteAddressForCustomer: async (customerId: number, addressId: number): Promise<void> => {
     await axiosClient.delete(`/customers/${customerId}/addresses/${addressId}`);
   },
-  /**
- * ✅ Cập nhật địa chỉ của khách hàng
- */
+ 
 updateAddress: async (
   customerId: number,
   addressId: number,
