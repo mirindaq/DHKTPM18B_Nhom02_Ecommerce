@@ -9,4 +9,5 @@ public interface RankingService {
     Ranking getRankingEntityById(Long id);
 
     List<RankVoucherResponse> getAllRankings();
+    Ranking getRankingForSpending(Double spending);
 }

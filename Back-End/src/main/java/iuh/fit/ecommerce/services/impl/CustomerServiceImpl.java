@@ -9,6 +9,7 @@ import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.CustomerMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.CustomerService;
+import iuh.fit.ecommerce.services.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +33,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
     private final PasswordEncoder passwordEncoder;
-    private final RankingRepository rankingRepository;
+    private final RankingService rankingService;
 
     @Override
     @Transactional
@@ -52,6 +53,12 @@ public class CustomerServiceImpl implements CustomerService {
                 .user(customer)
                 .build();
         cartRepository.save(cart);
+
+        Double newTotal = customer.getTotalSpending();
+        customer.setTotalSpending(newTotal);
+
+        Ranking newRank = rankingService.getRankingForSpending(newTotal);
+        customer.setRanking(newRank);
         return customerMapper.toResponse(customer, role.getName());
     }
 
@@ -64,12 +71,11 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public ResponseWithPagination<List<CustomerResponse>> getAllCustomers(int page, int limit, String name,
-                                                                          String phone, String email,
-                                                                          Boolean status, LocalDate startDate, LocalDate endDate ) {
+             String phone, String email, Boolean status, LocalDate startDate, LocalDate endDate, Long rankingId ) {
         page = page > 0 ? page - 1 : page;
         Pageable pageable = PageRequest.of(page, limit);
 
-        Page<Customer> customerPage = customerRepository.searchCustomers(name, phone, email, status, startDate, endDate, pageable);
+        Page<Customer> customerPage = customerRepository.searchCustomers(name, phone, email, status, startDate, endDate,rankingId, pageable);
         return ResponseWithPagination.fromPage(customerPage, customerMapper::toResponse);
     }
 

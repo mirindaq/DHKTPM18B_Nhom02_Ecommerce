@@ -32,4 +32,10 @@ public class RankingServiceImpl implements RankingService {
                 .map(rankingMapper::toRankVoucherResponse)
                 .toList();
     }
+
+    @Override
+    public Ranking getRankingForSpending(Double spending) {
+        return rankingRepository.findRankingBySpending(spending)
+                .orElseThrow(() -> new RuntimeException("No ranking found for spending: " + spending));
+    }
 }
