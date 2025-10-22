@@ -42,11 +42,12 @@ export default function Customers() {
 
   // success callback chung
   const onSuccess = (message: string) => {
-    toast.success(message);
-    refetchCustomers();
-    setIsAddEditDialogOpen(false);
-    setEditingCustomer(null);
-  };
+        toast.success(message);
+        // ❌ LOẠI BỎ refetchCustomers() khỏi hàm chung này
+        // refetchCustomers(); 
+        setIsAddEditDialogOpen(false);
+        setEditingCustomer(null);
+      };
 
   // mutations
   const createCustomerMutation = useMutation(
@@ -72,19 +73,21 @@ export default function Customers() {
   });
 
   const toggleStatusMutation = useMutation((id: number) => customerService.changeStatusCustomer(id), {
-    onSuccess: async () => {
-      toast.success("Thay đổi trạng thái thành công");
-      await refetchCustomers(); // ⚡ load lại danh sách từ backend
-    },
-    onError: (error) => {
-      console.error("Error toggling customer status:", error);
-      toast.error("Không thể thay đổi trạng thái khách hàng");
-    },
-  });
+        onSuccess: () => {
+          toast.success("Thay đổi trạng thái thành công");
+          
+          // ✅ ĐẢM BẢO CHỈ GỌI HÀM refetch Ở ĐÂY (VÀ KHÔNG CÓ AWAIT/ASYNC)
+          refetchCustomers(); 
+        },
+        onError: (error) => {
+          console.error("Error toggling customer status:", error);
+          toast.error("Không thể thay đổi trạng thái khách hàng");
+        },
+      });
   
 
   // form submit
-  const handleFormSubmit = (data: CreateCustomerRequest | UpdateCustomerProfileRequest) => {
+  const handleFormSubmit = async (data: CreateCustomerRequest | UpdateCustomerProfileRequest) => {
     if (editingCustomer) {
       updateCustomerMutation.mutate({ id: editingCustomer.id, data: data as UpdateCustomerProfileRequest });
     } else {
@@ -97,6 +100,12 @@ export default function Customers() {
     setCurrentPage(page);
   };
 
+  const handleFormFinished = () => {
+        toast.success(editingCustomer ? "Cập nhật thành công" : "Thêm khách hàng thành công");
+        refetchCustomers();
+        setIsAddEditDialogOpen(false);
+        setEditingCustomer(null);
+      };
   // toggle status
   const handleToggleStatus = (id: number) => {
     toggleStatusMutation.mutate(id);
@@ -162,6 +171,7 @@ export default function Customers() {
         }}
         customer={editingCustomer}
         onSubmit={handleFormSubmit}
+        onFinished={handleFormFinished}
         isLoading={createCustomerMutation.isLoading || updateCustomerMutation.isLoading}
       />
      
