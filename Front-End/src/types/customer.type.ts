@@ -1,23 +1,27 @@
-// ============================================
-// 📁 src/types/customer.type.ts
-// ============================================
 
-// ====== IMPORT CHUNG ======
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 
-// ===================== ADDRESS TYPES =====================
 
-// Dùng khi tạo hoặc cập nhật địa chỉ
 export interface AddressRequest {
-  subAddress: string;      // Số nhà, tên đường
-  wardCode: string;        // Mã phường/xã
-  provinceCode: string;    // Mã tỉnh/thành
-  fullName: string;        // Họ tên người nhận
-  phone: string;           // SĐT người nhận
-  isDefault: boolean;      // Có phải địa chỉ mặc định không
-  addressName: string;     // Tên địa chỉ (VD: Nhà riêng, Cơ quan...)
+  subAddress: string;     
+  wardCode: string;       
+  provinceCode: string;    
+  fullName: string;        
+  phone: string;           
+  isDefault: boolean;      
+  addressName: string;     
 }
-
+export interface AddressFormData {
+  id: number;             
+  customerId?: number;    
+  subAddress: string;     
+  wardCode: string;       
+  provinceCode: string;   
+  fullName: string;       
+  phone: string;          
+  isDefault: boolean;     
+  addressName: string;    
+}
 // Chỉ chi tiết mã khi cần
 export type AddressDetail = {
   subAddress: string;
@@ -25,9 +29,8 @@ export type AddressDetail = {
   provinceCode: string;
 };
 
-// Dữ liệu backend trả về
+
 export type AddressResponse = {
-  [x: string]: any;
   id: number;
   addressName: string;
   province: { code: string; name: string } | null;
@@ -35,13 +38,13 @@ export type AddressResponse = {
   fullName: string;
   phone: string;
   subAddress: string;
-  wardName: string;      // tên phường/xã
-  provinceName: string;  // tên tỉnh/thành
-  fullAddress: string;   // ví dụ: "123 Lê Lợi, Phường 1, TP.HCM"
+  wardName: string;      
+  provinceName: string;  
+  fullAddress: string;   
   isDefault: boolean;
 };
 
-// ===================== CUSTOMER TYPES =====================
+
 
 export interface CustomerSummary {
   id: number;
@@ -59,7 +62,7 @@ export interface CustomerSummary {
   modifiedAt?: string;
 }
 
-// Dùng khi tạo customer mới
+
 export interface CreateCustomerRequest {
   fullName: string;
   email: string;
@@ -70,7 +73,7 @@ export interface CreateCustomerRequest {
   addresses: AddressRequest[];
 }
 
-// Dùng khi cập nhật thông tin
+
 export interface UpdateCustomerProfileRequest {
   fullName: string;
   email: string;
@@ -94,7 +97,6 @@ export type MostPurchasedProduct = {
   count: number;
 };
 
-// ===================== CUSTOMER DETAIL =====================
 
 export type CustomerDetail = CustomerSummary & {
   lastActivityDate: string;

@@ -211,13 +211,7 @@ export default function CustomerTable({
           </TableBody>
         </Table>
       </div>
-      
-      {/* ⚠️ LƯU Ý QUAN TRỌNG: 
-      Nếu sau khi fix này mà vẫn không hiển thị đủ địa chỉ,
-      Backend (CustomerService.java) cần được sửa để sử dụng FETCH JOIN
-      khi truy vấn danh sách khách hàng để tải eager (tức thời) dữ liệu Address.
-      Vấn đề này là lỗi Backend 99%
-      */}
+
     </div>
   );
 }
