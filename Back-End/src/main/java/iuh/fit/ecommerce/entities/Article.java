@@ -35,4 +35,7 @@ public class Article extends BaseEntity {
     @JoinColumn(name = "staff_id", nullable = false)
     private Staff staff;
 
+    @ManyToOne
+    @JoinColumn(name = "article_category_id", nullable = false)
+    private ArticleCategory articleCategory;
 }
