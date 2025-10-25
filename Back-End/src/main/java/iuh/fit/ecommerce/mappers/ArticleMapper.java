@@ -11,7 +11,7 @@ import iuh.fit.ecommerce.dtos.response.article.ArticleResponse;
 import iuh.fit.ecommerce.entities.Article;
 import iuh.fit.ecommerce.entities.Staff;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = ArticleCategoryMapper.class)
 public interface ArticleMapper {
 
 
@@ -25,23 +25,5 @@ public interface ArticleMapper {
     @Mapping(target = "slug", ignore = true)
     Article toEntity(ArticleAddRequest request);
 
-    default ArticleCategoryResponse mapArticleCategory(ArticleCategory articleCategory) {
-        if (articleCategory == null) {
-            return null;
-        }
-        return ArticleCategoryResponse.builder()
-                .id(articleCategory.getId())
-                .title(articleCategory.getTitle())
-                .slug(articleCategory.getSlug())
-                .build();
-    }
 
-        default ArticleCategory mapArticleCategoryIdToArticleCategory(Long articleCategoryId) {
-            if (articleCategoryId == null) {
-                return null;
-            }
-            ArticleCategory category = new ArticleCategory();
-            category.setId(articleCategoryId);
-            return category;
-        }
 }

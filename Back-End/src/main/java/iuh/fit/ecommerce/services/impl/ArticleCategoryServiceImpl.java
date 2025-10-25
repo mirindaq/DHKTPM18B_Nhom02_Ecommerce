@@ -1,0 +1,111 @@
+package iuh.fit.ecommerce.services.impl;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import iuh.fit.ecommerce.dtos.request.article.ArticleCategoryAddRequest;
+import iuh.fit.ecommerce.dtos.response.article.ArticleCategoryResponse;
+import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.entities.ArticleCategory;
+import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
+import iuh.fit.ecommerce.mappers.ArticleCategoryMapper;
+import iuh.fit.ecommerce.repositories.ArticleCategoryRepository;
+import iuh.fit.ecommerce.services.ArticleCategoryService;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ArticleCategoryServiceImpl implements ArticleCategoryService {
+
+    private final ArticleCategoryRepository articleCategoryRepository;
+    private final ArticleCategoryMapper articleCategoryMapper;
+
+    @Override
+    @Transactional
+    public ArticleCategoryResponse createCategory(ArticleCategoryAddRequest request) {
+        // Check if title already exists
+        if (articleCategoryRepository.existsByTitle(request.getTitle())) {
+            throw new RuntimeException("Article Category with title '" + request.getTitle() + "' already exists");
+        }
+
+        // Generate slug from title
+        String slug = generateSlug(request.getTitle());
+
+        // Check if slug already exists
+        if (articleCategoryRepository.findBySlug(slug).isPresent()) {
+            throw new RuntimeException("Article Category with slug '" + slug + "' already exists");
+        }
+
+        ArticleCategory category = articleCategoryMapper.toEntity(request);
+        category.setSlug(slug);
+
+        ArticleCategory savedCategory = articleCategoryRepository.save(category);
+        return articleCategoryMapper.toResponse(savedCategory);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ArticleCategoryResponse getCategoryBySlug(String slug) {
+        ArticleCategory category = articleCategoryRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with slug: " + slug));
+        return articleCategoryMapper.toResponse(category);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ArticleCategoryResponse getCategoryById(Long id) {
+        ArticleCategory category = articleCategoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with id: " + id));
+        return articleCategoryMapper.toResponse(category);
+    }
+
+    @Override
+    @Transactional
+    public ArticleCategoryResponse updateCategory(String slug, ArticleCategoryAddRequest request) {
+        ArticleCategory category = articleCategoryRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with slug: " + slug));
+
+        // Check if new title exists (but not for this category)
+        if (!category.getTitle().equals(request.getTitle()) &&
+                articleCategoryRepository.existsByTitle(request.getTitle())) {
+            throw new RuntimeException("Article Category with title '" + request.getTitle() + "' already exists");
+        }
+
+        category.setTitle(request.getTitle());
+
+        ArticleCategory updatedCategory = articleCategoryRepository.save(category);
+        return articleCategoryMapper.toResponse(updatedCategory);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCategory(Long id) {
+        ArticleCategory category = articleCategoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with id: " + id));
+
+        articleCategoryRepository.delete(category);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseWithPagination<List<ArticleCategoryResponse>> getAllCategories(int page, int limit, String title) {
+        page = page > 0 ? page - 1 : page;
+        Pageable pageable = PageRequest.of(page, limit);
+
+        Page<ArticleCategory> categoryPage = articleCategoryRepository.searchCategories(title, pageable);
+
+        return ResponseWithPagination.fromPage(categoryPage, articleCategoryMapper::toResponse);
+    }
+
+    private String generateSlug(String title) {
+        return title.toLowerCase()
+                .trim()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+    }
+}
