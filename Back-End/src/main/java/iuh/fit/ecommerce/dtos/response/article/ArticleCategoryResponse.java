@@ -5,23 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ArticleResponse {
-
+public class ArticleCategoryResponse {
     private Long id;
     private String title;
     private String slug;
-    private String thumbnail;
-    private String content;
-    private Boolean status;
-    private LocalDateTime createdAt;
-    private LocalDateTime modifiedAt;
-    private String staffName;
-    private ArticleCategoryResponse category;
 }

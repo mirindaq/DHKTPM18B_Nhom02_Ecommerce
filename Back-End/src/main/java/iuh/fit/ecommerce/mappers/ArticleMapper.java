@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.mappers;
 
 import iuh.fit.ecommerce.dtos.request.article.ArticleAddRequest;
+import iuh.fit.ecommerce.dtos.response.article.ArticleCategoryResponse;
 import iuh.fit.ecommerce.entities.ArticleCategory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,23 +16,32 @@ public interface ArticleMapper {
 
 
     @Mapping(source = "staff.fullName", target = "staffName")
-    @Mapping(source = "articleCategory.id", target = "category.id")
-    @Mapping(source = "articleCategory.title", target = "category.title")
-    @Mapping(source = "articleCategory.slug", target = "category.slug")
+    @Mapping(source = "articleCategory", target = "category")
     ArticleResponse toResponse(Article article);
 
     @Mapping(target = "staff", ignore = true)
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "articleCategory", ignore = true)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "slug", ignore = true)
     Article toEntity(ArticleAddRequest request);
 
-    default ArticleCategory mapArticleCategoryIdToArticleCategory(Long articleCategoryId) {
-        if (articleCategoryId == null) {
+    default ArticleCategoryResponse mapArticleCategory(ArticleCategory articleCategory) {
+        if (articleCategory == null) {
             return null;
         }
-        ArticleCategory category = new ArticleCategory();
-        category.setId(articleCategoryId);
-        return category;
+        return ArticleCategoryResponse.builder()
+                .id(articleCategory.getId())
+                .title(articleCategory.getTitle())
+                .slug(articleCategory.getSlug())
+                .build();
     }
+
+        default ArticleCategory mapArticleCategoryIdToArticleCategory(Long articleCategoryId) {
+            if (articleCategoryId == null) {
+                return null;
+            }
+            ArticleCategory category = new ArticleCategory();
+            category.setId(articleCategoryId);
+            return category;
+        }
 }
