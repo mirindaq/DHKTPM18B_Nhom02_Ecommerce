@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +33,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
         }
 
         // Generate slug from title
-        String slug = generateSlug(request.getTitle());
+        String slug = StringUtils.normalizeString(request.getTitle());
 
         // Check if slug already exists
         if (articleCategoryRepository.findBySlug(slug).isPresent()) {
@@ -75,7 +76,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
         }
 
         category.setTitle(request.getTitle());
-
+        category.setSlug(StringUtils.normalizeString(request.getTitle()));
         ArticleCategory updatedCategory = articleCategoryRepository.save(category);
         return articleCategoryMapper.toResponse(updatedCategory);
     }
@@ -100,12 +101,4 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
         return ResponseWithPagination.fromPage(categoryPage, articleCategoryMapper::toResponse);
     }
 
-    private String generateSlug(String title) {
-        return title.toLowerCase()
-                .trim()
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-    }
 }
