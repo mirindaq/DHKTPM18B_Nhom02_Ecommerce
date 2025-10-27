@@ -20,7 +20,8 @@ public class ProductQuestionAnswer extends BaseEntity{
     private String content;
 
     @Column
-    private Boolean status;
+    @Builder.Default
+    private Boolean status = true;
 
     @Column
     private Boolean admin;
@@ -30,7 +31,7 @@ public class ProductQuestionAnswer extends BaseEntity{
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "product_question_id")
+    private ProductQuestion productQuestion;
 
 }

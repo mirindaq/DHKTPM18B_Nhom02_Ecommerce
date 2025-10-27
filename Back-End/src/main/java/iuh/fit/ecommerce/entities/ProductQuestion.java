@@ -3,6 +3,9 @@ package iuh.fit.ecommerce.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -20,7 +23,8 @@ public class ProductQuestion extends BaseEntity{
     private String content;
 
     @Column
-    private Boolean status;
+    @Builder.Default
+    private Boolean status = true;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -29,5 +33,9 @@ public class ProductQuestion extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @OneToMany( fetch =  FetchType.LAZY, cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<ProductQuestionAnswer> answers = new ArrayList<ProductQuestionAnswer>();
 
 }

@@ -544,7 +544,7 @@ export default function Settings() {
       </Tabs>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 flex items-center gap-2">
+        <Button onClick={handleSave} className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 flex items-center gap-2">
           <Save className="h-4 w-4" />
           Lưu cài đặt
         </Button>
