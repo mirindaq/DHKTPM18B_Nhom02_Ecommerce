@@ -1029,7 +1029,7 @@ export default function ProductForm({
           <Button
             type="submit"
             disabled={isLoading || isUploading}
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
           >
             {isLoading || isUploading ? (
               <>

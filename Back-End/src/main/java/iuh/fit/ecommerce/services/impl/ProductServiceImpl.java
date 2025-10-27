@@ -89,9 +89,16 @@ public class ProductServiceImpl implements ProductService {
         return null;
     }
 
-    private Product getProductEntityById(Long id){
+    @Override
+    public Product getProductEntityById(Long id){
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+    }
+
+    @Override
+    public Product getProductEntityBySlug(String slug) {
+        return productRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
     }
 
     private Product buildProduct(ProductAddRequest request, Brand brand, Category category) {

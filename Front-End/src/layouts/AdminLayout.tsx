@@ -151,7 +151,7 @@ export default function AdminLayout() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full overflow-hidden">
-        <Sidebar className="border-r w-64 min-w-64 max-w-64 flex-shrink-0 bg-gray-900">
+        <Sidebar className="border-r w-64 min-w-64 max-w-64 shrink-0 bg-gray-900">
           <SidebarHeader>
             <SidebarMenuButton
               size="lg"
@@ -186,12 +186,12 @@ export default function AdminLayout() {
                               className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${isSubmenuActive ? "bg-gray-600" : ""}`}
                               onClick={() => toggleSubmenu(item.title)}
                             >
-                              <item.icon className="flex-shrink-0 h-5 w-5" />
+                              <item.icon className="shrink-0 h-5 w-5" />
                               <span className="truncate flex-1">{item.title}</span>
                               {isExpanded ? (
-                                <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                                <ChevronDown className="h-4 w-4 shrink-0" />
                               ) : (
-                                <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                                <ChevronRight className="h-4 w-4 shrink-0" />
                               )}
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -210,7 +210,7 @@ export default function AdminLayout() {
                                       className={`h-10 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white ${isActive ? "bg-gray-600 text-white" : ""}`}
                                     >
                                       <Link to={subItem.href}>
-                                        <subItem.icon className="h-4 w-4 flex-shrink-0" />
+                                        <subItem.icon className="h-4 w-4 shrink-0" />
                                         <span className="truncate">{subItem.title}</span>
                                       </Link>
                                     </SidebarMenuButton>
@@ -233,7 +233,7 @@ export default function AdminLayout() {
                             className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${isActive ? "bg-gray-600" : ""}`}
                           >
                             <Link to={item.href || "/admin"}>
-                              <item.icon className="flex-shrink-0 h-5 w-5" />
+                              <item.icon className="shrink-0 h-5 w-5" />
                               <span className="truncate">{item.title}</span>
                             </Link>
                           </SidebarMenuButton>
@@ -256,7 +256,7 @@ export default function AdminLayout() {
                   className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${location.pathname === "/admin/settings" ? "bg-gray-600" : ""}`}
                 >
                   <Link to="/admin/settings">
-                    <Settings className="flex-shrink-0 h-5 w-5" />
+                    <Settings className="shrink-0 h-5 w-5" />
                     <span className="truncate">Cài đặt</span>
                   </Link>
                 </SidebarMenuButton>
@@ -268,7 +268,7 @@ export default function AdminLayout() {
                     className="w-full justify-start gap-2 h-12 px-4 py-3 text-white hover:bg-gray-800"
                     onClick={handleLogout}
                   >
-                    <LogOut className="flex-shrink-0 h-5 w-5" />
+                    <LogOut className="shrink-0 h-5 w-5" />
                     <span className="truncate">Đăng xuất</span>
                   </Button>
                 </SidebarMenuButton>

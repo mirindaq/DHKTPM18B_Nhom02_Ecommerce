@@ -19,7 +19,7 @@ const UserRoleDisplay: React.FC = () => {
   return (
     <div className="flex items-center space-x-4">
       {/* User Avatar */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <div className={`h-8 w-8 rounded-full ${roleInfo.color} flex items-center justify-center`}>
           <span className="text-white text-sm font-medium">
             {user.name?.charAt(0).toUpperCase()}
@@ -40,7 +40,7 @@ const UserRoleDisplay: React.FC = () => {
       {/* Logout Button */}
       <button
         onClick={logout}
-        className="flex-shrink-0 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        className="shrink-0 text-sm text-gray-500 hover:text-gray-700 transition-colors"
         title="Đăng xuất"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

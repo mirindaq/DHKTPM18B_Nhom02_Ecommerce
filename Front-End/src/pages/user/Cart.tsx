@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { cartService } from '@/services/cart.service'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -14,60 +15,46 @@ import {
 import type { Cart } from '@/types/cart.type'
 import { toast } from 'sonner'
 import CartItemSkeleton, { CartSummarySkeleton } from '@/components/user/CartItemSkeleton'
+import { useQuery } from '@/hooks/useQuery'
+import { useMutation } from '@/hooks/useMutation'
 
 export default function Cart() {
-  const [cart, setCart] = useState<Cart | null>(null)
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set())
 
-  const loadCart = async () => {
-    try {
-      setLoading(true)
-      const response = await cartService.getCart()
-      setCart(response.data)
-    } catch (error) {
-      console.error('Lỗi khi tải giỏ hàng:', error)
-      toast.error('Không thể tải giỏ hàng')
-    } finally {
-      setLoading(false)
+  const { data: cart, isLoading: loading, refetch: loadCart } = useQuery<{ data: Cart }>(
+    () => cartService.getCart(),
+    {
+      queryKey: ['cart'],
+      onError: () => {
+        toast.error('Không thể tải giỏ hàng')
+      }
     }
-  }
+  )
 
-  useEffect(() => {
-    loadCart()
-  }, [])
+  const updateQuantityMutation = useMutation(
+    ({ productVariantId, quantity }: { productVariantId: number; quantity: number }) =>
+      cartService.updateCartItemQuantity(productVariantId, quantity),
+    {
+      onSuccess: () => {
+        toast.success('Đã cập nhật số lượng')
+        loadCart()
+      },
+      onError: () => {
+        toast.error('Không thể cập nhật số lượng')
+        loadCart()
+      }
+    }
+  )
 
   const handleQuantityChange = async (productVariantId: number, newQuantity: number) => {
     if (newQuantity < 1) return
 
+    setUpdatingItems(prev => new Set(prev).add(productVariantId))
+    
     try {
-      setUpdatingItems(prev => new Set(prev).add(productVariantId))
-      
-      // Optimistic update - cập nhật UI trước
-      setCart(prevCart => {
-        if (!prevCart) return prevCart
-        
-        return {
-          ...prevCart,
-          items: prevCart.items.map(item => 
-            item.productVariantId === productVariantId 
-              ? { ...item, quantity: newQuantity }
-              : item
-          )
-        }
-      })
-
-      // Gọi API cập nhật
-      await cartService.updateCartItemQuantity(productVariantId, newQuantity)
-      
-      toast.success('Đã cập nhật số lượng')
-    } catch (error) {
-      console.error('Lỗi khi cập nhật số lượng:', error)
-      
-      // Rollback nếu có lỗi
-      await loadCart()
-      toast.error('Không thể cập nhật số lượng')
+      await updateQuantityMutation.mutate({ productVariantId, quantity: newQuantity })
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev)
@@ -77,36 +64,31 @@ export default function Cart() {
     }
   }
 
-  const handleRemoveItem = async (productVariantId: number) => {
-    try {
-      setUpdatingItems(prev => new Set(prev).add(productVariantId))
-      
-      // Optimistic update - xóa khỏi UI trước
-      setCart(prevCart => {
-        if (!prevCart) return prevCart
-        
-        return {
-          ...prevCart,
-          items: prevCart.items.filter(item => item.productVariantId !== productVariantId)
-        }
-      })
-      
-      setSelectedItems(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(productVariantId)
-        return newSet
-      })
+  const removeItemMutation = useMutation(
+    (productVariantId: number) => cartService.removeProductFromCart(productVariantId),
+    {
+      onSuccess: () => {
+        toast.success('Đã xóa sản phẩm khỏi giỏ hàng')
+        loadCart()
+      },
+      onError: () => {
+        toast.error('Không thể xóa sản phẩm')
+        loadCart()
+      }
+    }
+  )
 
-      // Gọi API xóa
-      await cartService.removeProductFromCart(productVariantId)
-      
-      toast.success('Đã xóa sản phẩm khỏi giỏ hàng')
-    } catch (error) {
-      console.error('Lỗi khi xóa sản phẩm:', error)
-      
-      // Rollback nếu có lỗi
-      await loadCart()
-      toast.error('Không thể xóa sản phẩm')
+  const handleRemoveItem = async (productVariantId: number) => {
+    setUpdatingItems(prev => new Set(prev).add(productVariantId))
+    
+    setSelectedItems(prev => {
+      const newSet = new Set(prev)
+      newSet.delete(productVariantId)
+      return newSet
+    })
+
+    try {
+      await removeItemMutation.mutate(productVariantId)
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev)
@@ -129,8 +111,8 @@ export default function Cart() {
   }
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked && cart?.items) {
-      setSelectedItems(new Set(cart.items.map(item => item.productVariantId)))
+    if (checked && cart?.data?.items) {
+      setSelectedItems(new Set(cart.data.items.map(item => item.productVariantId)))
     } else {
       setSelectedItems(new Set())
     }
@@ -142,38 +124,23 @@ export default function Cart() {
     const selectedItemsArray = Array.from(selectedItems)
     
     try {
-      // Optimistic update - xóa khỏi UI trước
-      setCart(prevCart => {
-        if (!prevCart) return prevCart
-        
-        return {
-          ...prevCart,
-          items: prevCart.items.filter(item => !selectedItems.has(item.productVariantId))
-        }
-      })
-      
-      setSelectedItems(new Set())
-
-      // Gọi API xóa tất cả
       await Promise.all(
         selectedItemsArray.map(productVariantId => 
-          cartService.removeProductFromCart(productVariantId)
+          removeItemMutation.mutate(productVariantId)
         )
       )
       
+      setSelectedItems(new Set())
       toast.success(`Đã xóa ${selectedItemsArray.length} sản phẩm`)
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm:', error)
-      
-      // Rollback nếu có lỗi
-      await loadCart()
       toast.error('Không thể xóa sản phẩm')
     }
   }
 
   const calculateTotal = () => {
-    if (!cart?.items) return 0
-    return cart.items
+    if (!cart?.data?.items) return 0
+    return cart.data.items
       .filter(item => selectedItems.has(item.productVariantId))
       .reduce((total, item) => {
         const discountedPrice = item.price * (1 - item.discount / 100)
@@ -186,6 +153,25 @@ export default function Cart() {
       style: 'currency',
       currency: 'VND'
     }).format(price)
+  }
+
+  const handleCheckout = () => {
+    if (selectedItems.size === 0) {
+      toast.error('Vui lòng chọn sản phẩm để thanh toán')
+      return
+    }
+
+    // Lấy các sản phẩm đã chọn
+    const selectedProducts = cart?.data?.items.filter(item => 
+      selectedItems.has(item.productVariantId)
+    )
+
+    // Navigate đến trang checkout với dữ liệu sản phẩm đã chọn
+    navigate('/checkout', {
+      state: {
+        selectedItems: selectedProducts
+      }
+    })
   }
 
   if (loading) {
@@ -219,7 +205,7 @@ export default function Cart() {
     )
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!cart?.data || cart.data.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
@@ -238,7 +224,7 @@ export default function Cart() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Giỏ hàng của bạn</h1>
-        <p className="text-gray-600">{cart.items.length} sản phẩm trong giỏ hàng</p>
+        <p className="text-gray-600">{cart.data.items.length} sản phẩm trong giỏ hàng</p>
       </div>
 
       {/* Cart Actions */}
@@ -246,10 +232,10 @@ export default function Cart() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Checkbox
-              checked={selectedItems.size === cart.items.length && cart.items.length > 0}
+              checked={selectedItems.size === cart.data.items.length && cart.data.items.length > 0}
               onCheckedChange={handleSelectAll}
             />
-            <span className="font-medium">Chọn tất cả ({cart.items.length})</span>
+            <span className="font-medium">Chọn tất cả ({cart.data.items.length})</span>
           </div>
           
           {selectedItems.size > 0 && (
@@ -268,7 +254,7 @@ export default function Cart() {
 
       {/* Cart Items */}
       <div className="space-y-4 mb-8">
-        {cart.items.map((item, index) => (
+        {cart.data.items.map((item, index) => (
           <div 
             key={item.productVariantId} 
             className={`bg-white rounded-lg shadow-sm border p-6 transition-all duration-300 animate-in slide-in-from-bottom-4 ${
@@ -287,7 +273,7 @@ export default function Cart() {
               />
 
               {/* Product Image */}
-              <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                 <img
                   src={item.productImage}
                   alt={item.productName}
@@ -408,6 +394,7 @@ export default function Cart() {
               size="lg" 
               className="w-full transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
               disabled={selectedItems.size === 0}
+              onClick={handleCheckout}
             >
               <CheckCircle className="w-5 h-5 mr-2" />
               Thanh toán ({selectedItems.size} sản phẩm)

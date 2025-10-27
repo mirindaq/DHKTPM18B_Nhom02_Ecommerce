@@ -93,7 +93,7 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="h-[250px] flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
+            <div className="h-[250px] flex items-center justify-center text-gray-400 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
               <div className="text-center">
                 <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <p className="text-base font-medium text-gray-500">Biểu đồ doanh thu</p>
