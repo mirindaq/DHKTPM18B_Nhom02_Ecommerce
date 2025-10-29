@@ -6,6 +6,10 @@ import AddProduct from "@/pages/admin/AddProduct"
 import EditProduct from "@/pages/admin/EditProduct"
 import Categories from "@/pages/admin/Categories"
 import Customers from "@/pages/admin/Customers"
+import Articles from "@/pages/admin/Articles"
+import AddArticle from "@/pages/admin/AddArticle"
+import EditArticle from "@/pages/admin/EditArticle"
+import ArticleCategories from "@/pages/admin/ArticleCategories"
 import Orders from "@/pages/admin/Orders"
 import Settings from "@/pages/admin/Settings"
 import Analytics from "@/pages/admin/Analytics"
@@ -134,7 +138,11 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.VOUCHERS, element: <Vouchers /> },
         { path: "/admin/vouchers/create", element: <VoucherForm /> },
         { path: "/admin/vouchers/edit/:id", element: <VoucherForm /> },
-        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> }
+        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> },
+        { path: ADMIN_PATH.ARTICLES, element: <Articles /> },
+        { path: ADMIN_PATH.ARTICLE_ADD, element: <AddArticle /> },
+        { path: "/admin/articles/edit/:id", element: <EditArticle /> },
+        { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
       ]
     },
 

@@ -29,7 +29,9 @@ import {
   Tag,
   UserCheck,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Newspaper,
+  LayoutList,  
 } from "lucide-react"
 
 const navigation = [
@@ -108,6 +110,23 @@ const navigation = [
         title: "Nhân viên",
         href: "/admin/staffs",
         icon: UserCheck,
+      },
+    ]
+  },
+  {
+    title: "Quản lý tin tức",
+    icon: Newspaper,
+    isSubmenu: true,
+    items: [
+      {
+        title: "Tin tức",
+        href: "/admin/articles",
+        icon: Newspaper,
+      },
+      {
+        title: "Danh mục",
+        href: "/admin/article-categories",
+        icon: LayoutList,
       },
     ]
   },

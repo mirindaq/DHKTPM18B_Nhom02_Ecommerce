@@ -23,6 +23,9 @@ export const ADMIN_PATH = {
   STAFFS: "/admin/staffs",
   PROMOTIONS: "/admin/promotions",
   VOUCHERS: "/admin/vouchers",
+  ARTICLES: "/admin/articles",
+  ARTICLE_ADD: "/admin/articles/add",
+  ARTICLE_CATEGORIES: "/admin/article-categories",
 };
 
 // Staff paths
@@ -31,6 +34,7 @@ export const STAFF_PATH = {
   PRODUCTS: "/staff/products",
   ORDERS: "/staff/orders",
   CUSTOMERS: "/staff/customers",
+  ARTICLES: "/staff/articles",
 };
 
 // Shipper paths
