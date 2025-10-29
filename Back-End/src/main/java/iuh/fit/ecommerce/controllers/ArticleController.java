@@ -24,9 +24,8 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
-    // ✅ Chỉ STAFF mới được tạo bài viết
     @PostMapping("")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<ResponseSuccess<ArticleResponse>> createArticle(
             @Valid @RequestBody ArticleAddRequest articleAddRequest) {
 
@@ -37,8 +36,7 @@ public class ArticleController {
         ));
     }
 
-    // ✅ Ai cũng có thể xem bài viết theo slug
-    @GetMapping("/{slug}")
+    @GetMapping("/slug/{slug}")
     public ResponseEntity<ResponseSuccess<ArticleResponse>> getArticleBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
@@ -47,11 +45,19 @@ public class ArticleController {
         ));
     }
 
-    // ✅ Ai cũng có thể xem danh sách bài viết
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseSuccess<ArticleResponse>> getArticleById(@PathVariable Long id) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get Article success",
+                articleService.getArticleById(id)
+        ));
+    }
+
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticles(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "7") int limit,
             @RequestParam(required = false) Boolean status,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Long categoryId,
@@ -64,28 +70,51 @@ public class ArticleController {
         ));
     }
 
-    // ✅ Chỉ STAFF mới được chỉnh sửa bài viết
-    @PutMapping("/{slug}")
-    @PreAuthorize("hasRole('STAFF')")
+//    @PutMapping("/{slug}")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+//    public ResponseEntity<ResponseSuccess<ArticleResponse>> updateArticle(
+//            @PathVariable String slug,
+//            @Valid @RequestBody ArticleAddRequest articleAddRequest) {
+//
+//        return ResponseEntity.ok(new ResponseSuccess<>(
+//                OK,
+//                "Update Article success",
+//                articleService.updateArticle(slug, articleAddRequest)
+//        ));
+//    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<ResponseSuccess<ArticleResponse>> updateArticle(
-            @PathVariable String slug,
+            @PathVariable Long id,
             @Valid @RequestBody ArticleAddRequest articleAddRequest) {
 
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update Article success",
-                articleService.updateArticle(slug, articleAddRequest)
+                articleService.updateArticle(id, articleAddRequest)
         ));
     }
 
-    // ✅ Chỉ STAFF mới được thay đổi trạng thái bài viết
-    @PutMapping("/change-status/{id}")
-    @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<ResponseSuccess<Void>> updateArticleStatus(
-            @PathVariable Long id,
-            @RequestParam Boolean status) {
+//    @PutMapping("/change-status/{id}")
+//    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+//    public ResponseEntity<ResponseSuccess<Void>> updateArticleStatus(
+//            @PathVariable Long id,
+//            @RequestParam Boolean status) {
+//
+//        articleService.updateArticleStatus(id, status);
+//        return ResponseEntity.ok(new ResponseSuccess<>(
+//                OK,
+//                "Change status article success",
+//                null
+//        ));
+//    }
 
-        articleService.updateArticleStatus(id, status);
+    @PutMapping("/change-status/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ResponseSuccess<Void>> updateArticleStatus(
+            @PathVariable Long id){
+        articleService.changeStatusArticle(id);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Change status article success",

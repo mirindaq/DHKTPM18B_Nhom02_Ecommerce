@@ -65,9 +65,9 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional
-    public ArticleCategoryResponse updateCategory(String slug, ArticleCategoryAddRequest request) {
-        ArticleCategory category = articleCategoryRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with slug: " + slug));
+    public ArticleCategoryResponse updateCategory(Long id, ArticleCategoryAddRequest request) {
+        ArticleCategory category = articleCategoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with id: " + id));
 
         // Check if new title exists (but not for this category)
         if (!category.getTitle().equals(request.getTitle()) &&
@@ -100,5 +100,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
         return ResponseWithPagination.fromPage(categoryPage, articleCategoryMapper::toResponse);
     }
+
+
 
 }

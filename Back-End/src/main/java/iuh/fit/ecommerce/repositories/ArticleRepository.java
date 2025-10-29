@@ -23,8 +23,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             "WHERE (:title IS NULL OR LOWER(a.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
             "AND (:status IS NULL OR a.status = :status) " +
             "AND (:categoryId IS NULL OR a.articleCategory.id = :categoryId) " +
-            "AND (:createdDate IS NULL OR FUNCTION('DATE', a.createdAt) = :createdDate) " +
-            "ORDER BY a.createdAt DESC")
+            "AND (:createdDate IS NULL OR FUNCTION('DATE', a.createdAt) = :createdDate) " )
     Page<Article> searchArticles(@Param("status") Boolean status,
                                  @Param("title") String title,
                                  @Param("categoryId") Long categoryId,

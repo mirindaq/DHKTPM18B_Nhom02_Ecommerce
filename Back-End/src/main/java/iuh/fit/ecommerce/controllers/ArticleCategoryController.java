@@ -52,7 +52,7 @@ public class ArticleCategoryController {
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleCategoryResponse>>>> getAllCategories(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "7") int limit,
             @RequestParam(required = false) String title) {
 
         return ResponseEntity.ok(new ResponseSuccess<>(
@@ -62,14 +62,14 @@ public class ArticleCategoryController {
         ));
     }
 
-    @PutMapping(value = "/{slug}")
+    @PutMapping(value = "/{id}")
     public ResponseEntity<ResponseSuccess<ArticleCategoryResponse>> updateCategory(
-            @PathVariable String slug,
+            @PathVariable Long id,
             @Valid @RequestBody ArticleCategoryAddRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update Article Category success",
-                articleCategoryService.updateCategory(slug, request)
+                articleCategoryService.updateCategory(id, request)
         ));
     }
 

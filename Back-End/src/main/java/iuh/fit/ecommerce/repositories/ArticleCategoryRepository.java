@@ -17,7 +17,6 @@ public interface ArticleCategoryRepository extends JpaRepository<ArticleCategory
     boolean existsByTitle(String title);
 
     @Query("SELECT ac FROM ArticleCategory ac " +
-            "WHERE :title IS NULL OR LOWER(ac.title) LIKE LOWER(CONCAT('%', :title, '%')) " +
-            "ORDER BY ac.createdAt DESC")
+            "WHERE :title IS NULL OR LOWER(ac.title) LIKE LOWER(CONCAT('%', :title, '%')) " )
     Page<ArticleCategory> searchCategories(@Param("title") String title, Pageable pageable);
 }

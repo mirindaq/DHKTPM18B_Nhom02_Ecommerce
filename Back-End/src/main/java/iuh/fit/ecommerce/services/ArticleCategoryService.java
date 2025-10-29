@@ -13,7 +13,7 @@ public interface ArticleCategoryService {
 
     ArticleCategoryResponse getCategoryById(Long id);
 
-    ArticleCategoryResponse updateCategory(String slug, ArticleCategoryAddRequest request);
+    ArticleCategoryResponse updateCategory(Long id, ArticleCategoryAddRequest request);
 
     void deleteCategory(Long id);
 

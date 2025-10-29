@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.response.article.ArticleResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.entities.Article;
 import iuh.fit.ecommerce.entities.ArticleCategory;
+import iuh.fit.ecommerce.entities.Brand;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
@@ -79,17 +80,13 @@ public class ArticleServiceImpl implements ArticleService {
         return articleMapper.toResponse(saved);
     }
 
-    /**
-     * ✅ Lấy danh sách bài viết (phân trang + lọc)
-     */
     @Override
     @Transactional(readOnly = true)
     public ResponseWithPagination<List<ArticleResponse>> getAllArticles(
             int page, int limit, Boolean status, String title, Long categoryId, LocalDate createdDate) {
 
         page = Math.max(page - 1, 0);
-        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-
+        Pageable pageable = PageRequest.of(page, limit);
         Page<Article> articlePage = articleRepository.searchArticles(status, title, categoryId, createdDate, pageable);
 
         List<ArticleResponse> responses = articlePage.getContent().stream()
@@ -115,13 +112,42 @@ public class ArticleServiceImpl implements ArticleService {
         return articleMapper.toResponse(article);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ArticleResponse getArticleById(Long id) {
+        Article article = findById(id);
+        return articleMapper.toResponse(article);
+    }
+
+
     /**
      * ✅ Cập nhật bài viết (chỉ Staff)
      */
+//    @Override
+//    @Transactional
+//    public ArticleResponse updateArticle(String slug, ArticleAddRequest articleAddRequest) {
+//        Article article = findBySlug(slug);
+//        Staff staff = securityUtil.getCurrentStaff();
+//
+//        ArticleCategory category = articleCategoryRepository.findById(articleAddRequest.getArticleCategoryId())
+//                .orElseThrow(() -> new ResourceNotFoundException(
+//                        "Article category not found with ID: " + articleAddRequest.getArticleCategoryId()
+//                ));
+//
+//        article.setTitle(articleAddRequest.getTitle());
+//        article.setThumbnail(articleAddRequest.getThumbnail());
+//        article.setContent(articleAddRequest.getContent());
+//        article.setStatus(articleAddRequest.getStatus() != null ? articleAddRequest.getStatus() : article.getStatus());
+//        article.setStaff(staff);
+//        article.setArticleCategory(category);
+//
+//        return articleMapper.toResponse(articleRepository.save(article));
+//    }
+
     @Override
     @Transactional
-    public ArticleResponse updateArticle(String slug, ArticleAddRequest articleAddRequest) {
-        Article article = findBySlug(slug);
+    public ArticleResponse updateArticle(Long id, ArticleAddRequest articleAddRequest) {
+        Article article = findById(id);
         Staff staff = securityUtil.getCurrentStaff();
 
         ArticleCategory category = articleCategoryRepository.findById(articleAddRequest.getArticleCategoryId())
@@ -142,14 +168,20 @@ public class ArticleServiceImpl implements ArticleService {
     /**
      * ✅ Đổi trạng thái bài viết (chỉ Staff)
      */
+//    @Override
+//    @Transactional
+//    public void updateArticleStatus(Long id, Boolean status) {
+//        Article article = findById(id);
+//        article.setStatus(status);
+//        articleRepository.save(article);
+//    }
+
     @Override
-    @Transactional
-    public void updateArticleStatus(Long id, Boolean status) {
+    public void changeStatusArticle(Long id) {
         Article article = findById(id);
-        article.setStatus(status);
+        article.setStatus(!article.getStatus());
         articleRepository.save(article);
     }
-
     /**
      * 🔎 Helper methods
      */
@@ -157,6 +189,7 @@ public class ArticleServiceImpl implements ArticleService {
         return articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found with id: " + id));
     }
+
 
     private Article findBySlug(String slug) {
         return articleRepository.findBySlug(slug)
