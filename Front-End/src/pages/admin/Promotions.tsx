@@ -116,7 +116,7 @@ export default function Promotions() {
           <p className="text-lg text-gray-600">Quản lý và theo dõi các chương trình khuyến mãi.</p>
         </div>
         <Button
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
           onClick={() => {
             setEditingPromotion(null);
             setIsAddEditDialogOpen(true);

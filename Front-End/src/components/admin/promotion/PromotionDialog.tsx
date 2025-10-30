@@ -193,7 +193,7 @@ export default function PromotionDialog({
       <DialogContent className="min-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader className="pb-4">
           <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
+            <div className="p-2 bg-linear-to-r from-blue-500 to-purple-600 rounded-lg text-white">
               <Tag className="h-6 w-6" />
             </div>
             <div>
@@ -213,7 +213,7 @@ export default function PromotionDialog({
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
+                  <div className="p-2 bg-linear-to-r from-blue-500 to-purple-600 rounded-lg text-white">
                     <Tag className="h-5 w-5" />
                   </div>
                   Thông tin chương trình khuyến mãi
@@ -573,7 +573,7 @@ export default function PromotionDialog({
 
             {/* Preview section */}
             {selectedType && (
-              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <Card className="bg-linear-to-r from-blue-50 to-purple-50 border-blue-200">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <div className="p-1.5 bg-blue-100 rounded-md">
@@ -631,7 +631,7 @@ export default function PromotionDialog({
                 <Button 
                   type="submit" 
                   disabled={isLoading}
-                  className="px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="px-6 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

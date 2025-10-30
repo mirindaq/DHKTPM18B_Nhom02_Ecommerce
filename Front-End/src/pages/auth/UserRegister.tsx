@@ -335,7 +335,7 @@ export default function UserRegister() {
                     </button>
                   </div>
                   <div className="flex items-start space-x-2 text-sm text-gray-500">
-                    <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                    <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center mt-0.5 shrink-0">
                       <span className="text-xs">i</span>
                     </div>
                     <span>Mật khẩu tối thiểu 6 ký tự</span>

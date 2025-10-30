@@ -132,7 +132,7 @@ export default function UserLogin() {
 
   return (
     <div className="min-h-screen bg-white flex">
-      <div className="hidden lg:flex lg:w-3/5 bg-gradient-to-br from-red-50 to-orange-50 p-12 flex-col justify-center">
+      <div className="hidden lg:flex lg:w-3/5 bg-linear-to-br from-red-50 to-orange-50 p-12 flex-col justify-center">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Nhập hội khách hàng thành viên <span className="text-red-600">ECOMEMBER</span>
@@ -145,31 +145,31 @@ export default function UserLogin() {
         <div className="bg-white rounded-2xl border-red-200 p-8 shadow-lg">
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <Gift className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
+              <Gift className="w-6 h-6 text-red-600 mt-1 shrink-0" />
               <p className="text-gray-800">
                 Chiết khấu đến <span className="font-bold text-red-600">5%</span> khi mua các sản phẩm tại Ecommerce Store
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <Truck className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
+              <Truck className="w-6 h-6 text-red-600 mt-1 shrink-0" />
               <p className="text-gray-800">
                 Miễn phí giao hàng cho thành viên ECOM, EVIP và cho đơn hàng từ <span className="font-bold text-red-600">300.000₫</span>
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <CreditCard className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
+              <CreditCard className="w-6 h-6 text-red-600 mt-1 shrink-0" />
               <p className="text-gray-800">
                 Trợ giá thu cũ lên đời đến <span className="font-bold text-red-600">1 triệu</span>
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <Star className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
+              <Star className="w-6 h-6 text-red-600 mt-1 shrink-0" />
               <p className="text-gray-800">
                 Thăng hạng nhận voucher đến <span className="font-bold text-red-600">300.000₫</span>
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <GraduationCap className="w-6 h-6 text-red-600 mt-1 flex-shrink-0" />
+              <GraduationCap className="w-6 h-6 text-red-600 mt-1 shrink-0" />
               <p className="text-gray-800">
                 Đặc quyền E-Student/E-Teacher ưu đãi thêm đến <span className="font-bold text-red-600">10%</span>
               </p>

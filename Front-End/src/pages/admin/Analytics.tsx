@@ -194,7 +194,7 @@ export default function Analytics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[250px] flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
+                <div className="h-[250px] flex items-center justify-center text-gray-400 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
                   <div className="text-center">
                     <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p className="text-base font-medium text-gray-500">Biểu đồ doanh thu theo tháng</p>
@@ -245,7 +245,7 @@ export default function Analytics() {
                 {topProducts.map((product, index) => (
                   <div key={product.name} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-all duration-200">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
+                      <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
                         {index + 1}
                       </div>
                       <div>
@@ -293,7 +293,7 @@ export default function Analytics() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                       <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" 
+                        className="bg-linear-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" 
                         style={{ width: `${category.percentage}%` }}
                       ></div>
                     </div>
@@ -327,7 +327,7 @@ export default function Analytics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[180px] flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
+                <div className="h-[180px] flex items-center justify-center text-gray-400 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
                   <div className="text-center">
                     <TrendingUp className="h-10 w-10 mx-auto mb-2 text-gray-300" />
                     <p className="text-sm font-medium text-gray-500">Biểu đồ xu hướng đơn hàng</p>
@@ -343,7 +343,7 @@ export default function Analytics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[180px] flex items-center justify-center text-gray-400 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
+                <div className="h-[180px] flex items-center justify-center text-gray-400 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
                   <div className="text-center">
                     <Users className="h-10 w-10 mx-auto mb-2 text-gray-300" />
                     <p className="text-sm font-medium text-gray-500">Biểu đồ phân tích khách hàng</p>

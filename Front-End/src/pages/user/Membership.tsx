@@ -152,7 +152,7 @@ export default function Membership() {
                     return (
                       <Card
                         key={rank.id}
-                        className={`flex-shrink-0 ${isCurrent
+                        className={`shrink-0 ${isCurrent
                           ? `${colors.bg} border-2 ${colors.border}`
                           : isUnlocked
                             ? `${colors.bg} opacity-90`
@@ -221,7 +221,7 @@ export default function Membership() {
                 </AlertDescription>
               </Alert>
 
-              {/* Chính sách phục vụ */}
+              {/* Chính sách phục vụ */}  
               <Alert>
                 <AlertTitle>CHÍNH SÁCH PHỤC VỤ</AlertTitle>
                 <AlertDescription>
