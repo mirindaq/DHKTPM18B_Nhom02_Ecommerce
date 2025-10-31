@@ -49,29 +49,28 @@ export default function PromotionTable({
 
   const getTypeLabel = (type: string) => {
     const labels = {
-      ORDER: "Đơn hàng",
+      ALL: "Tất cả",
       PRODUCT: "Sản phẩm",
       PRODUCT_VARIANT: "Biến thể sản phẩm",
       CATEGORY: "Danh mục",
+      BRAND: "Thương hiệu",
     };
     return labels[type as keyof typeof labels] || type;
   };
 
   const getTypeColor = (type: string) => {
     const colors = {
-      ORDER: "bg-blue-100 text-blue-800",
+      ALL: "bg-gray-100 text-gray-800",
       PRODUCT: "bg-green-100 text-green-800",
       PRODUCT_VARIANT: "bg-purple-100 text-purple-800",
       CATEGORY: "bg-orange-100 text-orange-800",
+      BRAND: "bg-blue-100 text-blue-800",
     };
     return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   const getDiscountText = (promotion: PromotionSummary) => {
-    if (promotion.discountType === "PERCENTAGE") {
-      return `${promotion.discountValue}%`;
-    }
-    return `${promotion.discountValue.toLocaleString()}đ`;
+    return `${promotion.discount}%`;
   };
 
   const formatDate = (dateString: string) => {
@@ -128,8 +127,8 @@ export default function PromotionTable({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge className={getTypeColor(promotion.type)}>
-                    {getTypeLabel(promotion.type)}
+                  <Badge className={getTypeColor(promotion.promotionType)}>
+                    {getTypeLabel(promotion.promotionType)}
                   </Badge>
                 </TableCell>
                 <TableCell>

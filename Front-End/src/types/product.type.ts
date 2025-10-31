@@ -70,5 +70,17 @@ export type ProductVariantValueResponse = {
 };
 
 
+export type ProductVariantDescription = {
+  id: number;
+  name: string;
+  price: number;
+  thumbnail: string;
+  sku: string;
+  stock: number;
+  brandName: string;
+  categoryName: string;
+};
+
 export type ProductResponse = ResponseApi<Product>;
 export type ProductListResponse = ResponseApiWithPagination<Product[]>;
+export type ProductVariantDescriptionResponse = ResponseApi<ProductVariantDescription[]>;

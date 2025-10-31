@@ -52,7 +52,7 @@ export default function ArticleCategories() {
   );
 
   const updateMutation = useMutation(
-    ({ id, data }: { id: number; data: ArticleCategoryRequest }) =>
+    ({ id, data }: { id: number; data: CreateArticleCategoryRequest }) =>
       articleCategoryService.updateCategory(id, data),
     {
       onSuccess: () => {
@@ -78,7 +78,7 @@ export default function ArticleCategories() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (data: ArticleCategoryRequest) => {
+  const handleSubmit = (data: CreateArticleCategoryRequest) => {
     if (editingCategory) {
       updateMutation.mutate({ id: editingCategory.id, data });
     } else {
