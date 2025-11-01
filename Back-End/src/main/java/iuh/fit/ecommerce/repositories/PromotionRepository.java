@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
 
@@ -25,4 +26,22 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
                                      @Param("startDate") LocalDate startDate,
                                      @Param("endDate") LocalDate endDate,
                                      Pageable pageable);
+
+    @Query("""
+        SELECT p 
+        FROM Promotion p
+        LEFT JOIN p.promotionTargets pt
+        WHERE p.active = true
+          AND (p.startDate IS NULL OR p.startDate <= CURRENT_DATE)
+          AND (p.endDate IS NULL OR p.endDate >= CURRENT_DATE)
+          AND (
+            pt.productVariant.id = :variantId OR
+            pt.product.id = :productId OR
+            pt.category.id = :categoryId OR
+            pt.brand.id = :brandId OR
+            p.promotionType = iuh.fit.ecommerce.enums.PromotionType.ALL
+          )
+    """)
+    List<Promotion> findAllValidPromotions(Long variantId, Long productId, Long categoryId, Long brandId);
+
 }

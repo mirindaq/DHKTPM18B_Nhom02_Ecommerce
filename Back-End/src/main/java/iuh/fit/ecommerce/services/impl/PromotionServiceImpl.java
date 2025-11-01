@@ -4,6 +4,7 @@ import iuh.fit.ecommerce.dtos.request.promotion.PromotionAddRequest;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.promotion.PromotionResponse;
+import iuh.fit.ecommerce.entities.ProductVariant;
 import iuh.fit.ecommerce.entities.Promotion;
 import iuh.fit.ecommerce.entities.PromotionTarget;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -112,4 +114,34 @@ public class PromotionServiceImpl implements PromotionService {
         return promotionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id = " + id));
     }
+
+    @Override
+    public Double calculateDiscountPrice(ProductVariant variant) {
+        double original = variant.getPrice();
+        Promotion promotion = getBestPromotion(variant);
+        double bestDiscount = promotion.getDiscount();
+        return original - (original * bestDiscount / 100);
+    }
+
+    @Override
+    public Double calculateOriginalPrice(ProductVariant variant) {
+        return variant.getPrice();
+    }
+
+    @Override
+    public Promotion getBestPromotion(ProductVariant variant) {
+        List<Promotion> promos = promotionRepository.findAllValidPromotions(
+                variant.getId(),
+                variant.getProduct().getId(),
+                variant.getProduct().getCategory().getId(),
+                variant.getProduct().getBrand().getId()
+        );
+
+
+        return promos.stream().min(Comparator
+                        .comparing(Promotion::getPriority)
+                        .thenComparing(Promotion::getDiscount, Comparator.reverseOrder()))
+                .orElse(null);
+    }
+
 }

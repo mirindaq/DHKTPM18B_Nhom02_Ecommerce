@@ -14,7 +14,7 @@ public class ProductResponse {
     private String name;
     private String slug;
     private Integer stock;
-    private Double discount;
+//    private Double discount;
     private String description;
     private String thumbnail;
     private boolean status;

@@ -7,7 +7,7 @@ export type Product = {
   name: string;
   slug: string;
   stock: number;
-  discount: number;
+  // discount: number;
   description: string;
   thumbnail: string;
   status: boolean;
@@ -61,6 +61,7 @@ export type ProductVariantResponse = {
   oldPrice: number;
   sku: string;
   stock: number;
+  discount: number;
   productVariantValues: ProductVariantValueResponse[];
 };
 

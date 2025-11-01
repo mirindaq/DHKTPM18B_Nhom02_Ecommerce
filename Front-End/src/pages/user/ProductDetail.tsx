@@ -26,7 +26,7 @@ import { cartService } from "@/services/cart.service";
 import { productService } from "@/services/product.service";
 import { productQuestionService } from "@/services/productQuestion.service";
 import { PUBLIC_PATH } from "@/constants/path";
-import type { Product } from "@/types/product.type";
+import type { Product, ProductVariantResponse } from "@/types/product.type";
 import { toast } from "sonner";
 import LoginModal from "@/components/user/LoginModal";
 import QuestionItem from "@/components/user/QuestionItem";
@@ -38,7 +38,7 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
-  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariantResponse | null>(null);
   // Dynamic state for attributes and variants
   const [attributes, setAttributes] = useState<any[]>([]);
   const [availableVariants, setAvailableVariants] = useState<{ [key: string]: string[] }>({});
@@ -545,34 +545,28 @@ export default function ProductDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-4xl font-bold text-red-600">
-                      {formatPrice(selectedVariant?.price || 0)}
-                    </span>
-                    {(selectedVariant?.oldPrice > 0) && (
-                      <div className="space-y-1">
-                        <span className="text-lg text-gray-400 line-through block">
-                          {formatPrice(selectedVariant.oldPrice)}
-                        </span>
-                        <Badge className="bg-green-100 text-green-800">
-                          Tiết kiệm {formatPrice(selectedVariant.oldPrice - (selectedVariant?.price || 0))}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex items-baseline gap-3"> {/* Thay đổi: Chỉ giữ gap-3 để tách biệt giá mới và giá cũ */}
+                  <span className="text-4xl font-bold text-red-600">
+                    {formatPrice(selectedVariant?.price || 0)}
+                  </span>
 
-                  {(selectedVariant?.oldPrice > 0) && (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <span className="font-semibold">
-                        Giảm {Math.round(((selectedVariant.oldPrice - (selectedVariant?.price || 0)) / selectedVariant.oldPrice) * 100)}%
-                      </span>
-                    </div>
+                  {(selectedVariant && selectedVariant.discount > 0) && (
+                    <span className="text-xl text-gray-400 line-through">
+                      {formatPrice(selectedVariant.oldPrice)}
+                    </span>
                   )}
                 </div>
+
+                {(selectedVariant && selectedVariant.discount > 0) && (
+                  <div className="text-sm mt-3">
+                    Tiết kiệm:{" "}
+                    <span className="font-semibold text-green-700">
+                      {formatPrice(selectedVariant.oldPrice - (selectedVariant?.price || 0))}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
 
             {/* Dynamic Custom Configuration */}
             {Object.keys(availableVariants).length > 0 && (
@@ -743,9 +737,9 @@ export default function ProductDetail() {
               <div className="flex items-start gap-4">
                 {/* Mascot Icon */}
                 <div className="shrink-0">
-                  <img 
-                    src="/assets/bee.png" 
-                    alt="CellphoneS Mascot" 
+                  <img
+                    src="/assets/bee.png"
+                    alt="CellphoneS Mascot"
                     className="w-20 h-20 object-contain"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -753,19 +747,19 @@ export default function ProductDetail() {
                     }}
                   />
                 </div>
-                
+
                 {/* Content */}
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-gray-800 mb-2">
                     Hãy đặt câu hỏi cho chúng tôi
                   </h3>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi câu hỏi sau 22h, chúng tôi sẽ trả lời vào sáng hôm sau. 
+                    CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi câu hỏi sau 22h, chúng tôi sẽ trả lời vào sáng hôm sau.
                     Thông tin có thể thay đổi theo thời gian, vui lòng đặt câu hỏi để nhận được cập nhật mới nhất!
                   </p>
                 </div>
               </div>
-              
+
               {/* Question Input Form */}
               <div className="mt-4 flex gap-3">
                 <textarea
@@ -815,14 +809,14 @@ export default function ProductDetail() {
               ) : (
                 <>
                   {allQuestions.map((question) => (
-                    <QuestionItem 
-                      key={question.id} 
-                      question={question} 
+                    <QuestionItem
+                      key={question.id}
+                      question={question}
                       onAnswerSubmit={handleAnswerSubmit}
                       isAnswering={createAnswerMutation.isLoading}
                     />
                   ))}
-                  
+
                   {/* Load More Button */}
                   <QuestionPagination
                     currentPage={currentPage}
