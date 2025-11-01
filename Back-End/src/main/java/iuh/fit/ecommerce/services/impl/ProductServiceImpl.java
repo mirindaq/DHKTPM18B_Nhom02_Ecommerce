@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,35 +90,33 @@ public class ProductServiceImpl implements ProductService {
         }
 
         ProductResponse response = productMapper.toResponse(product);
+        List<ProductVariant> variants = product.getProductVariants();
+        if (variants == null || variants.isEmpty()) return response;
 
-        if (response.getVariants() != null) {
-            for (ProductVariantResponse v : response.getVariants()) {
+        Map<Long, List<Promotion>>  promosByVariant = promotionService.getPromotionsForVariants(variants, product);
 
-                ProductVariant entityVariant = product.getProductVariants()
-                        .stream()
-                        .filter(ev -> ev.getId().equals(v.getId()))
-                        .findFirst()
-                        .orElse(null);
+        for (ProductVariantResponse v : response.getVariants()) {
+            ProductVariant entityVariant = variants.stream()
+                    .filter(ev -> ev.getId().equals(v.getId()))
+                    .findFirst()
+                    .orElse(null);
+            if (entityVariant == null) continue;
 
-                if (entityVariant == null) continue;
+            Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);
+            v.setOldPrice(originalPrice);
 
-                // Giá gốc
-                Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);
-                v.setOldPrice(originalPrice);
+            Promotion bestPromo = promotionService.getBestPromotion(entityVariant, promosByVariant);
 
-                // Tìm promotion áp dụng
-                Promotion bestPromo = promotionService.getBestPromotion(entityVariant);
-
-                if (bestPromo != null) {
-                    Double finalPrice = promotionService.calculateDiscountPrice(entityVariant);
-                    v.setPrice(finalPrice);
-                    v.setDiscount(bestPromo.getDiscount());
-                } else {
-                    v.setPrice(originalPrice);
-                    v.setDiscount(0.0);
-                }
+            if (bestPromo != null) {
+                Double finalPrice = promotionService.calculateDiscountPrice(entityVariant, bestPromo);
+                v.setPrice(finalPrice);
+                v.setDiscount(bestPromo.getDiscount());
+            } else {
+                v.setPrice(originalPrice);
+                v.setDiscount(0.0);
             }
         }
+
         return response;
     }
 
