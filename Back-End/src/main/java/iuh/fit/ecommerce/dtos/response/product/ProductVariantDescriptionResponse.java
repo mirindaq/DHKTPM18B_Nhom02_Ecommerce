@@ -4,17 +4,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Builder
-public class ProductVariantResponse {
+public class ProductVariantDescriptionResponse {
     private Long id;
+    private String name;
     private Double price;
-    private Double oldPrice;
-    private Double discount;
+    private String thumbnail;
     private String sku;
     private Integer stock;
-    private List<ProductVariantValueResponse> productVariantValues;
+    private String brandName;
+    private String categoryName;
 }

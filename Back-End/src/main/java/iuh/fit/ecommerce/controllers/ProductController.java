@@ -5,7 +5,9 @@ import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantDescriptionResponse;
 import iuh.fit.ecommerce.services.ProductService;
+import iuh.fit.ecommerce.services.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import static org.springframework.http.HttpStatus.OK;
 @Tag(name = "Product Controller", description = "Controller for managing products")
 public class ProductController {
     private final ProductService productService;
+    private final ProductVariantService productVariantService;
 
     @PostMapping("")
     public ResponseEntity<ResponseSuccess<?>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
@@ -64,5 +67,14 @@ public class ProductController {
         ));
     }
 
+    @GetMapping("/{productId}/skus")
+    public ResponseEntity<ResponseSuccess<List<ProductVariantDescriptionResponse>>> getSkusForPromotion(@PathVariable Long productId) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all products success",
+                productVariantService.getAllSkusForPromotion(productId)
+        ));
+
+    }
 
 }

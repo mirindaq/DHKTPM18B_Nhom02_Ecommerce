@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const firstVariant = product.variants?.[0]
   const currentPrice = firstVariant?.price || 0
   const oldPrice = firstVariant?.oldPrice || 0
-  const discountPercent = product.discount || 0
+  const discountPercent = firstVariant?.discount || 0
 
   const finalPrice = oldPrice > 0 ? oldPrice * (1 - discountPercent / 100) : currentPrice
 

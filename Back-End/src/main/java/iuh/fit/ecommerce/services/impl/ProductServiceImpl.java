@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.request.product.ProductAttributeRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductVariantRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
@@ -29,6 +30,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryService categoryService;
     private final AttributeService attributeService;
     private final VariantValueService variantValueService;
+    private final PromotionService promotionService;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
@@ -81,7 +83,42 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductBySlug(String slug) {
-        return productMapper.toResponse(productRepository.getProductBySlug(slug));
+        Product product = productRepository.getProductBySlug(slug);
+        if (product == null) {
+            return null;
+        }
+
+        ProductResponse response = productMapper.toResponse(product);
+
+        if (response.getVariants() != null) {
+            for (ProductVariantResponse v : response.getVariants()) {
+
+                ProductVariant entityVariant = product.getProductVariants()
+                        .stream()
+                        .filter(ev -> ev.getId().equals(v.getId()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (entityVariant == null) continue;
+
+                // Giá gốc
+                Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);
+                v.setOldPrice(originalPrice);
+
+                // Tìm promotion áp dụng
+                Promotion bestPromo = promotionService.getBestPromotion(entityVariant);
+
+                if (bestPromo != null) {
+                    Double finalPrice = promotionService.calculateDiscountPrice(entityVariant);
+                    v.setPrice(finalPrice);
+                    v.setDiscount(bestPromo.getDiscount());
+                } else {
+                    v.setPrice(originalPrice);
+                    v.setDiscount(0.0);
+                }
+            }
+        }
+        return response;
     }
 
     @Override
