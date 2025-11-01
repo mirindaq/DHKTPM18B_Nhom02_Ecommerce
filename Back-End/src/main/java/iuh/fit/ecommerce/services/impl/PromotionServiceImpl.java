@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -129,15 +130,14 @@ public class PromotionServiceImpl implements PromotionService {
         return variant.getPrice();
     }
 
+    @Override
     public Promotion getBestPromotion(ProductVariant variant, Map<Long, List<Promotion>> promosByVariant) {
         List<Promotion> promos = promosByVariant.getOrDefault(variant.getId(), List.of());
-        return promos.stream()
-                .min(Comparator.comparing(Promotion::getPriority)
-                        .thenComparing(Promotion::getDiscount, Comparator.reverseOrder()))
-                .orElse(null);
+        return promos.isEmpty() ? null : promos.getFirst();
     }
 
-    public Map<Long, List<Promotion>> getPromotionsForVariants(List<ProductVariant> variants, Product product) {
+    @Override
+    public Map<Long, List<Promotion>> getPromotionsGroupByVariantId(List<ProductVariant> variants, Product product) {
         List<Long> variantIds = variants.stream().map(ProductVariant::getId).toList();
         List<Long> productIds = List.of(product.getId());
         List<Long> categoryIds = List.of(product.getCategory().getId());
@@ -147,20 +147,31 @@ public class PromotionServiceImpl implements PromotionService {
                 variantIds, productIds, categoryIds, brandIds
         );
 
-        // Map variantId -> list promotion
-        Map<Long, List<Promotion>> promosByVariant = new HashMap<>();
-        for (ProductVariant v : variants) {
-            List<Promotion> applicablePromos = allPromotions.stream()
-                    .filter(p -> appliesToVariant(p, v))
-                    .toList();
-
-            if (!applicablePromos.isEmpty()) {
-                promosByVariant.put(v.getId(), applicablePromos);
-            }
-        }
-
-        return promosByVariant;
+        // Map variantId -> list promotion, đã ordered
+        return variants.stream()
+                .collect(Collectors.toMap(
+                        ProductVariant::getId,
+                        v -> allPromotions.stream()
+                                .filter(p -> appliesToVariant(p, v))
+                                .toList()
+                ));
     }
+
+    @Override
+    public Promotion getBestPromotionForVariant(ProductVariant variant) {
+        List<Promotion> promos = promotionRepository.findBestPromotionForVariant(
+                variant.getId(),
+                variant.getProduct().getId(),
+                variant.getProduct().getCategory().getId(),
+                variant.getProduct().getBrand().getId(),
+                PageRequest.of(0, 1)  // chỉ lấy 1 promotion đầu tiên
+        );
+
+        return promos.isEmpty() ? null : promos.get(0);
+    }
+
+
+
 
     private boolean appliesToVariant(Promotion promo, ProductVariant variant) {
         return promo.getPromotionTargets().stream().anyMatch(pt ->

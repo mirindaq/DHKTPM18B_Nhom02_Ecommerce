@@ -3,15 +3,13 @@ package iuh.fit.ecommerce.services.impl;
 import iuh.fit.ecommerce.dtos.request.cart.CartAddRequest;
 import iuh.fit.ecommerce.dtos.request.cart.CartUpdateQuantityRequest;
 import iuh.fit.ecommerce.dtos.response.cart.CartResponse;
-import iuh.fit.ecommerce.entities.Cart;
-import iuh.fit.ecommerce.entities.CartDetail;
-import iuh.fit.ecommerce.entities.ProductVariant;
-import iuh.fit.ecommerce.entities.User;
+import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.CartMapper;
 import iuh.fit.ecommerce.repositories.CartRepository;
 import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.services.CartService;
+import iuh.fit.ecommerce.services.PromotionService;
 import iuh.fit.ecommerce.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +23,7 @@ public class CartServiceImpl implements CartService {
     private final SecurityUtil securityUtil;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final PromotionService promotionService;
     private final CartMapper cartMapper;
 
     @Override
@@ -102,6 +101,7 @@ public class CartServiceImpl implements CartService {
 
         return cartMapper.toResponse(cart);
     }
+
     private Cart findOrCreateCartForCurrentUser() {
         User user = securityUtil.getCurrentUser();
         return cartRepository.findByUser_Id(user.getId())
@@ -127,11 +127,13 @@ public class CartServiceImpl implements CartService {
 
 
     private void addNewCartDetail(Cart cart, ProductVariant productVariant, int quantity) {
+        Promotion promotion = promotionService.getBestPromotionForVariant(productVariant);
         CartDetail cartDetail = CartDetail.builder()
                 .cart(cart)
                 .productVariant(productVariant)
                 .quantity((long) quantity)
                 .price(productVariant.getPrice())
+                .discount(promotion.getDiscount())
                 .build();
         cart.getCartDetails().add(cartDetail);
     }

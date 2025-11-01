@@ -93,13 +93,13 @@ public class ProductServiceImpl implements ProductService {
         List<ProductVariant> variants = product.getProductVariants();
         if (variants == null || variants.isEmpty()) return response;
 
-        Map<Long, List<Promotion>>  promosByVariant = promotionService.getPromotionsForVariants(variants, product);
+        Map<Long, List<Promotion>>  promosByVariant = promotionService.getPromotionsGroupByVariantId(variants, product);
+
+        Map<Long, ProductVariant> variantMap = variants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
 
         for (ProductVariantResponse v : response.getVariants()) {
-            ProductVariant entityVariant = variants.stream()
-                    .filter(ev -> ev.getId().equals(v.getId()))
-                    .findFirst()
-                    .orElse(null);
+            ProductVariant entityVariant = variantMap.get(v.getId());
             if (entityVariant == null) continue;
 
             Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);

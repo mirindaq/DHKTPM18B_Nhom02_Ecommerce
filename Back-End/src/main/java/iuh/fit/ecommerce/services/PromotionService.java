@@ -28,5 +28,7 @@ public interface PromotionService {
     Double calculateOriginalPrice(ProductVariant variant);
     Promotion getBestPromotion(ProductVariant variant, Map<Long, List<Promotion>> promosByVariant);
 
-    Map<Long, List<Promotion>>  getPromotionsForVariants(List<ProductVariant> variants, Product product);
+    Map<Long, List<Promotion>>  getPromotionsGroupByVariantId(List<ProductVariant> variants, Product product);
+
+    Promotion getBestPromotionForVariant(ProductVariant variant);
 }
