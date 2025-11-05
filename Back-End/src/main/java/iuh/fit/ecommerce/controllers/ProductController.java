@@ -1,11 +1,12 @@
 package iuh.fit.ecommerce.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import iuh.fit.ecommerce.dtos.request.product.ProductVariantPromotionRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
-import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductVariantDescriptionResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantPromotionResponse;
 import iuh.fit.ecommerce.services.ProductService;
 import iuh.fit.ecommerce.services.ProductVariantService;
 import jakarta.validation.Valid;
@@ -76,5 +77,18 @@ public class ProductController {
         ));
 
     }
+
+    @PostMapping("/variants/promotions")
+    public ResponseEntity<ResponseSuccess<List<ProductVariantPromotionResponse>>> getProductsVariantPromotions(
+            @Valid @RequestBody ProductVariantPromotionRequest request
+    ) {
+        List<ProductVariantPromotionResponse> result = productVariantService.getProductsVariantPromotions(request);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get product variant promotions success",
+                result
+        ));
+    }
+
 
 }

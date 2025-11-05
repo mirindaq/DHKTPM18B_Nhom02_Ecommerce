@@ -4,6 +4,8 @@ import type {
   ProductListResponse,
   ProductResponse,
   ProductVariantDescriptionResponse,
+  ProductVariantPromotionRequest,
+  ProductVariantPromotionResponseApi,
 } from '@/types/product.type'
 
 export const productService = {
@@ -40,6 +42,11 @@ export const productService = {
   },
   getSkusForPromotion: async (productId: number) => {
     const response = await axiosClient.get<ProductVariantDescriptionResponse>(`/products/${productId}/skus`)
+    return response.data
+  },
+
+  getProductsVariantPromotions: async (request: ProductVariantPromotionRequest) => {
+    const response = await axiosClient.post<ProductVariantPromotionResponseApi>('/products/variants/promotions', request)
     return response.data
   }
 }

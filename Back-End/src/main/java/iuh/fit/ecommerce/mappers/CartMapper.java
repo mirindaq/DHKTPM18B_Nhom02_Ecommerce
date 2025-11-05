@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CartMapper {
 
-    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "customer.id", target = "userId")
     @Mapping(source = "cartDetails", target = "items")
     @Mapping(source = "cartDetails", target = "totalPrice", qualifiedByName = "calculateTotalPrice")
     @Mapping(source = "id", target = "cartId")
@@ -23,6 +23,7 @@ public interface CartMapper {
     @Mapping(source = "productVariant.product.name", target = "productName")
     @Mapping(source = "productVariant.product.thumbnail", target = "productImage")
     @Mapping(source = "productVariant.sku", target = "sku")
+    @Mapping(source = "id", target = "id")
     CartDetailResponse toItemResponse(CartDetail cartDetail);
 
     @Named("calculateTotalPrice")

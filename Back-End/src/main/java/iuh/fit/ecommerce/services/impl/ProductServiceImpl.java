@@ -2,12 +2,15 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.product.ProductAddRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductAttributeRequest;
+import iuh.fit.ecommerce.dtos.request.product.ProductVariantPromotionRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductVariantRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantPromotionResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductVariantResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
+import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.*;
@@ -20,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
