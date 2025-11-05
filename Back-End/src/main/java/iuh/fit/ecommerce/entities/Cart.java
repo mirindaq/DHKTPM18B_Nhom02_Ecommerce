@@ -27,9 +27,9 @@ public class Cart {
 
     @ToString.Exclude
     @JsonIgnore
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "customer_id", referencedColumnName = "id")
     @OneToOne
-    private User user;
+    private Customer customer;
 
 
     @OneToMany(mappedBy = "cart",

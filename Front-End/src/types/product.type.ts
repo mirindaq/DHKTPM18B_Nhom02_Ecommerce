@@ -82,6 +82,17 @@ export type ProductVariantDescription = {
   categoryName: string;
 };
 
+export type ProductVariantPromotionRequest = {
+  productVariantIds: number[];
+}
+
+
+export type ProductVariantPromotionResponse = {
+  productVariantId: number;
+  discount: number;
+}
+
 export type ProductResponse = ResponseApi<Product>;
 export type ProductListResponse = ResponseApiWithPagination<Product[]>;
 export type ProductVariantDescriptionResponse = ResponseApi<ProductVariantDescription[]>;
+export type ProductVariantPromotionResponseApi = ResponseApi<ProductVariantPromotionResponse[]>;

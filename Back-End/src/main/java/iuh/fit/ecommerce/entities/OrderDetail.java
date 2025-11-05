@@ -32,7 +32,7 @@ public class OrderDetail {
     @JoinColumn( name = "product_variant_id" )
     private ProductVariant productVariant;
 
-    @ManyToOne
-    @JoinColumn( name = "order_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
     private Order order;
 }
