@@ -56,7 +56,6 @@ public class User extends  BaseEntity implements UserDetails {
 
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @Builder.Default
     private List<UserRole> userRoles = new ArrayList<>();
 
     @Override
