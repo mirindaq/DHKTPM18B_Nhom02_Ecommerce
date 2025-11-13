@@ -1,21 +1,19 @@
 package iuh.fit.ecommerce.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
+@Builder
 @Table(name = "address")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Address {
 
     @Id
-    @GeneratedValue( strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
@@ -30,7 +28,13 @@ public class Address {
     @Column
     private Boolean isDefault;
 
+
     @ManyToOne
-    @JoinColumn( name = "customer_id")
+    @JoinColumn(name = "ward_code")
+    private Ward ward;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
     private Customer customer;
+
 }

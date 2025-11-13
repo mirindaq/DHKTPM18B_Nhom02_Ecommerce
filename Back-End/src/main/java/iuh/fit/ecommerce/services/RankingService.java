@@ -9,5 +9,7 @@ import java.util.List;
 public interface RankingService {
     Ranking getRankingEntityById(Long id);
 
+    List<RankVoucherResponse> getAllRankings();
+    Ranking getRankingForSpending(Double spending);
     List<RankResponse> getAllRankings();
 }
