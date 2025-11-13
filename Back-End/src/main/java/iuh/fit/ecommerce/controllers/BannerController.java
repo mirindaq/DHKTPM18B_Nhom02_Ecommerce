@@ -8,6 +8,7 @@ import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.services.BannerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ public class BannerController {
     private final BannerService bannerService;
 
     @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<BannerResponse>>>> getAllBanners(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "7") int size,
@@ -38,6 +40,7 @@ public class BannerController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<BannerResponse>> getBannerById(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
@@ -47,6 +50,7 @@ public class BannerController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<BannerResponse>> addBanner(@RequestBody BannerAddRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
@@ -56,6 +60,7 @@ public class BannerController {
     }
 
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<BannerResponse>> updateBanner(@PathVariable Long id, @RequestBody BannerUpdateRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
