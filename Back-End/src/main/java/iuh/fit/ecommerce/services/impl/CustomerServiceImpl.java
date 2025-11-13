@@ -55,7 +55,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .build();
         userRoleRepository.save(userRole);
         Cart cart = Cart.builder()
-                .user(customer)
+                .customer(customer)
                 .build();
         cartRepository.save(cart);
 
@@ -103,7 +103,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void deleteCustomer(long id) {
         Customer customer = getCustomerEntityById(id);
-        cartRepository.deleteByUser(customer);
+        cartRepository.deleteByCustomer(customer);
         customerRepository.delete(customer);
     }
 

@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services;
 
+import iuh.fit.ecommerce.dtos.response.rank.RankResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.RankVoucherResponse;
 import iuh.fit.ecommerce.entities.Ranking;
 
@@ -10,4 +11,5 @@ public interface RankingService {
 
     List<RankVoucherResponse> getAllRankings();
     Ranking getRankingForSpending(Double spending);
+    List<RankResponse> getAllRankings();
 }

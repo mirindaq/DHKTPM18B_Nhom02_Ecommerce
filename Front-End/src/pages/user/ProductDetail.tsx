@@ -18,80 +18,38 @@ import {
   Truck,
   RotateCcw,
   Check,
-  GitCompareArrows
+  GitCompareArrows,
+  Send,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
 import { productService } from "@/services/product.service";
+import { productQuestionService } from "@/services/productQuestion.service";
 import { PUBLIC_PATH } from "@/constants/path";
-import type { Product } from "@/types/product.type";
+import type { Product, ProductVariantResponse } from "@/types/product.type";
 import { toast } from "sonner";
 import LoginModal from "@/components/user/LoginModal";
+import QuestionItem from "@/components/user/QuestionItem";
+import QuestionPagination from "@/components/user/QuestionPagination";
+import { useQuery } from "@/hooks/useQuery";
+import { useMutation } from "@/hooks/useMutation";
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariantResponse | null>(null);
   // Dynamic state for attributes and variants
   const [attributes, setAttributes] = useState<any[]>([]);
   const [availableVariants, setAvailableVariants] = useState<{ [key: string]: string[] }>({});
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-
-  // Load product data from API
-  useEffect(() => {
-    const loadProduct = async () => {
-      if (!slug) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await productService.getProductBySlug(slug);
-
-        if (response.status === 200 && response.data) {
-          setProduct(response.data);
-          setAttributes(response.data.attributes || []);
-
-          if (response.data.variants && response.data.variants.length > 0) {
-            setSelectedVariant(response.data.variants[0]);
-            extractVariantsFromProduct(response.data);
-          }
-        } else {
-          setError('Không tìm thấy sản phẩm');
-        }
-      } catch (error) {
-        console.error('Error loading product:', error);
-        setError('Có lỗi xảy ra khi tải sản phẩm');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProduct();
-  }, [slug]);
-
-  // Scroll to top functionality
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
-  };
+  const [questionContent, setQuestionContent] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allQuestions, setAllQuestions] = useState<any[]>([]);
+  const pageSize = 5;
 
   // Extract variants from API data dynamically
   const extractVariantsFromProduct = (product: Product) => {
@@ -125,6 +83,75 @@ export default function ProductDetail() {
     setSelectedVariants(defaultSelections);
   };
 
+  // Load product data from API
+  const { data: productData, isLoading: loading, error } = useQuery<{ status: number; data: Product }>(
+    () => productService.getProductBySlug(slug!),
+    {
+      queryKey: ['product', slug || ''],
+      enabled: !!slug,
+      onError: (err) => {
+        console.error('Error loading product:', err);
+      }
+    }
+  );
+
+  const product = productData?.data || null;
+
+  // Load product questions
+  const { data: questionsData, isLoading: questionsLoading, refetch: refetchQuestions } = useQuery(
+    () => productQuestionService.getProductQuestionsBySlug(slug!, currentPage, pageSize),
+    {
+      queryKey: ['product-questions', slug || '', currentPage.toString()],
+      enabled: !!slug,
+      onError: (err) => {
+        console.error('Error loading product questions:', err);
+      }
+    }
+  );
+
+  const totalPages = questionsData?.data?.totalPage || 1;
+  const totalItems = questionsData?.data?.totalItem || 0;
+
+  // Cập nhật danh sách câu hỏi khi load thêm
+  useEffect(() => {
+    if (questionsData?.data?.data) {
+      const newQuestions = questionsData.data.data;
+      if (currentPage === 1) {
+        setAllQuestions(newQuestions);
+      } else {
+        setAllQuestions(prev => [...prev, ...newQuestions]);
+      }
+    }
+  }, [questionsData, currentPage]);
+
+  useEffect(() => {
+    if (product) {
+      setAttributes(product.attributes || []);
+
+      if (product.variants && product.variants.length > 0) {
+        setSelectedVariant(product.variants[0]);
+        extractVariantsFromProduct(product);
+      }
+
+    }
+  }, [product?.id]);
+
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price);
+  };
+
   // Find matching variant based on selections
   const findMatchingVariant = () => {
     if (!product?.variants) return null;
@@ -152,11 +179,56 @@ export default function ProductDetail() {
 
   // Update selected variant when selections change
   useEffect(() => {
+    if (!product) return;
     const matchingVariant = findMatchingVariant();
     if (matchingVariant) {
       setSelectedVariant(matchingVariant);
     }
-  }, [selectedVariants, product]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedVariants, product?.id]);
+
+  const addToCartMutation = useMutation(
+    (data: { productVariantId: number; quantity: number }) => cartService.addProductToCart(data),
+    {
+      onSuccess: () => {
+        toast.success('Đã thêm vào giỏ hàng thành công!');
+      },
+      onError: () => {
+        toast.error('Không thể thêm vào giỏ hàng');
+      }
+    }
+  );
+
+  const createQuestionMutation = useMutation(
+    (data: { content: string; productId: number }) => productQuestionService.createProductQuestion(data),
+    {
+      onSuccess: () => {
+        toast.success('Câu hỏi đã được gửi thành công!');
+        setQuestionContent("");
+        setAllQuestions([]); // Reset danh sách câu hỏi
+        setCurrentPage(1); // Reset về trang đầu khi thêm câu hỏi mới
+        refetchQuestions();
+      },
+      onError: () => {
+        toast.error('Không thể gửi câu hỏi');
+      }
+    }
+  );
+
+  const createAnswerMutation = useMutation(
+    (data: { content: string; productQuestionId: number }) => productQuestionService.createProductQuestionAnswer(data),
+    {
+      onSuccess: () => {
+        toast.success('Trả lời đã được gửi thành công!');
+        setAllQuestions([]); // Reset danh sách câu hỏi
+        setCurrentPage(1); // Reset về trang đầu khi thêm câu trả lời mới
+        refetchQuestions();
+      },
+      onError: () => {
+        toast.error('Không thể gửi trả lời');
+      }
+    }
+  );
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -176,20 +248,10 @@ export default function ProductDetail() {
     console.log('Selected variants:', selectedVariants);
     console.log('Matching variant ID:', matchingVariant.id);
 
-    try {
-      setIsAddingToCart(true);
-      await cartService.addProductToCart({
-        productVariantId: matchingVariant.id,
-        quantity: 1
-      });
-
-      toast.success('Đã thêm vào giỏ hàng thành công!');
-    } catch (error) {
-      console.error('Lỗi khi thêm vào giỏ hàng:', error);
-      toast.error('Không thể thêm vào giỏ hàng');
-    } finally {
-      setIsAddingToCart(false);
-    }
+    await addToCartMutation.mutate({
+      productVariantId: matchingVariant.id,
+      quantity: 1
+    });
   };
 
   const handleBuyNow = () => {
@@ -213,6 +275,45 @@ export default function ProductDetail() {
     navigate(`${PUBLIC_PATH.HOME}checkout`);
   };
 
+  const handleSubmitQuestion = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (!questionContent.trim()) {
+      toast.error('Vui lòng nhập câu hỏi');
+      return;
+    }
+
+    if (!product?.id) {
+      toast.error('Không tìm thấy thông tin sản phẩm');
+      return;
+    }
+
+    await createQuestionMutation.mutate({
+      content: questionContent.trim(),
+      productId: product.id
+    });
+  };
+
+  const handleAnswerSubmit = async (questionId: number, content: string) => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (!content.trim()) {
+      toast.error('Vui lòng nhập câu trả lời');
+      return;
+    }
+
+    await createAnswerMutation.mutate({
+      content: content.trim(),
+      productQuestionId: questionId
+    });
+  };
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -227,7 +328,7 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
@@ -270,14 +371,14 @@ export default function ProductDetail() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-red-600 text-2xl">⚠️</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              {error || 'Không tìm thấy sản phẩm'}
+              Không tìm thấy sản phẩm
             </h2>
             <p className="text-gray-600 mb-6">Sản phẩm có thể đã bị xóa hoặc không tồn tại</p>
             <Button
@@ -293,7 +394,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100">
       {/* Breadcrumb */}
       <div className="bg-white/80 backdrop-blur-sm border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -321,7 +422,7 @@ export default function ProductDetail() {
                 <span>Yêu thích</span>
               </div>
               <div className="flex items-center space-x-1">
-                 <GitCompareArrows className="w-4 h-4 text-gray-400" />
+                <GitCompareArrows className="w-4 h-4 text-gray-400" />
                 <span>So sánh</span>
               </div>
               <div className="flex items-center space-x-1">
@@ -340,7 +441,7 @@ export default function ProductDetail() {
                 src={product.thumbnail}
                 alt={product.name}
                 className="w-full h-90 object-cover rounded-xl transition-transform group-hover:scale-105"
-              />  
+              />
             </Card>
 
             {/* Product Image Gallery */}
@@ -356,7 +457,7 @@ export default function ProductDetail() {
                   {product.productImages.map((image, index) => (
                     <div
                       key={index}
-                      className={`relative flex-shrink-0 cursor-pointer group transition-all duration-200 ${index === currentImageIndex
+                      className={`relative shrink-0 cursor-pointer group transition-all duration-200 ${index === currentImageIndex
                         ? 'ring-2 ring-red-500 ring-offset-2 scale-105'
                         : 'hover:scale-105'
                         }`}
@@ -382,7 +483,7 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center justify-center w-24 h-24 border-1 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-center w-24 h-24 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer">
                     <ChevronRight className="w-6 h-6 text-gray-400" />
                   </div>
                 </div>
@@ -400,7 +501,7 @@ export default function ProductDetail() {
               <CardContent>
                 <div className="space-y-6">
                   <div className="flex items-start gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                       <Check className="w-5 h-5 text-green-600" />
                     </div>
                     <div className="space-y-1">
@@ -410,7 +511,7 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                       <Shield className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="space-y-1">
@@ -420,7 +521,7 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="flex items-start gap-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
                       <Truck className="w-5 h-5 text-orange-600" />
                     </div>
                     <div className="space-y-1">
@@ -436,7 +537,7 @@ export default function ProductDetail() {
           {/* Right Column - Purchase Options */}
           <div className="space-y-6 lg:col-span-5">
             {/* Price */}
-            <Card className="border-1 border-red-100">
+            <Card className="border border-red-100">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Zap className="w-5 h-5 text-red-600" />
@@ -444,34 +545,28 @@ export default function ProductDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-4xl font-bold text-red-600">
-                      {formatPrice(selectedVariant?.price || 0)}
-                    </span>
-                    {(selectedVariant?.oldPrice > 0) && (
-                      <div className="space-y-1">
-                        <span className="text-lg text-gray-400 line-through block">
-                          {formatPrice(selectedVariant.oldPrice)}
-                        </span>
-                        <Badge className="bg-green-100 text-green-800">
-                          Tiết kiệm {formatPrice(selectedVariant.oldPrice - (selectedVariant?.price || 0))}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex items-baseline gap-3"> {/* Thay đổi: Chỉ giữ gap-3 để tách biệt giá mới và giá cũ */}
+                  <span className="text-4xl font-bold text-red-600">
+                    {formatPrice(selectedVariant?.price || 0)}
+                  </span>
 
-                  {(selectedVariant?.oldPrice > 0) && (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <span className="font-semibold">
-                        Giảm {Math.round(((selectedVariant.oldPrice - (selectedVariant?.price || 0)) / selectedVariant.oldPrice) * 100)}%
-                      </span>
-                    </div>
+                  {(selectedVariant && selectedVariant.discount > 0) && (
+                    <span className="text-xl text-gray-400 line-through">
+                      {formatPrice(selectedVariant.oldPrice)}
+                    </span>
                   )}
                 </div>
+
+                {(selectedVariant && selectedVariant.discount > 0) && (
+                  <div className="text-sm mt-3">
+                    Tiết kiệm:{" "}
+                    <span className="font-semibold text-green-700">
+                      {formatPrice(selectedVariant.oldPrice - (selectedVariant?.price || 0))}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
 
             {/* Dynamic Custom Configuration */}
             {Object.keys(availableVariants).length > 0 && (
@@ -512,7 +607,7 @@ export default function ProductDetail() {
                           {availableVariants[variantName].map((value) => (
                             <button
                               key={value}
-                              className={`p-4 text-sm border-1 rounded-xl transition-all duration-300 group ${selectedVariants[variantName] === value
+                              className={`p-4 text-sm border rounded-xl transition-all duration-300 group ${selectedVariants[variantName] === value
                                 ? 'border-red-500 text-red-700 font-semibold shadow-md scale-105'
                                 : 'border-gray-200 hover:border-red-300 hover:bg-gray-50 text-gray-700 hover:shadow-sm hover:scale-102'
                                 }`}
@@ -550,7 +645,7 @@ export default function ProductDetail() {
                   </Button>
 
                   <Button
-                    className="col-span-1 h-16 bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-bold text-lg py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                    className="col-span-1 h-16 bg-linear-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-bold text-lg py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                     onClick={handleBuyNow}
                   >
                     <div className="text-center">
@@ -563,9 +658,9 @@ export default function ProductDetail() {
                     variant="outline"
                     className="h-16 border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 hover:ring-2 hover:ring-red-200 font-semibold py-3 rounded-xl transition-all duration-300"
                     onClick={handleAddToCart}
-                    disabled={isAddingToCart}
+                    disabled={addToCartMutation.isLoading}
                   >
-                    {isAddingToCart ? (
+                    {addToCartMutation.isLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600 mr-1"></div>
                         Đang thêm...
@@ -603,7 +698,7 @@ export default function ProductDetail() {
               <div className="space-y-4">
                 {attributes.slice(0, Math.ceil(attributes.length / 2)).map((attr, index) => (
                   <div key={index} className="flex group hover:bg-gray-50 transition-colors rounded-lg">
-                    <div className="w-1/3 bg-gradient-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
+                    <div className="w-1/3 bg-linear-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
                       {attr.attribute.name}
                     </div>
                     <div className="w-2/3 bg-white p-4 text-gray-900 font-medium rounded-r-lg">
@@ -616,7 +711,7 @@ export default function ProductDetail() {
               <div className="space-y-4">
                 {attributes.slice(Math.ceil(attributes.length / 2)).map((attr, index) => (
                   <div key={index} className="flex group hover:bg-gray-50 transition-colors rounded-lg">
-                    <div className="w-1/3 bg-gradient-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
+                    <div className="w-1/3 bg-linear-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
                       {attr.attribute.name}
                     </div>
                     <div className="w-2/3 bg-white p-4 text-gray-900 font-medium rounded-r-lg">
@@ -625,6 +720,114 @@ export default function ProductDetail() {
                   </div>
                 ))}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Questions Section */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Hỏi và đáp
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Introduction Section with Mascot */}
+            <div className="mb-6 p-6 bg-linear-to-r from-red-50 to-orange-50 rounded-lg border border-red-100">
+              <div className="flex items-start gap-4">
+                {/* Mascot Icon */}
+                <div className="shrink-0">
+                  <img
+                    src="/assets/bee.png"
+                    alt="CellphoneS Mascot"
+                    className="w-20 h-20 object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">
+                    Hãy đặt câu hỏi cho chúng tôi
+                  </h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi câu hỏi sau 22h, chúng tôi sẽ trả lời vào sáng hôm sau.
+                    Thông tin có thể thay đổi theo thời gian, vui lòng đặt câu hỏi để nhận được cập nhật mới nhất!
+                  </p>
+                </div>
+              </div>
+
+              {/* Question Input Form */}
+              <div className="mt-4 flex gap-3">
+                <textarea
+                  value={questionContent}
+                  onChange={(e) => setQuestionContent(e.target.value)}
+                  placeholder="Viết câu hỏi của bạn tại đây"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-sm"
+                  rows={3}
+                />
+                <Button
+                  onClick={handleSubmitQuestion}
+                  disabled={createQuestionMutation.isLoading || !questionContent.trim()}
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 h-auto self-end"
+                >
+                  {createQuestionMutation.isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Đang gửi...
+                    </>
+                  ) : (
+                    <>
+                      Gửi câu hỏi
+                      <Send className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Questions List */}
+            <div className="space-y-4">
+              {questionsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="p-4 border rounded-lg">
+                      <Skeleton className="h-4 w-3/4 mb-2" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : allQuestions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>Chưa có câu hỏi nào về sản phẩm này</p>
+                  <p className="text-sm">Hãy là người đầu tiên đặt câu hỏi!</p>
+                </div>
+              ) : (
+                <>
+                  {allQuestions.map((question) => (
+                    <QuestionItem
+                      key={question.id}
+                      question={question}
+                      onAnswerSubmit={handleAnswerSubmit}
+                      isAnswering={createAnswerMutation.isLoading}
+                    />
+                  ))}
+
+                  {/* Load More Button */}
+                  <QuestionPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    currentItems={allQuestions.length}
+                    onLoadMore={() => setCurrentPage(currentPage + 1)}
+                    isLoading={questionsLoading}
+                  />
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -642,7 +845,7 @@ export default function ProductDetail() {
           </Button>
           <Button
             size="lg"
-            className="w-14 h-14 rounded-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+            className="w-14 h-14 rounded-full bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
           >
             <Headphones className="w-6 h-6" />
           </Button>

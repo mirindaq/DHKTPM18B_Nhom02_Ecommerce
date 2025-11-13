@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-public class User extends BaseEntity implements UserDetails {
+public class User extends  BaseEntity implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -53,14 +54,10 @@ public class User extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RefreshToken> refreshTokens;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private List<UserRole> userRoles = new ArrayList<>();
-
-    @ToString.Exclude
-    @JsonIgnore
-    @OneToOne(mappedBy = "user")
-    private Cart cart;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

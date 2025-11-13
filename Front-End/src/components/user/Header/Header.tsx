@@ -75,7 +75,6 @@ export default function Header() {
     }, 150); // Delay 150ms để người dùng có thời gian di chuyển chuột
   };
 
-
   // Shared button style for consistency
   const redButtonStyle =
     "flex items-center space-x-1 bg-[#AC0014] hover:bg-red-700 px-3 py-2 rounded-lg text-sm";
@@ -143,13 +142,20 @@ export default function Header() {
             >
               <div className="absolute -top-2 left-0 right-0 h-2 bg-transparent"></div>
               <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Giỏ hàng của bạn</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Giỏ hàng của bạn
+                </h3>
                 {cart.items.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">Giỏ hàng trống</p>
+                  <p className="text-gray-500 text-center py-4">
+                    Giỏ hàng trống
+                  </p>
                 ) : (
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {cart.items.slice(0, 3).map((item) => (
-                      <div key={item.productVariantId} className="flex items-center space-x-3">
+                      <div
+                        key={item.productVariantId}
+                        className="flex items-center space-x-3"
+                      >
                         <img
                           src={item.productImage}
                           alt={item.productName}
@@ -159,7 +165,9 @@ export default function Header() {
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {item.productName}
                           </p>
-                          <p className="text-xs text-gray-500">Số lượng: {item.quantity}</p>
+                          <p className="text-xs text-gray-500">
+                            Số lượng: {item.quantity}
+                          </p>
                           <p className="text-sm font-semibold text-red-600">
                             {item.price.toLocaleString()}đ
                           </p>
@@ -176,7 +184,9 @@ export default function Header() {
                 {cart.items.length > 0 && (
                   <div className="mt-4 pt-3 border-t">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="font-semibold text-gray-900">Tổng cộng:</span>
+                      <span className="font-semibold text-gray-900">
+                        Tổng cộng:
+                      </span>
                       <span className="font-bold text-red-600 text-lg">
                         {cart.totalPrice.toLocaleString()}đ
                       </span>
@@ -205,7 +215,9 @@ export default function Header() {
           >
             <User size={24} />
             <div className="text-left">
-              <span className="block text-sm font-semibold">{user.name}</span>
+              <span className="block text-sm font-semibold">
+                {user.fullName}
+              </span>
               <span className="block text-xs">Tài khoản</span>
             </div>
           </button>

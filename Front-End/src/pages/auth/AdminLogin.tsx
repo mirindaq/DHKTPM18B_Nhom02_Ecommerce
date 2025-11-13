@@ -11,7 +11,7 @@ import { useMutation } from '@/hooks/useMutation'
 import { authService } from '@/services/auth.service'
 import { ADMIN_PATH, SHIPPER_PATH, STAFF_PATH } from '@/constants/path'
 import { ROLES, useUser } from '@/context/UserContext'
-import LocalStorageUtil from '@/utils/localStorage.util'
+import AuthStorageUtil from '@/utils/authStorage.util'
 import type { LoginRequest, AuthResponse, UserProfile } from '@/types/auth.type'
 
 // Schema validation cho form đăng nhập admin
@@ -45,7 +45,7 @@ export default function AdminLogin() {
         roles: data.data.roles,
       }
 
-      LocalStorageUtil.setTokensAndData({
+      AuthStorageUtil.setTokensAndData({
         accessToken: data.data.accessToken,
         refreshToken: data.data.refreshToken
       }, userProfile)
@@ -78,8 +78,8 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
-      <div className="hidden lg:flex lg:w-3/5 bg-gradient-to-br from-blue-800 to-indigo-800 p-12 flex-col justify-center">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex">
+      <div className="hidden lg:flex lg:w-3/5 bg-linear-to-br from-blue-800 to-indigo-800 p-12 flex-col justify-center">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
             Hệ thống quản trị <span className="text-yellow-300">Ecommerce Store</span>
@@ -92,25 +92,25 @@ export default function AdminLogin() {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 shadow-lg">
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <BarChart3 className="w-6 h-6 text-yellow-300 mt-1 flex-shrink-0" />
+              <BarChart3 className="w-6 h-6 text-yellow-300 mt-1 shrink-0" />
               <p className="text-white">
                 Theo dõi và phân tích <span className="font-bold text-yellow-300">doanh thu</span> và hiệu suất bán hàng
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <Users className="w-6 h-6 text-yellow-300 mt-1 flex-shrink-0" />
+              <Users className="w-6 h-6 text-yellow-300 mt-1 shrink-0" />
               <p className="text-white">
                 Quản lý <span className="font-bold text-yellow-300">khách hàng</span> và đơn hàng hiệu quả
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <Shield className="w-6 h-6 text-yellow-300 mt-1 flex-shrink-0" />
+              <Shield className="w-6 h-6 text-yellow-300 mt-1 shrink-0" />
               <p className="text-white">
                 Bảo mật cao với <span className="font-bold text-yellow-300">xác thực 2 lớp</span>
               </p>
             </div>
             <div className="flex items-start space-x-3">
-              <Settings className="w-6 h-6 text-yellow-300 mt-1 flex-shrink-0" />
+              <Settings className="w-6 h-6 text-yellow-300 mt-1 shrink-0" />
               <p className="text-white">
                 Tùy chỉnh hệ thống và <span className="font-bold text-yellow-300">tích hợp API</span>
               </p>
@@ -200,7 +200,7 @@ export default function AdminLogin() {
             {/* Security Notice */}
             <div className="bg-blue-50 border border-blue-800 rounded-lg p-4">
               <div className="flex items-start space-x-2">
-                <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Shield className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm text-blue-800 font-medium">
                     Bảo mật hệ thống

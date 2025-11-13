@@ -1,7 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
-import LocalStorageUtil from "@/utils/localStorage.util";
+import AuthStorageUtil from "@/utils/authStorage.util";
 
 // Khởi tạo instance
 const axiosClient = axios.create({
@@ -10,11 +10,12 @@ const axiosClient = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 10000, // 10s
+  // withCredentials: false, 
 });
 
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = LocalStorageUtil.getAccessToken();
+    const token = AuthStorageUtil.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -71,43 +72,22 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = LocalStorageUtil.getRefreshToken();
-      
-      if (refreshToken) {
-        try {
-          console.log('chay vo day 1', refreshToken);
-          const response = await authService.refreshToken({ refreshToken });
-          console.log('chay vo day 2', response);
-          const { accessToken, refreshToken: newRefreshToken } = (response.data as any).data;
-          
-          LocalStorageUtil.setTokens({ accessToken, refreshToken: newRefreshToken });
-          
-          processQueue(null, accessToken);
-          
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return axiosClient(originalRequest);
-        } catch (refreshError) {
-          console.log('chay vo day 3', refreshError);
-          processQueue(refreshError, null);
+      try {
+        const response = await authService.refreshToken();
+        const { accessToken, refreshToken: newRefreshToken } = (response.data as any).data;
+        
+        // Lưu tokens mới (accessToken vào localStorage, refreshToken vào cookie)
+        AuthStorageUtil.setTokens({ accessToken, refreshToken: newRefreshToken });
+        
+        processQueue(null, accessToken);
+        
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return axiosClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
 
-          // Xóa dữ liệu local trước khi logout để tránh vòng lặp
-          LocalStorageUtil.clearAllData();
-          
-          // Thử logout nhưng không cần đợi kết quả
-          try {
-            await authService.logout();
-          } catch (logoutError) {
-            console.log('Logout failed, but continuing with redirect:', logoutError);
-          }
-          
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
-        } finally {
-          isRefreshing = false;
-        }
-      } else {
         // Xóa dữ liệu local trước khi logout để tránh vòng lặp
-        LocalStorageUtil.clearAllData();
+        AuthStorageUtil.clearAll();
         
         // Thử logout nhưng không cần đợi kết quả
         try {
@@ -117,11 +97,13 @@ axiosClient.interceptors.response.use(
         }
         
         window.location.href = '/login';
-        return Promise.reject(error);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     } else if (error.response?.status === 401) {
       // Xóa dữ liệu local trước khi logout để tránh vòng lặp
-      LocalStorageUtil.clearAllData();
+      AuthStorageUtil.clearAll();
       
       // Thử logout nhưng không cần đợi kết quả
       try {

@@ -6,6 +6,9 @@ public class Endpoints {
             "/api/v1/auth/logout",
             "/api/v1/carts(?:/.*)?",
             "/api/v1/vouchers(?:/.*)?",
-
+            "/api/v1/articles(?:/.*)?",
+            "/api/v1/product-questions(?:/.*)?",
+            "/api/v1/orders(?:/.*)?",
     };
 }
+

@@ -70,18 +70,19 @@ export default function PromotionFilter({ onSearch }: PromotionFilterProps) {
             <div className="space-y-2">
               <Label htmlFor="type">Loại khuyến mãi</Label>
               <Select
-                value={filters.type || ""}
-                onValueChange={(value) => handleFilterChange("type", value)}
+                value={filters.promotionType || ""}
+                onValueChange={(value) => handleFilterChange("promotionType", value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Tất cả</SelectItem>
-                  <SelectItem value="ORDER">Đơn hàng</SelectItem>
+                  <SelectItem value="ALL">Tất cả sản phẩm</SelectItem>
                   <SelectItem value="PRODUCT">Sản phẩm</SelectItem>
                   <SelectItem value="PRODUCT_VARIANT">Biến thể sản phẩm</SelectItem>
                   <SelectItem value="CATEGORY">Danh mục</SelectItem>
+                  <SelectItem value="BRAND">Thương hiệu</SelectItem>
                 </SelectContent>
               </Select>
             </div>

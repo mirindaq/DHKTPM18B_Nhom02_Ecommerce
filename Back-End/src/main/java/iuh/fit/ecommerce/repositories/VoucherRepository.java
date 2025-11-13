@@ -1,9 +1,7 @@
 package iuh.fit.ecommerce.repositories;
 
-import iuh.fit.ecommerce.entities.Feedback;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.enums.VoucherType;
-import org.hibernate.sql.results.graph.FetchList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

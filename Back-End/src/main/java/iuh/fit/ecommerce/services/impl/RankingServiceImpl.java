@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.dtos.response.rank.RankResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.RankVoucherResponse;
 import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
@@ -26,10 +27,10 @@ public class RankingServiceImpl implements RankingService {
     }
 
     @Override
-    public List<RankVoucherResponse> getAllRankings() {
+    public List<RankResponse> getAllRankings() {
         return rankingRepository.findAll()
                 .stream()
-                .map(rankingMapper::toRankVoucherResponse)
+                .map(rankingMapper::toRankResponse)
                 .toList();
     }
 

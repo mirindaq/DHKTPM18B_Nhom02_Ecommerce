@@ -8,7 +8,7 @@ export default function CartItemSkeleton() {
         <div className="w-4 h-4 bg-gray-200 rounded"></div>
 
         {/* Product Image skeleton */}
-        <div className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0"></div>
+        <div className="w-20 h-20 bg-gray-200 rounded-lg shrink-0"></div>
 
         {/* Product Info skeleton */}
         <div className="flex-1 min-w-0">

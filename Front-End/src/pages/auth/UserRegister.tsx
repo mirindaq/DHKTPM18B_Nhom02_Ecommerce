@@ -13,7 +13,7 @@ import { authService } from '@/services/auth.service'
 import { AUTH_PATH, PUBLIC_PATH } from '@/constants/path'
 import { FcGoogle } from "react-icons/fc"
 import { useUser } from '@/context/UserContext'
-import LocalStorageUtil from '@/utils/localStorage.util'
+import AuthStorageUtil from '@/utils/authStorage.util'
 import type { RegisterRequest, AuthResponse, UserProfile } from '@/types/auth.type'
 
 // Schema validation cho form đăng ký
@@ -58,7 +58,7 @@ export default function UserRegister() {
           }
 
           // Lưu token và data cùng lúc
-          LocalStorageUtil.setTokensAndData({ accessToken, refreshToken }, userProfile)
+          AuthStorageUtil.setTokensAndData({ accessToken, refreshToken }, userProfile)
 
           // Sử dụng UserContext để login
           login(userProfile)
@@ -335,7 +335,7 @@ export default function UserRegister() {
                     </button>
                   </div>
                   <div className="flex items-start space-x-2 text-sm text-gray-500">
-                    <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                    <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center mt-0.5 shrink-0">
                       <span className="text-xs">i</span>
                     </div>
                     <span>Mật khẩu tối thiểu 6 ký tự</span>

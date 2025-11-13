@@ -1,7 +1,6 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.authentication.LoginRequest;
-import iuh.fit.ecommerce.dtos.request.authentication.RefreshTokenRequest;
 import iuh.fit.ecommerce.dtos.request.authentication.RegisterRequest;
 import iuh.fit.ecommerce.dtos.response.authentication.LoginResponse;
 import iuh.fit.ecommerce.dtos.response.authentication.RefreshTokenResponse;
@@ -53,11 +52,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<ResponseSuccess<RefreshTokenResponse>> refresh(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<ResponseSuccess<RefreshTokenResponse>> refresh(HttpServletRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 HttpStatus.OK,
                 "Login Success",
-                authenticationService.refreshToken(refreshTokenRequest)
+                authenticationService.refreshToken(request)
         ));
     }
 

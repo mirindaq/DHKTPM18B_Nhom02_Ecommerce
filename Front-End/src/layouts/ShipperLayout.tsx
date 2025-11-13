@@ -43,7 +43,7 @@ const ShipperLayout: React.FC = () => {
         {/* User info */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
                   {user?.name?.charAt(0).toUpperCase()}
