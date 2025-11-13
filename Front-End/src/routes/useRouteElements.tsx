@@ -55,6 +55,7 @@ import EditPromotion from "@/pages/admin/EditPromotion";
 import Vouchers from "@/pages/admin/Vouchers";
 import VoucherForm from "@/pages/admin/VoucherForm";
 import UserRegister from "@/pages/auth/UserRegister";
+import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -171,6 +172,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.ARTICLE_ADD, element: <AddArticle /> },
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
+        { path: "category-brand-assignment", element: <CategoryBrandAssignmentPage />},
       ],
     },
 
