@@ -23,6 +23,8 @@ import Checkout from "@/pages/user/Checkout";
 import Profile from "@/pages/user/Profile";
 import Membership from "@/pages/user/Membership";
 import PaymentStatus from "@/pages/user/PaymentStatus";
+import AddressPage from "@/pages/user/Address";
+
 import AdminLayout from "@/layouts/AdminLayout";
 import UserLayout from "@/layouts/UserLayout";
 import StaffLayout from "@/layouts/StaffLayout";
@@ -30,6 +32,7 @@ import ShipperLayout from "@/layouts/ShipperLayout";
 import StaffDashboard from "@/pages/staff/StaffDashboard";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
 import ShipperOrders from "@/pages/shipper/ShipperOrders";
+
 import {
   ADMIN_PATH,
   AUTH_PATH,
@@ -104,6 +107,7 @@ const useRouteElements = () => {
               path: "membership",
               element: <Membership />,
             },
+            { path: "addresses", element: <AddressPage /> },
           ],
         },
       ],

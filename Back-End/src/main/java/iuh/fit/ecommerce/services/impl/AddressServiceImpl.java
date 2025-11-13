@@ -7,7 +7,6 @@ import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Ward;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.AddressMapper;
-import iuh.fit.ecommerce.mappers.CustomerMapper;
 import iuh.fit.ecommerce.repositories.AddressRepository;
 import iuh.fit.ecommerce.repositories.CustomerRepository;
 import iuh.fit.ecommerce.repositories.WardRepository;
@@ -33,79 +32,181 @@ public class AddressServiceImpl implements AddressService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
+        // Validate và lấy Ward
         Ward ward = null;
-        if (request.getWardCode() != null) {
+        if (request.getWardCode() != null && !request.getWardCode().isEmpty()) {
             ward = wardRepository.findById(request.getWardCode())
-                    .orElseThrow(() -> new ResourceNotFoundException("Ward not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Ward not found with code: " + request.getWardCode()));
         }
 
+        // Kiểm tra null-safe cho addresses collection
+        List<Address> existingAddresses = customer.getAddresses();
+        boolean isFirstAddress = existingAddresses == null || existingAddresses.isEmpty();
+        boolean shouldBeDefault = isFirstAddress || Boolean.TRUE.equals(request.getIsDefault());
+
+        // Tạo address với isDefault = false trước
         Address address = Address.builder()
                 .customer(customer)
-                .fullName(request.getFullName())
-                .phone(customer.getPhone())
+                .fullName(request.getFullName() != null && !request.getFullName().isBlank()
+                        ? request.getFullName()
+                        : customer.getFullName())
+                .phone(request.getPhone() != null && !request.getPhone().isBlank()
+                        ? request.getPhone()
+                        : customer.getPhone())
                 .subAddress(request.getSubAddress())
-                .isDefault(Boolean.TRUE.equals(request.getIsDefault()))
+                .isDefault(false) // Set false trước để tránh race condition
                 .ward(ward)
                 .build();
 
-        if (Boolean.TRUE.equals(address.getIsDefault())) {
-            addressRepository.clearDefaultAddress(customerId);
-        }
-
+        // Save với isDefault = false
         Address saved = addressRepository.save(address);
-        return addressMapper.toResponse(saved);
-    }
 
-
-    @Override
-    @Transactional
-    public void deleteAddress(Long customerId, Long addressId) {
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
-        if (!address.getCustomer().getId().equals(customerId)) {
-            throw new ResourceNotFoundException("Address does not belong to this customer");
+        // Nếu cần set làm default, xóa default của các địa chỉ khác và update
+        if (shouldBeDefault) {
+            addressRepository.clearDefaultAddress(customerId);
+            saved.setIsDefault(true);
+            saved = addressRepository.save(saved);
         }
-        addressRepository.delete(address);
+
+        return addressMapper.toResponse(saved);
     }
 
     @Override
     @Transactional
     public AddressResponse updateAddress(Long customerId, Long addressId, AddressRequest request) {
         Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        // Kiểm tra ownership
         if (!address.getCustomer().getId().equals(customerId)) {
             throw new ResourceNotFoundException("Address does not belong to this customer");
         }
 
+        // Validate và update Ward
         Ward ward = null;
-        if (request.getWardCode() != null) {
+        if (request.getWardCode() != null && !request.getWardCode().isEmpty()) {
             ward = wardRepository.findById(request.getWardCode())
-                    .orElseThrow(() -> new ResourceNotFoundException("Ward not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Ward not found with code: " + request.getWardCode()));
         }
+
+        // Update thông tin cơ bản
         address.setFullName(request.getFullName());
         address.setPhone(request.getPhone());
-
         address.setSubAddress(request.getSubAddress());
         address.setWard(ward);
 
+        // Xử lý logic isDefault
         if (Boolean.TRUE.equals(request.getIsDefault())) {
-            addressRepository.clearDefaultAddress(customerId);
-            address.setIsDefault(true);
-        } else {
-            address.setIsDefault(false);
+            // User muốn set làm default
+            if (!Boolean.TRUE.equals(address.getIsDefault())) {
+                addressRepository.clearDefaultAddress(customerId);
+                address.setIsDefault(true);
+            }
+        } else if (Boolean.FALSE.equals(request.getIsDefault())) {
+            // User muốn bỏ default
+            if (Boolean.TRUE.equals(address.getIsDefault())) {
+                // Kiểm tra có địa chỉ khác không
+                long totalAddresses = addressRepository.countByCustomerId(customerId);
+                if (totalAddresses <= 1) {
+                    throw new IllegalStateException("Cannot remove default status from the only address");
+                }
+                address.setIsDefault(false);
+
+                // Tự động set địa chỉ khác làm default
+                List<Address> otherAddresses = addressRepository.findByCustomerId(customerId)
+                        .stream()
+                        .filter(a -> !a.getId().equals(addressId))
+                        .toList();
+                if (!otherAddresses.isEmpty()) {
+                    Address newDefault = otherAddresses.get(0);
+                    newDefault.setIsDefault(true);
+                    addressRepository.save(newDefault);
+                }
+            }
         }
+        // Nếu request.isDefault == null, giữ nguyên giá trị cũ
 
         Address updated = addressRepository.save(address);
         return addressMapper.toResponse(updated);
     }
 
     @Override
+    @Transactional
+    public void deleteAddress(Long customerId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        // Kiểm tra ownership
+        if (!address.getCustomer().getId().equals(customerId)) {
+            throw new ResourceNotFoundException("Address does not belong to this customer");
+        }
+
+        boolean wasDefault = Boolean.TRUE.equals(address.getIsDefault());
+
+        // Xóa address
+        addressRepository.delete(address);
+
+        // Nếu xóa địa chỉ mặc định, tự động set địa chỉ đầu tiên còn lại làm mặc định
+        if (wasDefault) {
+            List<Address> remainingAddresses = addressRepository.findByCustomerId(customerId);
+            if (!remainingAddresses.isEmpty()) {
+                Address firstAddress = remainingAddresses.get(0);
+                firstAddress.setIsDefault(true);
+                addressRepository.save(firstAddress);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public AddressResponse setDefaultAddress(Long customerId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        // Kiểm tra ownership
+        if (!address.getCustomer().getId().equals(customerId)) {
+            throw new ResourceNotFoundException("Address does not belong to this customer");
+        }
+
+        // Nếu đã là default rồi thì không cần làm gì
+        if (Boolean.TRUE.equals(address.getIsDefault())) {
+            return addressMapper.toResponse(address);
+        }
+
+        // Clear tất cả default và set address này làm default
+        addressRepository.clearDefaultAddress(customerId);
+        address.setIsDefault(true);
+        Address updated = addressRepository.save(address);
+
+        return addressMapper.toResponse(updated);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<AddressResponse> getAddressesByCustomer(Long customerId) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-        return customer.getAddresses().stream()
+        // Kiểm tra customer tồn tại
+        if (!customerRepository.existsById(customerId)) {
+            throw new ResourceNotFoundException("Customer not found with id: " + customerId);
+        }
+
+        // Sử dụng query đã tối ưu sẵn trong repository
+        return addressRepository.findByCustomerIdOrderByDefault(customerId)
+                .stream()
                 .map(addressMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public AddressResponse getAddressById(Long customerId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        // Kiểm tra ownership
+        if (!address.getCustomer().getId().equals(customerId)) {
+            throw new ResourceNotFoundException("Address does not belong to this customer");
+        }
+
+        return addressMapper.toResponse(address);
+    }
 }

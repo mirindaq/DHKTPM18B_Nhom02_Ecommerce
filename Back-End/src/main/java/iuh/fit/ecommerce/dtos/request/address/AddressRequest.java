@@ -14,10 +14,12 @@ public class AddressRequest {
     private String subAddress;
 
     private String wardCode;
-    private String provinceCode;
-    private String fullName;
-    private String phone;
-    private Boolean isDefault;
-    private String addressName;
-}
 
+    private String fullName;
+
+    @Pattern(regexp = "^(0|\\+84)(\\d{9,10})$",
+            message = "Phone number must be valid Vietnamese format")
+    private String phone;
+
+    private Boolean isDefault;
+}

@@ -12,9 +12,21 @@ public class AddressResponse {
     private String fullName;
     private String phone;
     private String subAddress;
-    private Boolean isDefault;
 
+
+    @Builder.Default
+    private Boolean isDefault = false;
+
+    private String wardCode;
     private String wardName;
+
+
+
+    // Province information
+    private String provinceCode;
     private String provinceName;
+
+    // Full formatted address
+    // Example: "123 Nguyễn Văn Linh, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh"
     private String fullAddress;
 }
