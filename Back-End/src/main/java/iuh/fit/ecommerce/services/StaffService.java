@@ -4,6 +4,7 @@ import iuh.fit.ecommerce.dtos.request.staff.StaffAddRequest;
 import iuh.fit.ecommerce.dtos.request.staff.StaffUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.staff.StaffResponse;
+import iuh.fit.ecommerce.entities.Staff;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +24,8 @@ public interface StaffService {
     );
 
     StaffResponse getStaffById(Long id);
+
+    Staff getStaffEntityById(Long id);
 
     StaffResponse updateStaff(StaffUpdateRequest staffUpdateRequest, Long id);
 

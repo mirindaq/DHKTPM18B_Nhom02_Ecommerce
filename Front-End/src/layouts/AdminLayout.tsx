@@ -94,6 +94,11 @@ const navigation = [
         href: "/admin/vouchers",
         icon: ShoppingCart,
       },
+      {
+        title: "Banner",
+        href: "/admin/banners",
+        icon: Award,
+      },
     ]
   },
   {

@@ -34,6 +34,18 @@ public class BrandController {
                 brandService.getBrands(page, size,brandName )
         ));
     }
+//
+//    @GetMapping("/category/{id}")
+//    public ResponseEntity<ResponseSuccess<List<BrandResponse>>> getBrandByCategory(
+//            @PathVariable("id") Long id
+//    ) {
+//        return ResponseEntity.ok(new ResponseSuccess<>(
+//                OK,
+//                "Get brands success",
+//                brandService.getBrandsByCategoryId(id )
+//        ));
+//    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseSuccess<BrandResponse>> getBrandById(@PathVariable Long id) {

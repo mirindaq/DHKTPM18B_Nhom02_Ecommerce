@@ -16,6 +16,7 @@ import Analytics from "@/pages/admin/Analytics";
 import Brands from "@/pages/admin/Brands";
 import Variants from "@/pages/admin/Variants";
 import Staffs from "@/pages/admin/Staff";
+import Banners from "@/pages/admin/Banner";
 import Home from "@/pages/user/Home";
 import ProductDetail from "@/pages/user/ProductDetail";
 import Cart from "@/pages/user/Cart";
@@ -155,6 +156,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.VARIANTS, element: <Variants /> },
         { path: ADMIN_PATH.CATEGORIES, element: <Categories /> },
         { path: ADMIN_PATH.BRANDS, element: <Brands /> },
+        { path: ADMIN_PATH.BANNERS, element: <Banners /> },
         { path: ADMIN_PATH.CUSTOMERS, element: <Customers /> },
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },

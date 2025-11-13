@@ -109,7 +109,7 @@ public class UploadServiceImpl implements UploadService {
             throw new IllegalArgumentException("Danh sách file không được null hoặc rỗng");
         }
 
-        List<String> allowedExtensions = Arrays.asList(".png", ".jpg", ".jpeg", ".gif");
+        List<String> allowedExtensions = Arrays.asList(".png", ".jpg", ".jpeg", ".gif", ".webp");
 
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) {
@@ -127,7 +127,7 @@ public class UploadServiceImpl implements UploadService {
 
             if (!hasValidExtension) {
                 throw new IllegalArgumentException(
-                        "File phải có định dạng PNG, JPG, JPEG hoặc GIF. File vi phạm: " + fileName
+                        "File phải có định dạng PNG, JPG, JPEG, WEBP hoặc GIF. File vi phạm: " + fileName
                 );
             }
         }
