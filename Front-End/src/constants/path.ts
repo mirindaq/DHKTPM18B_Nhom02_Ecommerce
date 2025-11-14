@@ -28,6 +28,7 @@ export const ADMIN_PATH = {
   ARTICLES: "/admin/articles",
   ARTICLE_ADD: "/admin/articles/add",
   ARTICLE_CATEGORIES: "/admin/article-categories",
+  CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
 };
 
 // Staff paths

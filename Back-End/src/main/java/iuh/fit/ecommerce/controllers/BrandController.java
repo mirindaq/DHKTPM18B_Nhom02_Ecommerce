@@ -35,6 +35,15 @@ public class BrandController {
         ));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<BrandResponse>>>> getAllBrands() {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all brands success",
+                brandService.getBrands(1, 1000, "")
+        ));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResponseSuccess<BrandResponse>> getBrandById(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
