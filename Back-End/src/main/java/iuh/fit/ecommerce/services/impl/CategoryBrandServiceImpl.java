@@ -1,7 +1,5 @@
 package iuh.fit.ecommerce.services.impl;
 
-// --- SỬA IMPORT ---
-// import iuh.fit.ecommerce.dtos.request.categoryBrand.CategoryBrandRequest; // <-- XÓA
 import iuh.fit.ecommerce.dtos.request.categoryBrand.SetBrandsForCategoryRequest; // <-- THÊM
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
@@ -19,6 +17,7 @@ import iuh.fit.ecommerce.repositories.BrandRepository;
 import iuh.fit.ecommerce.repositories.CategoryBrandRepository;
 import iuh.fit.ecommerce.repositories.CategoryRepository;
 import iuh.fit.ecommerce.services.CategoryBrandService;
+import iuh.fit.ecommerce.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,44 +32,18 @@ import java.util.stream.Collectors; // <-- THÊM
 @RequiredArgsConstructor
 public class CategoryBrandServiceImpl implements CategoryBrandService {
 
-    // Repositories
     private final CategoryBrandRepository categoryBrandRepository;
     private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     private final BrandRepository brandRepository;
-
-    // Mappers
-    // private final CategoryBrandMapper categoryBrandMapper; // <-- XÓA
     private final BrandMapper brandMapper;
-    private final CategoryMapper categoryMapper; // Giả định bạn có CategoryMapper
+    private final CategoryMapper categoryMapper;
 
-
-    // --- XÓA HÀM CŨ ---
-    /*
-    @Override
-    @Transactional
-    public CategoryBrandResponse assignBrandToCategory(CategoryBrandRequest request) {
-        ...
-    }
-    */
-
-    // --- XÓA HÀM CŨ ---
-    /*
-    @Override
-    @Transactional
-    public void unassignBrandFromCategory(CategoryBrandRequest request) {
-        ...
-    }
-    */
-
-    // --- THÊM HÀM MỚI ---
     @Override
     @Transactional
     public void setBrandsForCategory(SetBrandsForCategoryRequest request) {
-        // 1. Lấy category (hoặc ném 404 nếu không tìm thấy)
-        Category category = getCategoryEntityById(request.getCategoryId());
+        Category category = categoryService.getCategoryEntityById(request.getCategoryId());
 
-        // 2. Xóa tất cả liên kết cũ của category này
-        // (YÊU CẦU: bạn cần thêm hàm này vào CategoryBrandRepository, xem bước 3)
         categoryBrandRepository.deleteAllByCategoryId(request.getCategoryId());
 
         // 3. Nếu danh sách ID mới rỗng hoặc null, thì dừng lại (chỉ xóa)
@@ -93,85 +66,36 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
         // 6. Lưu tất cả liên kết mới vào DB
         categoryBrandRepository.saveAll(newAssignments);
     }
-    // --- HẾT HÀM MỚI ---
 
 
     @Override
-    public ResponseWithPagination<List<BrandResponse>> getBrandsByCategoryId(
-            Long categoryId, String brandName, int page, int size
+    public List<BrandResponse> getBrandsByCategoryId(
+            Long categoryId, String brandName
     ) {
-// ... (Giữ nguyên logic hàm này)
-        // 1. Kiểm tra Category có tồn tại không
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found with id: " + categoryId);
         }
 
-        // 2. Chuẩn bị phân trang (giống getBrands)
-        page = Math.max(0, page - 1);
-        Pageable pageable = PageRequest.of(page, size);
 
-        // 3. Lấy dữ liệu từ Repo
-        // (Sử dụng hàm query đã viết ở bước trước, hàm này đã xử lý brandName == null)
-        Page<Brand> brandPage = categoryBrandRepository.findBrandsByCategoryIdAndName(
-                categoryId, brandName, pageable
+        List<Brand> brands = categoryBrandRepository.findBrandsByCategoryIdAndName(
+                categoryId, brandName
         );
 
-        // 4. Đóng gói response (giống getBrands)
-        return ResponseWithPagination.fromPage(brandPage, brandMapper::toResponse);
+        return brands.stream().map(brandMapper::toResponse).collect(Collectors.toList());
     }
 
     @Override
-    public ResponseWithPagination<List<CategoryResponse>> getCategoriesByBrandId(
-            Long brandId, String categoryName, int page, int size
+    public List<CategoryResponse> getCategoriesByBrandId(
+            Long brandId, String categoryName
     ) {
-// ... (Giữ nguyên logic hàm này)
-        // 1. Kiểm tra Brand có tồn tại không
         if (!brandRepository.existsById(brandId)) {
             throw new ResourceNotFoundException("Brand not found with id: " + brandId);
         }
 
-        // 2. Chuẩn bị phân trang
-        page = Math.max(0, page - 1);
-        Pageable pageable = PageRequest.of(page, size);
-
-        // 3. Lấy dữ liệu từ Repo
-        Page<Category> categoryPage = categoryBrandRepository.findCategoriesByBrandIdAndName(
-                brandId, categoryName, pageable
+        List<Category> categories = categoryBrandRepository.findCategoriesByBrandIdAndName(
+                brandId, categoryName
         );
 
-        // 4. Đóng gói response
-        return ResponseWithPagination.fromPage(categoryPage, categoryMapper::toResponse);
+        return categories.stream().map(categoryMapper::toResponse).collect(Collectors.toList());
     }
-
-    // --- PRIVATE HELPERS ---
-
-    /**
-     * Lấy entity Category hoặc ném 404
-     */
-    private Category getCategoryEntityById(Long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
-    }
-
-    /**
-     * Lấy entity Brand hoặc ném 404 (giống trong BrandServiceImpl)
-     */
-    private Brand getBrandEntityById(Long id) {
-        return brandRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + id));
-    }
-
-    // --- XÓA HELPER CŨ ---
-    /*
-    private CategoryBrand getCategoryBrandEntity(Long categoryId, Long brandId) {
-        ...
-    }
-    */
-
-    // --- XÓA HELPER CŨ ---
-    /*
-    private void validateAssignment(Long categoryId, Long brandId) {
-        ...
-    }
-    */
 }

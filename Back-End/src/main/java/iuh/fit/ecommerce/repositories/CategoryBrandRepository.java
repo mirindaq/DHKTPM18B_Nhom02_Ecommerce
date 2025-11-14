@@ -10,53 +10,27 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface CategoryBrandRepository extends JpaRepository<CategoryBrand, Long> {
 
-    // --- Các hàm bạn đã có ---
+    void deleteAllByCategoryId(Long categoryId);
 
-    boolean existsByCategoryIdAndBrandId(Long categoryId, Long brandId);
-
-    Optional<CategoryBrand> findByCategoryIdAndBrandId(Long categoryId, Long brandId);
-
-    Optional<CategoryBrand> findByCategoryAndBrand(Category category, Brand brand);
-
-    // --- Cần Cập Nhật/Thêm 2 hàm sau ---
-
-    /**
-     * [ĐÃ CẬP NHẬT] Lấy danh sách các Brands thuộc về một Category,
-     * có lọc theo tên Brand (nếu brandName được cung cấp).
-     */
     @Query("SELECT cb.brand FROM CategoryBrand cb " +
             "WHERE cb.category.id = :categoryId " +
             "AND (:brandName IS NULL OR cb.brand.name LIKE %:brandName%)")
-    Page<Brand> findBrandsByCategoryIdAndName(
+    List<Brand> findBrandsByCategoryIdAndName(
             @Param("categoryId") Long categoryId,
-            @Param("brandName") String brandName,
-            Pageable pageable
+            @Param("brandName") String brandName
     );
 
-    /**
-     * [HÀM MỚI] Lấy danh sách các Categories chứa một Brand,
-     * có lọc theo tên Category (nếu categoryName được cung cấp).
-     */
     @Query("SELECT cb.category FROM CategoryBrand cb " +
             "WHERE cb.brand.id = :brandId " +
             "AND (:categoryName IS NULL OR cb.category.name LIKE %:categoryName%)")
-    Page<Category> findCategoriesByBrandIdAndName(
+    List<Category> findCategoriesByBrandIdAndName(
             @Param("brandId") Long brandId,
-            @Param("categoryName") String categoryName,
-            Pageable pageable
+            @Param("categoryName") String categoryName
     );
-
-    // --- ⬇️ THÊM HÀM MỚI NÀY VÀO ⬇️ ---
-    /**
-     * [HÀM MỚI] Xóa tất cả các liên kết CategoryBrand dựa trên categoryId.
-     * Hàm này sẽ được gọi bên trong một @Transactional ở Service.
-     * Spring Data JPA sẽ tự động hiểu tên hàm này.
-     */
-    void deleteAllByCategoryId(Long categoryId);
-    // --- ⬆️ HẾT HÀM MỚI ⬆️ ---
 }

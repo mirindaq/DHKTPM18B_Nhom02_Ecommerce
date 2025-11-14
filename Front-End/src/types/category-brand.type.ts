@@ -1,51 +1,23 @@
 import type { Brand } from "./brand.type"
 import type { Category } from "./category.type"
-import type {
-  ResponseApi,
-  ResponseApiWithPagination,
-} from "./responseApi.type"
+import type { ResponseApi } from "./responseApi.type"
 
 /**
- * Kiểu dữ liệu cho một liên kết Category-Brand
- * (Khớp với CategoryBrandResponse DTO)
+ * Request để set brands cho category
  */
-export type CategoryBrand = {
-  id: number // ID của chính liên kết
+export type SetBrandsForCategoryRequest = {
   categoryId: number
-  categoryName: string
-  brandId: number
-  brandName: string
+  brandIds: number[]
 }
-
-/**
- * Kiểu dữ liệu để Gán/Hủy gán
- * (Khớp với BrandCategoryRequest DTO)
- */
-export type BrandCategoryRequest = {
-  categoryId: number
-  brandId: number
-}
-
-// ===============================================
-// === CÁC WRAPPER RESPONSE CHO SERVICE ===
-// ===============================================
-
-/**
- * Response cho API gán/tạo mới một liên kết
- * @POST /api/v1/category-brands/assign
- */
-export type CategoryBrandResponseApi = ResponseApi<CategoryBrand>
 
 /**
  * Response cho API lấy danh sách Brand theo Category
- * @GET /api/v1/category-brands/categories/{id}/brands
+ * @GET /category-brands/categories/{categoryId}/brands
  */
-export type BrandListByCategoryResponseApi = ResponseApiWithPagination<Brand[]>
+export type BrandListByCategoryResponse = ResponseApi<Brand[]>
 
 /**
  * Response cho API lấy danh sách Category theo Brand
- * @GET /api/v1/category-brands/brands/{id}/categories
+ * @GET /category-brands/brands/{brandId}/categories
  */
-export type CategoryListByBrandResponseApi = ResponseApiWithPagination<
-  Category[]
->
+export type CategoryListByBrandResponse = ResponseApi<Category[]>
