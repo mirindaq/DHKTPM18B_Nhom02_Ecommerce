@@ -10,10 +10,12 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddressRequest {
+
     @NotBlank(message = "Sub address is required")
     private String subAddress;
 
-    private String wardCode;
+
+    private Integer wardId;
 
     private String fullName;
 
@@ -23,3 +25,4 @@ public class AddressRequest {
 
     private Boolean isDefault;
 }
+

@@ -30,7 +30,7 @@ public class Address {
     private Boolean isDefault = false;
 
     @ManyToOne
-    @JoinColumn(name = "ward_code")
+    @JoinColumn(name = "ward_id")
     private Ward ward;
 
     @ManyToOne

@@ -14,53 +14,50 @@ import java.util.stream.Stream;
 @Mapper(componentModel = "spring")
 public interface AddressMapper {
 
-    /**
-     * Map Address entity to AddressResponse DTO
-     * Includes full geographical information (ward, district, province)
-     */
-    @Mapping(target = "wardCode", source = "ward.code")
+    // ========== ENTITY -> RESPONSE ==========
+    @Mapping(target = "wardId", source = "ward.id")
     @Mapping(target = "wardName", source = "ward.name")
 
-
-    @Mapping(target = "provinceCode", source = "ward.province.code")
+    @Mapping(target = "provinceId", source = "ward.province.id")
     @Mapping(target = "provinceName", source = "ward.province.name")
+
     @Mapping(target = "fullAddress", source = ".", qualifiedByName = "buildFullAddress")
     AddressResponse toResponse(Address address);
 
-    /**
-     * Map AddressRequest to Address entity
-     * Note: ward and customer must be set separately in service layer
-     */
+
+    // ========== REQUEST -> ENTITY ==========
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "ward", ignore = true)
+    @Mapping(target = "ward", ignore = true)        // set ở service
     @Mapping(target = "customer", ignore = true)
     @Mapping(target = "isDefault", ignore = true)
     Address toEntity(AddressRequest request);
 
-    /**
-     * Build full address string in Vietnamese format
-     * Format: [Số nhà, đường], [Phường/Xã], [Quận/Huyện], [Tỉnh/TP]
-     *
-     * Example: "123 Nguyễn Văn Linh, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh"
-     */
+
+    // ========== BUILD FULL ADDRESS ==========
     @Named("buildFullAddress")
     default String buildFullAddress(Address address) {
         if (address == null || address.getSubAddress() == null || address.getSubAddress().trim().isEmpty()) {
             return "";
         }
 
-        String wardPart = address.getWard() != null ? address.getWard().getName() : null;
-        String provincePart = address.getWard() != null && address.getWard().getProvince() != null
-                ? address.getWard().getProvince().getName()
-                : null;
+        String wardNameWithType = null;
+        String provinceName = null;
+
+        if (address.getWard() != null) {
+            wardNameWithType = address.getWard().getNameWithType();
+            if (address.getWard().getProvince() != null) {
+                provinceName = address.getWard().getProvince().getName();
+            }
+        }
 
         return Stream.of(
                         address.getSubAddress(),
-                        wardPart != null ? "Phường " + wardPart : null,
-                        provincePart
+                        wardNameWithType,
+                        provinceName
                 )
                 .filter(Objects::nonNull)
                 .filter(s -> !s.trim().isEmpty())
                 .collect(Collectors.joining(", "));
     }
 }
+

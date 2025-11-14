@@ -11,16 +11,25 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
+
     @Modifying
     @Query("UPDATE Address a SET a.isDefault = false WHERE a.customer.id = :customerId")
     void clearDefaultAddress(@Param("customerId") Long customerId);
+
+    // Tránh N+1: load luôn ward + province
+    @Query("""
+            SELECT a FROM Address a
+            JOIN FETCH a.ward w
+            JOIN FETCH w.province
+            WHERE a.customer.id = :customerId
+            ORDER BY a.isDefault DESC, a.id DESC
+            """)
+    List<Address> findByCustomerIdOrderByDefaultWithDetails(@Param("customerId") Long customerId);
 
     List<Address> findByCustomerId(Long customerId);
 
     Optional<Address> findByCustomerIdAndIsDefault(Long customerId, Boolean isDefault);
 
-    @Query("SELECT a FROM Address a WHERE a.customer.id = :customerId ORDER BY a.isDefault DESC, a.id DESC")
-    List<Address> findByCustomerIdOrderByDefault(@Param("customerId") Long customerId);
-
     long countByCustomerId(Long customerId);
 }
+

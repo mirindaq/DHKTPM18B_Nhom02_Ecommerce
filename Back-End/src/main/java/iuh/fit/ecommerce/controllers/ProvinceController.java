@@ -28,16 +28,18 @@ public class ProvinceController {
         ));
     }
 
-    @GetMapping("/{provinceCode}/wards")
+    // CHANGED: use Integer provinceId to match service signature
+    @GetMapping("/{provinceId}/wards")
     public ResponseEntity<ResponseSuccess<List<WardResponse>>> getWardsByProvince(
-            @PathVariable String provinceCode
+            @PathVariable Integer provinceId
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get wards by province success",
-                provinceService.getWardsByProvince(provinceCode)
+                provinceService.getWardsByProvince(provinceId)
         ));
     }
+
     @GetMapping("/wards")
     public ResponseEntity<ResponseSuccess<List<WardResponse>>> getAllWards() {
         return ResponseEntity.ok(new ResponseSuccess<>(

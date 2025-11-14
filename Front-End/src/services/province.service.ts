@@ -1,15 +1,15 @@
 // src/services/province.service.ts
-import axiosClient from '@/configurations/axios.config';// nếu bạn không có "@/utils/api" thì thay bằng import axios from "axios";
+import axiosClient from '@/configurations/axios.config';
 
 export const provinceService = {
   getAllProvinces: async () => {
     const res = await axiosClient.get("/provinces");
-    return res.data.data;
+    return res.data.data; // ← ResponseSuccess.data
   },
 
-  getWardsByProvince: async (provinceCode: string) => {
-    const res = await axiosClient.get(`/provinces/${provinceCode}/wards`);
-    return res.data.data;
+  getWardsByProvince: async (provinceId: number) => {
+    const res = await axiosClient.get(`/provinces/${provinceId}/wards`);
+    return res.data.data; // ← ResponseSuccess.data
   },
 
   getAllWards: async () => {

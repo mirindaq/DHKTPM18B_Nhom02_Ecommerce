@@ -5,132 +5,179 @@ import { provinceService } from "@/services/province.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useQuery } from "@/hooks/useQuery";
+import { useMutation } from "@/hooks/useMutation";
 import type { Address, CreateAddressRequest } from "@/types/address.type";
 import type { Province } from "@/types/province.type";
 import type { Ward } from "@/types/ward.type";
 
 const Address: React.FC = () => {
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState<CreateAddressRequest>({
     fullName: "",
     phone: "",
     subAddress: "",
+    wardId: 0,
     isDefault: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState<string>("");
-  const [selectedWard, setSelectedWard] = useState<string>("");
+  const [selectedProvince, setSelectedProvince] = useState<number | "">("");
+  const [selectedWard, setSelectedWard] = useState<number | "">("");
 
-  // Lấy danh sách địa chỉ
-  const fetchAddresses = async () => {
-    try {
-      setLoading(true);
-      const res = await addressService.getAddresses();
-      setAddresses(res || []);
-      setErrorMessage("");
-    } catch (error: any) {
-      console.error("Lỗi khi tải địa chỉ:", error);
+  // ✅ useQuery cho fetch addresses
+  const {
+    data: addresses = [],
+    isLoading: loading,
+    refetch: refetchAddresses,
+    error: addressesError,
+  } = useQuery<Address[]>(() => addressService.getAddresses(), {
+    queryKey: ["addresses"],
+  });
+
+  // ✅ useQuery cho fetch provinces
+  const { data: provinces = [], isLoading: provincesLoading } = useQuery<
+    Province[]
+  >(() => provinceService.getAllProvinces(), {
+    queryKey: ["provinces"],
+  });
+
+  // ✅ useQuery cho fetch wards (enabled khi có selectedProvince)
+  const { data: wards = [], isLoading: wardsLoading } = useQuery<Ward[]>(
+    () => provinceService.getWardsByProvince(selectedProvince as number),
+    {
+      queryKey: ["wards", String(selectedProvince)],
+      enabled: !!selectedProvince && typeof selectedProvince === "number",
+    }
+  );
+
+  // Xử lý error từ addresses query
+  useEffect(() => {
+    if (addressesError) {
+      console.error("Lỗi khi tải địa chỉ:", addressesError);
+      const error = addressesError as any;
       const errorMsg =
         error.response?.data?.message || "Không thể tải danh sách địa chỉ!";
       setErrorMessage(errorMsg);
-    } finally {
-      setLoading(false);
+    } else if (addresses) {
+      setErrorMessage("");
     }
-  };
+  }, [addressesError, addresses]);
 
-  const fetchProvinces = async () => {
-    try {
-      const data = await provinceService.getAllProvinces();
-      setProvinces(data || []);
-    } catch (error) {
-      console.error("Lỗi khi tải tỉnh/thành phố:", error);
+  // ✅ Mutation cho thêm địa chỉ
+  const addAddressMutation = useMutation(
+    (payload: CreateAddressRequest) => addressService.addAddress(payload),
+    {
+      onSuccess: () => {
+        setSuccessMessage("Thêm địa chỉ thành công!");
+        setTimeout(() => {
+          setShowModal(false);
+          setEditingAddress(null);
+          refetchAddresses();
+        }, 1000);
+      },
+      onError: (error: any) => {
+        handleSaveError(error);
+      },
     }
-  };
+  );
 
-  const fetchWardsByProvince = async (provinceCode: string) => {
-    if (!provinceCode) {
-      setWards([]);
-      return;
+  // ✅ Mutation cho cập nhật địa chỉ
+  const updateAddressMutation = useMutation(
+    ({ id, payload }: { id: number; payload: CreateAddressRequest }) =>
+      addressService.updateAddress(id, payload),
+    {
+      onSuccess: () => {
+        setSuccessMessage("Cập nhật địa chỉ thành công!");
+        setTimeout(() => {
+          setShowModal(false);
+          setEditingAddress(null);
+          refetchAddresses();
+        }, 1000);
+      },
+      onError: (error: any) => {
+        handleSaveError(error);
+      },
     }
-    try {
-      const data = await provinceService.getWardsByProvince(provinceCode);
-      setWards(data || []);
-    } catch (error) {
-      console.error("Lỗi khi tải quận/xã:", error);
-    }
-  };
+  );
 
-  useEffect(() => {
-    fetchAddresses();
-    fetchProvinces();
-  }, []);
+  // ✅ Mutation cho xóa địa chỉ
+  const deleteAddressMutation = useMutation(
+    (id: number) => addressService.deleteAddress(id),
+    {
+      onSuccess: () => {
+        setSuccessMessage("Đã xóa địa chỉ!");
+        refetchAddresses();
+      },
+      onError: (error: any) => {
+        console.error("Lỗi khi xóa địa chỉ:", error);
+        const errorMsg =
+          error.response?.data?.message || "Không thể xóa địa chỉ!";
+        setErrorMessage(errorMsg);
+      },
+    }
+  );
+
+  // ✅ Mutation cho đặt địa chỉ mặc định
+  const setDefaultMutation = useMutation(
+    (id: number) => addressService.setDefaultAddress(id),
+    {
+      onSuccess: () => {
+        setSuccessMessage("Đã đặt địa chỉ mặc định!");
+        refetchAddresses();
+      },
+      onError: (error: any) => {
+        console.error("Lỗi khi đặt mặc định:", error);
+        const errorMsg =
+          error.response?.data?.message || "Không thể đặt mặc định!";
+        setErrorMessage(errorMsg);
+      },
+    }
+  );
 
   // ➕ Mở modal thêm/sửa
   const openModal = async (address?: Address) => {
     setErrors({});
     setSuccessMessage("");
     setErrorMessage("");
+
     if (address) {
       setEditingAddress(address);
       setFormData({
         fullName: address.fullName,
         phone: address.phone,
         subAddress: address.subAddress,
+        wardId: address.wardId,
         isDefault: address.isDefault,
       });
-      // Try to pre-select province/ward when editing.
-      // Prefer explicit codes if backend returns them (provinceCode / wardCode),
-      // otherwise fall back to matching by name.
-      const addrAny = address as any;
-      const provCode = addrAny.provinceCode || addrAny.province?.code || "";
-      const wardCode = addrAny.wardCode || addrAny.ward?.code || "";
 
-      if (provCode) {
-        setSelectedProvince(provCode);
+      // ✅ Lấy provinceId và wardId từ address
+      const provinceId = address.province?.id || address.wardId;
+      const wardId = address.ward?.id || address.wardId;
+
+      if (wardId) {
+        // Tìm ward trong tất cả wards để lấy provinceId
         try {
-          const wardList = await provinceService.getWardsByProvince(provCode);
-          setWards(wardList || []);
-          if (wardCode) setSelectedWard(wardCode);
-        } catch (err) {
-          console.error("Không thể tải quận/xã khi mở modal chỉnh sửa:", err);
-        }
-      } else if (address.provinceName) {
-        const matchedProvince = provinces.find(
-          (p) => p.name?.toLowerCase() === address.provinceName?.toLowerCase()
-        );
-        if (matchedProvince) {
-          setSelectedProvince(matchedProvince.code || "");
-          try {
-            const wardList = await provinceService.getWardsByProvince(
-              matchedProvince.code || ""
-            );
-            setWards(wardList || []);
-            if (address.wardName) {
-              const matchedWard = (wardList || []).find(
-                (w: Ward) =>
-                  w.name?.toLowerCase() === address.wardName?.toLowerCase()
-              );
-              if (matchedWard) setSelectedWard(matchedWard.code || "");
-            }
-          } catch (err) {
-            console.error("Không thể tải quận/xã khi mở modal chỉnh sửa:", err);
+          const allWards = await provinceService.getAllWards();
+          const currentWard = allWards.find((w: Ward) => w.id === wardId);
+
+          if (currentWard) {
+            setSelectedProvince(currentWard.provinceId);
+            // Đợi wards load xong rồi mới set selectedWard
+            setTimeout(() => setSelectedWard(wardId), 150);
           }
+        } catch (err) {
+          console.error("Không thể tải thông tin ward:", err);
         }
       } else {
         setSelectedProvince("");
         setSelectedWard("");
-        setWards([]);
       }
     } else {
+      // Thêm mới - auto-fill fullName từ profile
       setEditingAddress(null);
-      // Khi thêm mới, auto-fill fullName từ profile user
       try {
         const res = await authService.getProfile();
         const userProfile = res.data?.data;
@@ -138,21 +185,21 @@ const Address: React.FC = () => {
           fullName: userProfile?.fullName || "",
           phone: "",
           subAddress: "",
+          wardId: 0,
           isDefault: false,
         });
-        setSelectedProvince("");
-        setSelectedWard("");
       } catch (error) {
         console.error("Lỗi khi lấy profile:", error);
         setFormData({
           fullName: "",
           phone: "",
           subAddress: "",
+          wardId: 0,
           isDefault: false,
         });
-        setSelectedProvince("");
-        setSelectedWard("");
       }
+      setSelectedProvince("");
+      setSelectedWard("");
     }
     setShowModal(true);
   };
@@ -165,79 +212,67 @@ const Address: React.FC = () => {
     setErrorMessage("");
   };
 
+  // Xử lý lỗi khi lưu
+  const handleSaveError = (error: any) => {
+    console.error("Lỗi khi lưu địa chỉ - full error:", error);
+    console.error("Error response:", error.response);
+    console.error("Error response data:", error.response?.data);
+
+    const responseData = error.response?.data;
+    const message =
+      responseData?.message ||
+      error.response?.statusText ||
+      error.message ||
+      "Không thể lưu địa chỉ!";
+
+    setErrorMessage(message);
+
+    if (responseData?.errors && typeof responseData.errors === "object") {
+      console.log("Backend returned structured errors:", responseData.errors);
+      setErrors(responseData.errors);
+    } else if (typeof message === "string" && message.length > 0) {
+      console.log("Backend validation message:", message);
+      const fieldErrors = parseBackendErrors(message);
+      console.log("Parsed field errors:", fieldErrors);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      }
+    }
+  };
+
   // 💾 Lưu địa chỉ (thêm hoặc cập nhật)
   const handleSave = async () => {
     setErrors({});
     setErrorMessage("");
     setSuccessMessage("");
 
-    try {
-      // Ensure province and ward selected (province required first)
-      if (!selectedProvince) {
-        setErrors({ provinceCode: "Vui lòng chọn tỉnh/thành phố" });
-        setErrorMessage("Vui lòng chọn tỉnh/thành phố");
-        return;
-      }
+    // Validation
+    if (!selectedProvince) {
+      setErrors({ provinceId: "Vui lòng chọn tỉnh/thành phố" });
+      setErrorMessage("Vui lòng chọn tỉnh/thành phố");
+      return;
+    }
 
-      if (!selectedWard) {
-        setErrors({ wardCode: "Vui lòng chọn quận/xã" });
-        setErrorMessage("Vui lòng chọn quận/xã");
-        return;
-      }
+    if (!selectedWard) {
+      setErrors({ wardId: "Vui lòng chọn quận/xã" });
+      setErrorMessage("Vui lòng chọn quận/xã");
+      return;
+    }
 
-      const payload: CreateAddressRequest = {
-        ...formData,
-        wardCode: selectedWard,
-      };
+    const payload: CreateAddressRequest = {
+      ...formData,
+      wardId: selectedWard as number,
+    };
 
-      if (editingAddress) {
-        await addressService.updateAddress(editingAddress.id, payload);
-        setSuccessMessage("Cập nhật địa chỉ thành công!");
-      } else {
-        await addressService.addAddress(payload);
-        setSuccessMessage("Thêm địa chỉ thành công!");
-      }
-      setTimeout(() => {
-        setShowModal(false);
-        setEditingAddress(null);
-        fetchAddresses();
-      }, 1000);
-    } catch (error: any) {
-      console.error("Lỗi khi lưu địa chỉ - full error:", error);
-      console.error("Error response:", error.response);
-      console.error("Error response data:", error.response?.data);
-
-      // Cố tìm message từ nhiều nơi
-      const responseData = error.response?.data;
-      const message =
-        responseData?.message ||
-        error.response?.statusText ||
-        error.message ||
-        "Không thể lưu địa chỉ!";
-
-      setErrorMessage(message); // Nếu backend trả về object errors (field -> msg), ưu tiên dùng nó
-      if (responseData?.errors && typeof responseData.errors === "object") {
-        console.log("Backend returned structured errors:", responseData.errors);
-        setErrors(responseData.errors);
-      } else if (typeof message === "string" && message.length > 0) {
-        // Ghi log chi tiết để debug nhanh
-        console.log("Backend validation message:", message);
-
-        // Map các lỗi cụ thể thành field-level errors
-        const fieldErrors = parseBackendErrors(message);
-        console.log("Parsed field errors:", fieldErrors);
-        if (Object.keys(fieldErrors).length > 0) {
-          setErrors(fieldErrors);
-        }
-      }
+    if (editingAddress) {
+      updateAddressMutation.mutate({ id: editingAddress.id, payload });
+    } else {
+      addAddressMutation.mutate(payload);
     }
   };
 
-  // Hàm parse lỗi từ backend (tùy theo format response)
   const parseBackendErrors = (errorMessage: string): Record<string, string> => {
     const fieldErrors: Record<string, string> = {};
-
-    // Split message bằng dấu phẩy & kiểm tra từng lỗi (so sánh không phân biệt hoa thường)
     const errorParts = errorMessage.split(",").map((msg) => msg.trim());
 
     errorParts.forEach((error) => {
@@ -261,6 +296,8 @@ const Address: React.FC = () => {
         e.includes("họ và tên")
       ) {
         fieldErrors.fullName = "Vui lòng nhập họ và tên";
+      } else if (e.includes("ward") || e.includes("quận") || e.includes("xã")) {
+        fieldErrors.wardId = "Vui lòng chọn quận/xã";
       }
     });
 
@@ -270,31 +307,12 @@ const Address: React.FC = () => {
   // ❌ Xóa địa chỉ
   const handleDelete = async (id: number) => {
     if (!window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
-
-    try {
-      await addressService.deleteAddress(id);
-      setSuccessMessage("Đã xóa địa chỉ!");
-      fetchAddresses();
-    } catch (error: any) {
-      console.error("Lỗi khi xóa địa chỉ:", error);
-      const errorMsg =
-        error.response?.data?.message || "Không thể xóa địa chỉ!";
-      setErrorMessage(errorMsg);
-    }
+    deleteAddressMutation.mutate(id);
   };
 
   // 🌟 Đặt mặc định
   const handleSetDefault = async (id: number) => {
-    try {
-      await addressService.setDefaultAddress(id);
-      setSuccessMessage("Đã đặt địa chỉ mặc định!");
-      fetchAddresses();
-    } catch (error: any) {
-      console.error("Lỗi khi đặt mặc định:", error);
-      const errorMsg =
-        error.response?.data?.message || "Không thể đặt mặc định!";
-      setErrorMessage(errorMsg);
-    }
+    setDefaultMutation.mutate(id);
   };
 
   return (
@@ -490,74 +508,73 @@ const Address: React.FC = () => {
                   </label>
                   <select
                     className={`border rounded w-full p-2 focus:outline-none focus:ring-2 ${
-                      errors.provinceCode
+                      errors.provinceId
                         ? "border-red-500 focus:ring-red-500"
                         : "focus:ring-blue-500"
                     }`}
                     value={selectedProvince}
                     onChange={(e) => {
-                      const code = e.target.value;
-                      setSelectedProvince(code);
+                      const id = Number(e.target.value);
+                      setSelectedProvince(id || "");
                       setSelectedWard("");
-                      // clear province & ward related errors
                       setErrors((prev) => {
                         const cp = { ...prev };
-                        delete cp.provinceCode;
-                        delete cp.wardCode;
+                        delete cp.provinceId;
+                        delete cp.wardId;
                         return cp;
                       });
-                      fetchWardsByProvince(code);
                     }}
                   >
                     <option value="">-- Chọn tỉnh / thành phố --</option>
                     {provinces.map((p) => (
-                      <option key={p.code} value={p.code}>
+                      <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
                     ))}
                   </select>
-                  {errors.provinceCode && (
+                  {errors.provinceId && (
                     <p className="text-red-600 text-xs mt-1">
-                      {errors.provinceCode}
+                      {errors.provinceId}
                     </p>
                   )}
                 </div>
 
-                {/* Ward (Quận) select */}
+                {/* Ward select */}
                 <div>
                   <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Quận / Xã
+                    Quận / Xã <span className="text-red-500">*</span>
                   </label>
                   <select
-                    disabled={!selectedProvince}
+                    disabled={!selectedProvince || wardsLoading}
                     className={`border rounded w-full p-2 focus:outline-none focus:ring-2 ${
-                      !selectedProvince
+                      !selectedProvince || wardsLoading
                         ? "bg-gray-100 cursor-not-allowed"
-                        : errors.wardCode
+                        : errors.wardId
                         ? "border-red-500 focus:ring-red-500"
                         : "focus:ring-blue-500"
                     }`}
                     value={selectedWard}
                     onChange={(e) => {
-                      setSelectedWard(e.target.value);
+                      const id = Number(e.target.value);
+                      setSelectedWard(id || "");
                       setErrors((prev) => {
                         const cp = { ...prev };
-                        delete cp.wardCode;
+                        delete cp.wardId;
                         return cp;
                       });
                     }}
                   >
-                    <option value="">-- Chọn quận / xã --</option>
+                    <option value="">
+                      {wardsLoading ? "Đang tải..." : "-- Chọn quận / xã --"}
+                    </option>
                     {wards.map((w) => (
-                      <option key={w.code} value={w.code}>
+                      <option key={w.id} value={w.id}>
                         {w.name}
                       </option>
                     ))}
                   </select>
-                  {errors.wardCode && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {errors.wardCode}
-                    </p>
+                  {errors.wardId && (
+                    <p className="text-red-600 text-xs mt-1">{errors.wardId}</p>
                   )}
                 </div>
 
@@ -611,9 +628,16 @@ const Address: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                  disabled={
+                    addAddressMutation.isLoading ||
+                    updateAddressMutation.isLoading
+                  }
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  💾 Lưu
+                  {addAddressMutation.isLoading ||
+                  updateAddressMutation.isLoading
+                    ? "⏳ Đang lưu..."
+                    : "💾 Lưu"}
                 </button>
               </div>
             </div>

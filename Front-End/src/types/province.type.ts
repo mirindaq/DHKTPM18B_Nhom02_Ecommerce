@@ -1,7 +1,8 @@
+// src/types/province.type.ts
 import type { ResponseApi } from './responseApi.type'
 
 export type Province = {
-  code: string
+  id: number
   name: string
 }
 

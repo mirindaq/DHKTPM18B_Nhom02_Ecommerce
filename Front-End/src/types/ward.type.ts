@@ -1,9 +1,10 @@
+// src/types/ward.type.ts
 import type { ResponseApi } from './responseApi.type'
 
 export type Ward = {
-  code: string
+  id: number
   name: string
-  provinceCode: string
+  provinceId: number
 }
 
 export type WardResponse = ResponseApi<Ward[]>
