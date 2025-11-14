@@ -50,4 +50,13 @@ public interface CategoryBrandRepository extends JpaRepository<CategoryBrand, Lo
             @Param("categoryName") String categoryName,
             Pageable pageable
     );
+
+    // --- ⬇️ THÊM HÀM MỚI NÀY VÀO ⬇️ ---
+    /**
+     * [HÀM MỚI] Xóa tất cả các liên kết CategoryBrand dựa trên categoryId.
+     * Hàm này sẽ được gọi bên trong một @Transactional ở Service.
+     * Spring Data JPA sẽ tự động hiểu tên hàm này.
+     */
+    void deleteAllByCategoryId(Long categoryId);
+    // --- ⬆️ HẾT HÀM MỚI ⬆️ ---
 }

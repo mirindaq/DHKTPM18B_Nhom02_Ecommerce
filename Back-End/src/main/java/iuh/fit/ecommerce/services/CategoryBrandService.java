@@ -1,34 +1,34 @@
 package iuh.fit.ecommerce.services;
 
-import iuh.fit.ecommerce.dtos.request.categoryBrand.CategoryBrandRequest;
+// --- SỬA IMPORT ---
+// import iuh.fit.ecommerce.dtos.request.categoryBrand.CategoryBrandRequest; // <-- XÓA
+import iuh.fit.ecommerce.dtos.request.categoryBrand.SetBrandsForCategoryRequest; // <-- THÊM
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
 import iuh.fit.ecommerce.dtos.response.category.CategoryResponse; // Giả định bạn có DTO này
-import iuh.fit.ecommerce.dtos.response.categoryBrand.CategoryBrandResponse;
+// import iuh.fit.ecommerce.dtos.response.categoryBrand.CategoryBrandResponse; // <-- XÓA
 import java.util.List;
 
 public interface CategoryBrandService {
 
-    /**
-     * Gán (liên kết) một Brand vào một Category.
-     * @param request Chứa categoryId và brandId
-     * @return Thông tin của liên kết vừa được tạo
-     */
-    CategoryBrandResponse assignBrandToCategory(CategoryBrandRequest request);
+    // --- XÓA HÀM CŨ ---
+    // CategoryBrandResponse assignBrandToCategory(CategoryBrandRequest request);
 
+    // --- XÓA HÀM CŨ ---
+    // void unassignBrandFromCategory(CategoryBrandRequest request);
+
+    // --- THÊM HÀM MỚI ---
     /**
-     * Hủy gán (xóa liên kết) một Brand khỏi một Category.
-     * @param request Chứa categoryId và brandId của liên kết cần xóa
+     * Đặt lại toàn bộ danh sách thương hiệu cho một danh mục.
+     * Sẽ xóa tất cả liên kết cũ và thêm các liên kết mới.
+     * @param request Chứa categoryId và List<brandIds>
      */
-    void unassignBrandFromCategory(CategoryBrandRequest request);
+    void setBrandsForCategory(SetBrandsForCategoryRequest request);
+    // --- HẾT HÀM MỚI ---
 
     /**
      * Lấy danh sách (phân trang) các Brands thuộc về một Category.
-     * @param categoryId ID của Category
-     * @param brandName Tên Brand để tìm kiếm (có thể null)
-     * @param page Trang hiện tại
-     * @param size Số lượng trên 1 trang
-     * @return Một trang chứa danh sách các Brand
+     * (Giữ nguyên)
      */
     ResponseWithPagination<List<BrandResponse>> getBrandsByCategoryId(
             Long categoryId, String brandName, int page, int size
@@ -36,11 +36,7 @@ public interface CategoryBrandService {
 
     /**
      * Lấy danh sách (phân trang) các Categories chứa một Brand.
-     * @param brandId ID của Brand
-     * @param categoryName Tên Category để tìm kiếm (có thể null)
-     * @param page Trang hiện tại
-     * @param size Số lượng trên 1 trang
-     * @return Một trang chứa danh sách các Category
+     * (Giữ nguyên)
      */
     ResponseWithPagination<List<CategoryResponse>> getCategoriesByBrandId(
             Long brandId, String categoryName, int page, int size

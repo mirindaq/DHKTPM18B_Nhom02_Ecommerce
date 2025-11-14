@@ -1,17 +1,19 @@
 package iuh.fit.ecommerce.services.impl;
 
-import iuh.fit.ecommerce.dtos.request.categoryBrand.CategoryBrandRequest;
+// --- SỬA IMPORT ---
+// import iuh.fit.ecommerce.dtos.request.categoryBrand.CategoryBrandRequest; // <-- XÓA
+import iuh.fit.ecommerce.dtos.request.categoryBrand.SetBrandsForCategoryRequest; // <-- THÊM
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
 import iuh.fit.ecommerce.dtos.response.category.CategoryResponse;
-import iuh.fit.ecommerce.dtos.response.categoryBrand.CategoryBrandResponse;
+// import iuh.fit.ecommerce.dtos.response.categoryBrand.CategoryBrandResponse; // <-- XÓA
 import iuh.fit.ecommerce.entities.Brand;
 import iuh.fit.ecommerce.entities.Category;
 import iuh.fit.ecommerce.entities.CategoryBrand;
-import iuh.fit.ecommerce.exceptions.custom.ConflictException;
+// import iuh.fit.ecommerce.exceptions.custom.ConflictException; // <-- XÓA
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.BrandMapper;
-import iuh.fit.ecommerce.mappers.CategoryBrandMapper;
+// import iuh.fit.ecommerce.mappers.CategoryBrandMapper; // <-- XÓA (Trừ khi bạn dùng ở đâu khác)
 import iuh.fit.ecommerce.mappers.CategoryMapper;
 import iuh.fit.ecommerce.repositories.BrandRepository;
 import iuh.fit.ecommerce.repositories.CategoryBrandRepository;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors; // <-- THÊM
 
 @Service
 @RequiredArgsConstructor
@@ -36,50 +39,68 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
     private final BrandRepository brandRepository;
 
     // Mappers
-    private final CategoryBrandMapper categoryBrandMapper;
+    // private final CategoryBrandMapper categoryBrandMapper; // <-- XÓA
     private final BrandMapper brandMapper;
     private final CategoryMapper categoryMapper; // Giả định bạn có CategoryMapper
 
+
+    // --- XÓA HÀM CŨ ---
+    /*
     @Override
     @Transactional
     public CategoryBrandResponse assignBrandToCategory(CategoryBrandRequest request) {
-        // 1. Validate (giống như validateBrandName)
-        validateAssignment(request.getCategoryId(), request.getBrandId());
-
-        // 2. Lấy các entity liên quan (giống get...EntityById)
-        Category category = getCategoryEntityById(request.getCategoryId());
-        Brand brand = getBrandEntityById(request.getBrandId());
-
-        // 3. Tạo entity mới (giống mapRequestToBrand)
-        CategoryBrand newAssignment = CategoryBrand.builder()
-                .category(category)
-                .brand(brand)
-                .build();
-
-        // 4. Lưu
-        categoryBrandRepository.save(newAssignment);
-
-        // 5. Trả về response đã map
-        return categoryBrandMapper.toResponse(newAssignment);
+        ...
     }
+    */
 
+    // --- XÓA HÀM CŨ ---
+    /*
     @Override
     @Transactional
     public void unassignBrandFromCategory(CategoryBrandRequest request) {
-        // 1. Lấy entity liên kết
-        CategoryBrand assignment = getCategoryBrandEntity(
-                request.getCategoryId(),
-                request.getBrandId()
-        );
-
-        // 2. Xóa
-        categoryBrandRepository.delete(assignment);
+        ...
     }
+    */
+
+    // --- THÊM HÀM MỚI ---
+    @Override
+    @Transactional
+    public void setBrandsForCategory(SetBrandsForCategoryRequest request) {
+        // 1. Lấy category (hoặc ném 404 nếu không tìm thấy)
+        Category category = getCategoryEntityById(request.getCategoryId());
+
+        // 2. Xóa tất cả liên kết cũ của category này
+        // (YÊU CẦU: bạn cần thêm hàm này vào CategoryBrandRepository, xem bước 3)
+        categoryBrandRepository.deleteAllByCategoryId(request.getCategoryId());
+
+        // 3. Nếu danh sách ID mới rỗng hoặc null, thì dừng lại (chỉ xóa)
+        if (request.getBrandIds() == null || request.getBrandIds().isEmpty()) {
+            return;
+        }
+
+        // 4. Lấy tất cả entity Brand (tránh N+1 query)
+        // Hàm findAllById sẽ chỉ trả về các Brand thực sự tồn tại
+        List<Brand> brands = brandRepository.findAllById(request.getBrandIds());
+
+        // 5. Tạo danh sách liên kết mới
+        List<CategoryBrand> newAssignments = brands.stream()
+                .map(brand -> CategoryBrand.builder()
+                        .category(category)
+                        .brand(brand)
+                        .build())
+                .collect(Collectors.toList());
+
+        // 6. Lưu tất cả liên kết mới vào DB
+        categoryBrandRepository.saveAll(newAssignments);
+    }
+    // --- HẾT HÀM MỚI ---
+
 
     @Override
     public ResponseWithPagination<List<BrandResponse>> getBrandsByCategoryId(
             Long categoryId, String brandName, int page, int size
     ) {
+// ... (Giữ nguyên logic hàm này)
         // 1. Kiểm tra Category có tồn tại không
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found with id: " + categoryId);
@@ -103,6 +124,7 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
     public ResponseWithPagination<List<CategoryResponse>> getCategoriesByBrandId(
             Long brandId, String categoryName, int page, int size
     ) {
+// ... (Giữ nguyên logic hàm này)
         // 1. Kiểm tra Brand có tồn tại không
         if (!brandRepository.existsById(brandId)) {
             throw new ResourceNotFoundException("Brand not found with id: " + brandId);
@@ -139,24 +161,17 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + id));
     }
 
-    /**
-     * Lấy entity liên kết CategoryBrand hoặc ném 404
-     */
+    // --- XÓA HELPER CŨ ---
+    /*
     private CategoryBrand getCategoryBrandEntity(Long categoryId, Long brandId) {
-        return categoryBrandRepository.findByCategoryIdAndBrandId(categoryId, brandId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format("Assignment not found for Category ID %d and Brand ID %d", categoryId, brandId)
-                ));
+        ...
     }
+    */
 
-    /**
-     * Kiểm tra xem liên kết đã tồn tại hay chưa (giống validateBrandName)
-     */
+    // --- XÓA HELPER CŨ ---
+    /*
     private void validateAssignment(Long categoryId, Long brandId) {
-        if (categoryBrandRepository.existsByCategoryIdAndBrandId(categoryId, brandId)) {
-            throw new ConflictException("Brand is already assigned to this category");
-        }
-        // Không cần trường hợp "update" như validateBrandName
-        // vì chúng ta không "update" một liên kết, chúng ta xóa và tạo mới.
+        ...
     }
+    */
 }
