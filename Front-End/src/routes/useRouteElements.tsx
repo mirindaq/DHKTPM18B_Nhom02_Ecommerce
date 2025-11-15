@@ -23,6 +23,8 @@ import Checkout from "@/pages/user/Checkout";
 import Profile from "@/pages/user/Profile";
 import Membership from "@/pages/user/Membership";
 import PaymentStatus from "@/pages/user/PaymentStatus";
+import OrderHistory from "@/pages/user/OrderHistory";
+import OrderDetail from "@/pages/user/OrderDetail";
 import AdminLayout from "@/layouts/AdminLayout";
 import UserLayout from "@/layouts/UserLayout";
 import StaffLayout from "@/layouts/StaffLayout";
@@ -91,6 +93,22 @@ const useRouteElements = () => {
         {
           path: "payment-status",
           element: <PaymentStatus />,
+        },
+        {
+          path: "orders",
+          element: (
+            <UserRoute>
+              <OrderHistory />
+            </UserRoute>
+          ),
+        },
+        {
+          path: "orders/:id",
+          element: (
+            <UserRoute>
+              <OrderDetail />
+            </UserRoute>
+          ),
         },
         {
           path: "profile",

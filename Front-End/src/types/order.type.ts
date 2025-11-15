@@ -1,5 +1,5 @@
 import type { CustomerSummary } from "@/types/customer.type";
-import type { ResponseApi } from "./responseApi.type";
+import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 import type { ProductVariantResponse } from "@/types/product.type";
 
 export type PaymentMethod = "CASH_ON_DELIVERY" | "VN_PAY" | "PAY_OS";
@@ -45,3 +45,4 @@ interface OrderDetailResponse {
 }
 
 export type OrderApiResponse = ResponseApi<OrderResponse>;
+export type OrderListResponse = ResponseApiWithPagination<OrderResponse[]>;

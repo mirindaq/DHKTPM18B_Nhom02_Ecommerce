@@ -136,7 +136,10 @@ export default function Profile() {
       icon: <ShoppingBag size={20} />,
       label: "Lịch sử mua hàng",
       active: activeSidebarMenu === "Lịch sử mua hàng",
-      onClick: () => handleMenuClick("Lịch sử mua hàng", "orders"),
+      onClick: () => {
+        setActiveSidebarMenu("Lịch sử mua hàng");
+        navigate("/orders");
+      },
     },
     { icon: <Search size={20} />, label: "Tra cứu bảo hành" },
     {
