@@ -40,6 +40,11 @@ import Promotions from "@/pages/admin/Promotions"
 import Vouchers from "@/pages/admin/Vouchers"
 import VoucherForm from "@/pages/admin/VoucherForm"
 import UserRegister from "@/pages/auth/UserRegister"
+import ArticleLayout from "@/layouts/ArticleLayout"
+import ArticleHomePage from "@/components/user/ArticleHomePage"
+import ArticleDetailPage from "@/components/user/ArticleDetailPage"
+import ArticleCategoryPage from "@/components/user/ArticleCategoryPage"
+import ArticleSearch from "@/pages/user/ArticleSearch"
 
 
 const useRouteElements = () => {
@@ -83,6 +88,46 @@ const useRouteElements = () => {
       ]
     },
 
+    // Article routes - Sforum homepage
+    {
+      path: "/sforum",
+      element: (
+        <RoleBasedAuthWrapper>
+          <ArticleLayout />
+        </RoleBasedAuthWrapper>
+      ),
+      children: [
+        { index: true, element: <ArticleHomePage /> },
+        { path: "search", element: <ArticleSearch /> },
+      ]
+    },
+
+    // Article detail route
+    {
+      path: "/article/:slug",
+      element: (
+        <RoleBasedAuthWrapper>
+          <ArticleLayout />
+        </RoleBasedAuthWrapper>
+      ),
+      children: [
+        { index: true, element: <ArticleDetailPage /> },
+      ]
+    },
+
+    // Article category route
+    {
+      path: "/category/:slug",
+      element: (
+        <RoleBasedAuthWrapper>
+          <ArticleLayout />
+        </RoleBasedAuthWrapper>
+      ),
+      children: [
+        { index: true, element: <ArticleCategoryPage /> },
+      ]
+    },
+
     // Auth routes
     {
       path: AUTH_PATH.LOGIN_USER,
@@ -113,7 +158,7 @@ const useRouteElements = () => {
       element: <AuthCallbackComponent />
     },
 
-    // Admin routes (chỉ admin mới truy cập được)
+    // Admin routes
     {
       path: ADMIN_PATH.DASHBOARD,
       element: (
@@ -146,7 +191,7 @@ const useRouteElements = () => {
       ]
     },
 
-    // Staff routes (admin và staff có thể truy cập)
+    // Staff routes
     {
       path: STAFF_PATH.DASHBOARD,
       element: (
@@ -162,7 +207,7 @@ const useRouteElements = () => {
       ]
     },
 
-    // Shipper routes (chỉ shipper mới truy cập được)
+    // Shipper routes
     {
       path: SHIPPER_PATH.DASHBOARD,
       element: (

@@ -128,16 +128,17 @@ export default function ArticleCategoryTable({
                   <TableCell className="font-semibold">{category.slug}</TableCell>
                   <TableCell className="text-gray-600">{formatDate(category.createdAt)}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(category)}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
-                      disabled={isLoading}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(category)}
+                        className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                        disabled={isLoading}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onDelete(category.id)}
@@ -146,6 +147,7 @@ export default function ArticleCategoryTable({
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

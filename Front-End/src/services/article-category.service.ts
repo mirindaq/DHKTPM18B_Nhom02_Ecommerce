@@ -36,4 +36,15 @@ export const articleCategoryService = {
     return response.data;
   },
 
+
+  getCategoryBySlug: async (slug: string) => {
+    const response = await axiosClient.get<ArticleCategoryResponse>(
+      `/article-categories/slug/${slug}`
+    );
+    return response.data;
+  },
+
+  deleteCategory: async (id: number) => {
+    await axiosClient.delete(`/article-categories/${id}`);
+  },
 };

@@ -10,7 +10,6 @@ import { ArticleTable } from "@/components/admin/articles";
 import { useNavigate } from "react-router";
 import type {
   ArticleListResponse,
-  Article,
 } from "@/types/article.type";
 import type { ArticleCategory } from "@/types/article-category.type";
 import ArticleFilter from "@/components/admin/articles/ArticleFilter";
@@ -20,7 +19,6 @@ export default function Articles() {
   const [page, setPage] = useState(1);
   const [pageSize,] = useState(7);
   const [filters, setFilters] = useState<any>({});
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
 
   const { data: categoriesData } = useQuery(
@@ -35,15 +33,24 @@ export default function Articles() {
     isLoading,
     refetch,
   } = useQuery<ArticleListResponse>(
-    () =>
-      articleService.getArticles(
+    () => {
+      console.log("📡 Calling API with:", {
+        page,
+        pageSize,
+        title: filters.title || "",
+        status: filters.status ?? null,
+        categoryId: filters.categoryId ?? null,
+        createdDate: filters.createdDate || null
+      });
+      return articleService.getArticles(
         page,
         pageSize,
         filters.title || "",
         filters.status ?? null,
         filters.categoryId ?? null,
         filters.createdDate || null
-      ),
+      );
+    },
     {
       queryKey: [
         "articles",
@@ -119,10 +126,6 @@ export default function Articles() {
         articles={articles.map((a: any) => ({ ...a, articleCategoryTitle: categoryMap[a.articleCategoryId] || "" }))}
         onEdit={(a) => handleOpenEdit(a)}
         onToggleStatus={handleToggleStatus}
-        onSearch={(v) => {
-          setKeyword(v);
-          setPage(1);
-        }}
         currentPage={page}
         pageSize={pageSize}
         isLoading={isLoading}
