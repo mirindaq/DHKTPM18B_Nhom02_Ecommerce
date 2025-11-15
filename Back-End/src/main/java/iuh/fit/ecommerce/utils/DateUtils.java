@@ -2,12 +2,32 @@ package iuh.fit.ecommerce.utils;
 
 import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 public class DateUtils {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    public static String formatDate(LocalDate date) {
+        if (date == null) {
+            return "";
+        }
+        return date.format(DATE_FORMATTER);
+    }
+
+    public static LocalDate convertStringToLocalDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            throw new InvalidParamException("Date string cannot be null or blank");
+        }
+        try {
+            return LocalDate.parse(dateStr, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new InvalidParamException("Invalid date format. Expected format: dd/MM/yyyy");
+        }
+    }
 
     public static String formatLocalDateTime(LocalDateTime dateTime) {
         if (dateTime == null) {

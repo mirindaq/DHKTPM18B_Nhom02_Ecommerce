@@ -1,16 +1,23 @@
 package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.order.OrderCreationRequest;
+import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.order.OrderResponse;
 import iuh.fit.ecommerce.entities.*;
+import iuh.fit.ecommerce.enums.OrderStatus;
 import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 import iuh.fit.ecommerce.mappers.OrderMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.OrderService;
 import iuh.fit.ecommerce.services.PaymentService;
 import iuh.fit.ecommerce.services.PromotionService;
+import iuh.fit.ecommerce.utils.DateUtils;
 import iuh.fit.ecommerce.utils.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +70,36 @@ public class OrderServiceImpl implements OrderService {
         handleVoucherUsage(voucher, order, voucherDiscountAmount);
 
         return processPayment(orderCreationRequest, request, voucher, order, cart, orderCreationRequest.getCartItemIds());
+    }
+
+    @Override
+    public ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, String status, String startDate, String endDate) {
+        page = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(page, size);
+        Customer customer = securityUtil.getCurrentCustomer();
+
+        OrderStatus orderStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidParamException("Invalid status: " + status);
+            }
+        }
+
+        LocalDateTime start = null;
+        if (startDate != null && !startDate.isBlank()) {
+            start = DateUtils.convertStringToLocalDate(startDate).atStartOfDay();
+        }
+
+        LocalDateTime endDt = null;
+        if (endDate != null && !endDate.isBlank()) {
+            endDt = DateUtils.convertStringToLocalDate(endDate).plusDays(1).atStartOfDay();
+        }
+
+
+        Page<Order> ordersPage = orderRepository.findMyOrders(customer, orderStatus, start, endDt, pageable);
+        return ResponseWithPagination.fromPage(ordersPage, orderMapper::toResponse);
     }
 
     private Cart getCustomerCart(Customer customer) {
