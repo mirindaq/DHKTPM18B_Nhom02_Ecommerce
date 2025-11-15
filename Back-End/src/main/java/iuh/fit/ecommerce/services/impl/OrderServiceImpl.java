@@ -201,8 +201,8 @@ public class OrderServiceImpl implements OrderService {
                 return paymentService.createPaymentUrl(voucher, order, cartItemIds, request);
             }
             case PAY_OS -> {
-                // Todo: Xử lý thanh toán online (tạm thời chưa triển khai)
-                throw new InvalidParamException("PAY_OS payment method not implemented yet");
+                updateVariantStockAfterOrderCreated(order.getOrderDetails());
+                return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds);
             }
             default -> throw new InvalidParamException("Unsupported payment method");
         }

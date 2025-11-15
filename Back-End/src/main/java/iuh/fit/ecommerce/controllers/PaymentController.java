@@ -18,4 +18,14 @@ public class PaymentController {
     public void payCallbackHandler(HttpServletRequest request, HttpServletResponse response) throws Exception {
         paymentService.handlePaymentCallBack(request, response);
     }
+
+    @GetMapping("/pay-os-success")
+    public void payOsSuccessHandler(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        paymentService.handlePayOsSuccess(request, response);
+    }
+
+    @GetMapping("/pay-os-cancel")
+    public void payOsCancelHandler(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        paymentService.handlePayOsCancel(request, response);
+    }
 }
