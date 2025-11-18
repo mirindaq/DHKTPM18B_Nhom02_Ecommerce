@@ -250,7 +250,7 @@
   }
   
   .article-content img {
-    @apply w-full h-auto rounded-lg my-6;
+    @apply w-full h-auto rounded-sm my-6;
   }
   
   .article-content blockquote {

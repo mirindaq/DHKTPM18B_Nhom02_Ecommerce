@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { ChevronRight, Home, Loader2, Newspaper, Gamepad2, MessageSquare, Smartphone, Megaphone, Users } from 'lucide-react';
 import { articleService } from '@/services/article.service';
 import { articleCategoryService } from '@/services/article-category.service';

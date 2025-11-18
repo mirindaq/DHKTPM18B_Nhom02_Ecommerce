@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { Home, ChevronRight, Loader2, Newspaper, Gamepad2, MessageSquare, Smartphone, Megaphone, Users } from 'lucide-react';
 import { articleService } from '@/services/article.service';
 import { articleCategoryService } from '@/services/article-category.service';
