@@ -13,6 +13,7 @@ public class ProductVariantResponse {
     private Long id;
     private Double price;
     private Double oldPrice;
+    private Double discount;
     private String sku;
     private Integer stock;
     private List<ProductVariantValueResponse> productVariantValues;

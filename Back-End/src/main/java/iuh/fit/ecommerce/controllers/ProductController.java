@@ -1,11 +1,14 @@
 package iuh.fit.ecommerce.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import iuh.fit.ecommerce.dtos.request.product.ProductVariantPromotionRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
-import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantDescriptionResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantPromotionResponse;
 import iuh.fit.ecommerce.services.ProductService;
+import iuh.fit.ecommerce.services.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,7 @@ import static org.springframework.http.HttpStatus.OK;
 @Tag(name = "Product Controller", description = "Controller for managing products")
 public class ProductController {
     private final ProductService productService;
+    private final ProductVariantService productVariantService;
 
     @PostMapping("")
     public ResponseEntity<ResponseSuccess<?>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
@@ -61,6 +65,28 @@ public class ProductController {
                 OK,
                 "Get product detail by slug success",
                 productService.getProductBySlug(slug)
+        ));
+    }
+
+    @GetMapping("/{productId}/skus")
+    public ResponseEntity<ResponseSuccess<List<ProductVariantDescriptionResponse>>> getSkusForPromotion(@PathVariable Long productId) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all products success",
+                productVariantService.getAllSkusForPromotion(productId)
+        ));
+
+    }
+
+    @PostMapping("/variants/promotions")
+    public ResponseEntity<ResponseSuccess<List<ProductVariantPromotionResponse>>> getProductsVariantPromotions(
+            @Valid @RequestBody ProductVariantPromotionRequest request
+    ) {
+        List<ProductVariantPromotionResponse> result = productVariantService.getProductsVariantPromotions(request);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get product variant promotions success",
+                result
         ));
     }
 

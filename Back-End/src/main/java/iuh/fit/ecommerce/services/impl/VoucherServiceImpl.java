@@ -5,10 +5,7 @@ import iuh.fit.ecommerce.dtos.request.voucher.VoucherCustomerRequest;
 import iuh.fit.ecommerce.dtos.request.voucher.VoucherUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherAvailableResponse;
-import iuh.fit.ecommerce.entities.Customer;
-import iuh.fit.ecommerce.entities.Ranking;
-import iuh.fit.ecommerce.entities.Voucher;
-import iuh.fit.ecommerce.entities.VoucherCustomer;
+import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.enums.VoucherCustomerStatus;
 import iuh.fit.ecommerce.enums.VoucherType;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
@@ -17,6 +14,7 @@ import iuh.fit.ecommerce.mappers.VoucherMapper;
 import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.repositories.VoucherCustomerRepository;
 import iuh.fit.ecommerce.repositories.VoucherRepository;
+import iuh.fit.ecommerce.repositories.VoucherUsageHistoryRepository;
 import iuh.fit.ecommerce.services.CustomerService;
 import iuh.fit.ecommerce.services.EmailService;
 import iuh.fit.ecommerce.services.RankingService;
@@ -47,6 +45,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final CustomerService customerService;
     private final RankingService rankingService;
     private final SecurityUtil securityUtil;
+    private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
 
     @Override
     @Transactional
@@ -233,8 +232,22 @@ public class VoucherServiceImpl implements VoucherService {
                         .map(voucherMapper::toVoucherAvailableResponse)
                         .toList();
 
-        return Stream.concat(customerVoucherResponses.stream(), globalVoucherResponses.stream())
+        List<VoucherAvailableResponse> allVouchers = Stream.concat(
+                        customerVoucherResponses.stream(),
+                        globalVoucherResponses.stream()
+                )
                 .distinct()
+                .toList();
+
+        List<Long> usedVoucherIds = voucherUsageHistoryRepository
+                .findAllByOrder_Customer(customer)
+                .stream()
+                .map(vuh -> vuh.getVoucher().getId())
+                .distinct()
+                .toList();
+
+        return allVouchers.stream()
+                .filter(v -> !usedVoucherIds.contains(v.getId()))
                 .toList();
     }
 

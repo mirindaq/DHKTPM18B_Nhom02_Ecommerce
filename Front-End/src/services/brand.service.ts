@@ -28,5 +28,9 @@ export const brandService = {
 
   changeStatusBrand: async (id: number) => {
     await axiosClient.put(`/brands/change-status/${id}`);
+  }, 
+  getAllBrandsSimple: async () => {
+    const response = await axiosClient.get<BrandListResponse>('/brands/all'); 
+    return response.data;
   }
 };

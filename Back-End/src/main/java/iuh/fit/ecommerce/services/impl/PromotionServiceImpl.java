@@ -4,8 +4,11 @@ import iuh.fit.ecommerce.dtos.request.promotion.PromotionAddRequest;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.promotion.PromotionResponse;
+import iuh.fit.ecommerce.entities.Product;
+import iuh.fit.ecommerce.entities.ProductVariant;
 import iuh.fit.ecommerce.entities.Promotion;
 import iuh.fit.ecommerce.entities.PromotionTarget;
+import iuh.fit.ecommerce.enums.PromotionType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.PromotionMapper;
 import iuh.fit.ecommerce.repositories.PromotionRepository;
@@ -15,11 +18,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,4 +117,70 @@ public class PromotionServiceImpl implements PromotionService {
         return promotionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id = " + id));
     }
+
+    @Override
+    public Double calculateDiscountPrice(ProductVariant variant, Promotion promotion) {
+        double original = variant.getPrice();
+        double bestDiscount = promotion.getDiscount();
+        return original - (original * bestDiscount / 100);
+    }
+
+    @Override
+    public Double calculateOriginalPrice(ProductVariant variant) {
+        return variant.getPrice();
+    }
+
+    @Override
+    public Promotion getBestPromotion(ProductVariant variant, Map<Long, List<Promotion>> promosByVariant) {
+        List<Promotion> promos = promosByVariant.getOrDefault(variant.getId(), List.of());
+        return promos.isEmpty() ? null : promos.getFirst();
+    }
+
+    @Override
+    public Map<Long, List<Promotion>> getPromotionsGroupByVariantId(List<ProductVariant> variants, Product product) {
+        List<Long> variantIds = variants.stream().map(ProductVariant::getId).toList();
+        List<Long> productIds = List.of(product.getId());
+        List<Long> categoryIds = List.of(product.getCategory().getId());
+        List<Long> brandIds = List.of(product.getBrand().getId());
+
+        List<Promotion> allPromotions = promotionRepository.findAllValidPromotions(
+                variantIds, productIds, categoryIds, brandIds
+        );
+
+        // Map variantId -> list promotion, đã ordered
+        return variants.stream()
+                .collect(Collectors.toMap(
+                        ProductVariant::getId,
+                        v -> allPromotions.stream()
+                                .filter(p -> appliesToVariant(p, v))
+                                .toList()
+                ));
+    }
+
+    @Override
+    public Promotion getBestPromotionForVariant(ProductVariant variant) {
+        List<Promotion> promos = promotionRepository.findBestPromotionForVariant(
+                variant.getId(),
+                variant.getProduct().getId(),
+                variant.getProduct().getCategory().getId(),
+                variant.getProduct().getBrand().getId(),
+                PageRequest.of(0, 1)  // chỉ lấy 1 promotion đầu tiên
+        );
+
+        return promos.isEmpty() ? null : promos.get(0);
+    }
+
+
+
+
+    private boolean appliesToVariant(Promotion promo, ProductVariant variant) {
+        return promo.getPromotionTargets().stream().anyMatch(pt ->
+                (pt.getProductVariant() != null && pt.getProductVariant().getId().equals(variant.getId())) ||
+                        (pt.getProduct() != null && pt.getProduct().getId().equals(variant.getProduct().getId())) ||
+                        (pt.getCategory() != null && pt.getCategory().getId().equals(variant.getProduct().getCategory().getId())) ||
+                        (pt.getBrand() != null && pt.getBrand().getId().equals(variant.getProduct().getBrand().getId()))
+        )
+                || promo.getPromotionType() == PromotionType.ALL;
+    }
+
 }

@@ -54,6 +54,22 @@ spring:
 
 
 
+payment:
+  vnPay:
+    url: ${PAYMENT_URL}
+    tmnCode: ${PAYMENT_TMN_CODE}
+    secretKey: ${PAYMENT_SECRET_KEY}
+    returnUrl: ${PAYMENT_RETURN_URL}
+    version: 2.1.0
+    command: pay
+    orderType: other
+  pay_os:
+    client-id: ${PAY_OS_CLIENT_ID}
+    api-key: ${PAY_OS_API_KEY}
+    checksum-key: ${PAY_OS_CHECKSUM_KEY}
+    return-url: ${PAY_OS_RETURN_URL}
+    cancel-url: ${PAY_OS_CANCEL_URL}
+
 cloudinary:
   url: ${CLOUDINARY_URL}
 
@@ -62,3 +78,6 @@ api:
 
 app:
   upload-dir: uploads
+
+domain:
+  frontend: ${DOMAIN_FRONTEND}

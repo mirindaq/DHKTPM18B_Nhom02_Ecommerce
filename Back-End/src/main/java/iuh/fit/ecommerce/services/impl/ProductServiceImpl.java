@@ -2,11 +2,15 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.product.ProductAddRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductAttributeRequest;
+import iuh.fit.ecommerce.dtos.request.product.ProductVariantPromotionRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductVariantRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantPromotionResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
+import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.*;
@@ -19,7 +23,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryService categoryService;
     private final AttributeService attributeService;
     private final VariantValueService variantValueService;
+    private final PromotionService promotionService;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
@@ -81,7 +88,40 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductBySlug(String slug) {
-        return productMapper.toResponse(productRepository.getProductBySlug(slug));
+        Product product = productRepository.getProductBySlug(slug);
+        if (product == null) {
+            return null;
+        }
+
+        ProductResponse response = productMapper.toResponse(product);
+        List<ProductVariant> variants = product.getProductVariants();
+        if (variants == null || variants.isEmpty()) return response;
+
+        Map<Long, List<Promotion>>  promosByVariant = promotionService.getPromotionsGroupByVariantId(variants, product);
+
+        Map<Long, ProductVariant> variantMap = variants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+
+        for (ProductVariantResponse v : response.getVariants()) {
+            ProductVariant entityVariant = variantMap.get(v.getId());
+            if (entityVariant == null) continue;
+
+            Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);
+            v.setOldPrice(originalPrice);
+
+            Promotion bestPromo = promotionService.getBestPromotion(entityVariant, promosByVariant);
+
+            if (bestPromo != null) {
+                Double finalPrice = promotionService.calculateDiscountPrice(entityVariant, bestPromo);
+                v.setPrice(finalPrice);
+                v.setDiscount(bestPromo.getDiscount());
+            } else {
+                v.setPrice(originalPrice);
+                v.setDiscount(0.0);
+            }
+        }
+
+        return response;
     }
 
     @Override

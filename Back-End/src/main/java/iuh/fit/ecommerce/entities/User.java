@@ -58,11 +58,6 @@ public class User extends  BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UserRole> userRoles = new ArrayList<>();
 
-    @ToString.Exclude
-    @JsonIgnore
-    @OneToOne(mappedBy = "user")
-    private Cart cart;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return userRoles

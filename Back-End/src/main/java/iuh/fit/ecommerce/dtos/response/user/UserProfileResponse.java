@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.user;
 
+import iuh.fit.ecommerce.dtos.response.rank.RankResponse;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,4 +17,5 @@ public class UserProfileResponse {
     private String avatar;
     private String phone;
     private String address;
+    private RankResponse rank;
 }

@@ -35,6 +35,15 @@ public class CategoryController {
         ));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<CategoryResponse>>>> getAllCategories() {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all categories success",
+                categoryService.getCategories(1, 1000, "")
+        ));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResponseSuccess<CategoryResponse>> getCategoryById(
             @PathVariable Long id

@@ -46,12 +46,46 @@ import ArticleDetailPage from "@/components/user/ArticleDetailPage"
 import ArticleCategoryPage from "@/components/user/ArticleCategoryPage"
 import ArticleSearch from "@/pages/user/ArticleSearch"
 
+import AdminLayout from "@/layouts/AdminLayout";
+import UserLayout from "@/layouts/UserLayout";
+import StaffLayout from "@/layouts/StaffLayout";
+import ShipperLayout from "@/layouts/ShipperLayout";
+import StaffDashboard from "@/pages/staff/StaffDashboard";
+import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
+import ShipperOrders from "@/pages/shipper/ShipperOrders";
+
+import {
+  ADMIN_PATH,
+  AUTH_PATH,
+  PUBLIC_PATH,
+  STAFF_PATH,
+  SHIPPER_PATH,
+} from "@/constants/path";
+import UserLogin from "@/pages/auth/UserLogin";
+import AdminLogin from "@/pages/auth/AdminLogin";
+import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent";
+import {
+  AdminRoute,
+  StaffRoute,
+  ShipperRoute,
+  UserRoute,
+} from "@/components/auth/ProtectedRoute";
+import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect";
+import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper";
+import Error401 from "@/pages/error/Error401";
+import Promotions from "@/pages/admin/Promotions";
+import AddPromotion from "@/pages/admin/AddPromotion";
+import EditPromotion from "@/pages/admin/EditPromotion";
+import Vouchers from "@/pages/admin/Vouchers";
+import VoucherForm from "@/pages/admin/VoucherForm";
+import UserRegister from "@/pages/auth/UserRegister";
+import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
 
 const useRouteElements = () => {
   return useRoutes([
     {
       path: "/",
-      element: <RoleBasedRedirect />
+      element: <RoleBasedRedirect />,
     },
     {
       path: PUBLIC_PATH.HOME,
@@ -69,7 +103,19 @@ const useRouteElements = () => {
             <UserRoute>
               <Cart />
             </UserRoute>
-          )
+          ),
+        },
+        {
+          path: "checkout",
+          element: (
+            <UserRoute>
+              <Checkout />
+            </UserRoute>
+          ),
+        },
+        {
+          path: "payment-status",
+          element: <PaymentStatus />,
         },
         {
           path: "profile",
@@ -81,11 +127,12 @@ const useRouteElements = () => {
           children: [
             {
               path: "membership",
-              element: <Membership />
-            }
-          ]
+              element: <Membership />,
+            },
+            { path: "addresses", element: <AddressPage /> },
+          ],
         },
-      ]
+      ],
     },
 
     // Article routes - Sforum homepage
@@ -135,7 +182,7 @@ const useRouteElements = () => {
         <RoleBasedAuthWrapper>
           <UserLogin />
         </RoleBasedAuthWrapper>
-      )
+      ),
     },
     {
       path: AUTH_PATH.REGISTER_USER,
@@ -143,7 +190,7 @@ const useRouteElements = () => {
         <RoleBasedAuthWrapper>
           <UserRegister />
         </RoleBasedAuthWrapper>
-      )
+      ),
     },
     {
       path: AUTH_PATH.LOGIN_ADMIN,
@@ -151,11 +198,11 @@ const useRouteElements = () => {
         <RoleBasedAuthWrapper>
           <AdminLogin />
         </RoleBasedAuthWrapper>
-      )
+      ),
     },
     {
       path: AUTH_PATH.GOOGLE_CALLBACK,
-      element: <AuthCallbackComponent />
+      element: <AuthCallbackComponent />,
     },
 
     // Admin routes
@@ -180,6 +227,8 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
         { path: ADMIN_PATH.STAFFS, element: <Staffs /> },
         { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> },
+        { path: ADMIN_PATH.PROMOTION_ADD, element: <AddPromotion /> },
+        { path: "/admin/promotions/edit/:id", element: <EditPromotion /> },
         { path: ADMIN_PATH.VOUCHERS, element: <Vouchers /> },
         { path: "/admin/vouchers/create", element: <VoucherForm /> },
         { path: "/admin/vouchers/edit/:id", element: <VoucherForm /> },
@@ -188,7 +237,8 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.ARTICLE_ADD, element: <AddArticle /> },
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
-      ]
+        { path: "category-brand-assignment", element: <CategoryBrandAssignmentPage />},
+      ],
     },
 
     // Staff routes
@@ -204,7 +254,7 @@ const useRouteElements = () => {
         { path: STAFF_PATH.PRODUCTS, element: <Products /> },
         { path: STAFF_PATH.ORDERS, element: <Orders /> },
         { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
-      ]
+      ],
     },
 
     // Shipper routes
@@ -219,17 +269,17 @@ const useRouteElements = () => {
         { index: true, element: <ShipperDashboard /> },
         { path: SHIPPER_PATH.ORDERS, element: <ShipperOrders /> },
         { path: SHIPPER_PATH.DELIVERIES, element: <ShipperOrders /> },
-      ]
+      ],
     },
     {
       path: "/error-401",
-      element: <Error401 />
+      element: <Error401 />,
     },
     {
       path: "*",
-      element: <Home />
-    }
-  ])
-}
+      element: <Home />,
+    },
+  ]);
+};
 
-export default useRouteElements
+export default useRouteElements;

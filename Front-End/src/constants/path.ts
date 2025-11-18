@@ -22,10 +22,13 @@ export const ADMIN_PATH = {
   VARIANTS: "/admin/variants",
   STAFFS: "/admin/staffs",
   PROMOTIONS: "/admin/promotions",
+  PROMOTION_ADD: "/admin/promotions/add",
+  PROMOTION_EDIT: "/admin/promotions/edit/:id",
   VOUCHERS: "/admin/vouchers",
   ARTICLES: "/admin/articles",
   ARTICLE_ADD: "/admin/articles/add",
   ARTICLE_CATEGORIES: "/admin/article-categories",
+  CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
 };
 
 // Staff paths
