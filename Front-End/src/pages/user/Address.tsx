@@ -5,8 +5,20 @@ import { provinceService } from "@/services/province.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
+import {
+  MapPin,
+  Plus,
+  Edit,
+  Trash2,
+  Star,
+  Phone,
+  Loader2,
+  X,
+  CheckCircle2,
+} from "lucide-react";
 import type { Address, CreateAddressRequest } from "@/types/address.type";
 import type { Province } from "@/types/province.type";
 import type { Ward } from "@/types/ward.type";
@@ -153,8 +165,7 @@ const Address: React.FC = () => {
         isDefault: address.isDefault,
       });
 
-      // ✅ Lấy provinceId và wardId từ address
-      const provinceId = address.province?.id || address.wardId;
+      // ✅ Lấy wardId từ address
       const wardId = address.ward?.id || address.wardId;
 
       if (wardId) {
@@ -316,156 +327,223 @@ const Address: React.FC = () => {
   };
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold">Danh sách địa chỉ</h2>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Địa chỉ nhận hàng</h1>
+        <p className="text-gray-600">
+          Quản lý địa chỉ giao hàng của bạn ({addresses.length} địa chỉ)
+        </p>
+      </div>
+
+      {/* Thông báo lỗi chung */}
+      {errorMessage && (
+        <Alert className="mb-6 bg-red-50 border-red-200">
+          <AlertTitle>Có lỗi xảy ra</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Thông báo thành công */}
+      {successMessage && (
+        <Alert className="mb-6 bg-green-50 border-green-200">
+          <AlertTitle>Thành công</AlertTitle>
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Header với nút thêm */}
+      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-red-600" />
+            <span className="font-medium text-gray-900">
+              Danh sách địa chỉ
+            </span>
+          </div>
           <Button
             onClick={() => openModal()}
             className="inline-flex items-center gap-2"
           >
-            <span className="text-lg">➕</span>
-            <span className="font-medium">Thêm địa chỉ</span>
+            <span>Thêm địa chỉ mới</span>
           </Button>
         </div>
+      </div>
 
-        {/* Thông báo lỗi chung */}
-        {errorMessage && (
-          <Alert className="mb-4 bg-red-50 border-red-200">
-            <AlertTitle>Có lỗi xảy ra</AlertTitle>
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Thông báo thành công */}
-        {successMessage && (
-          <Alert className="mb-4 bg-green-50 border-green-200">
-            <AlertTitle>Thành công</AlertTitle>
-            <AlertDescription>{successMessage}</AlertDescription>
-          </Alert>
-        )}
-
-        {loading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Đang tải...</p>
-          </div>
-        ) : addresses.length === 0 ? (
-          <div className="text-center py-8 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">Chưa có địa chỉ nào.</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Nhấn nút "Thêm địa chỉ" để tạo địa chỉ giao hàng đầu tiên
-            </p>
-          </div>
-        ) : (
-          <ul className="grid gap-4">
-            {addresses.map((address) => (
-              <li
-                key={address.id}
-                className={`p-4 rounded-2xl flex justify-between items-start shadow-sm hover:shadow-lg transition-transform transform hover:-translate-y-1 bg-white ${
-                  address.isDefault ? "ring-1 ring-green-200" : ""
-                }`}
-              >
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-lg leading-tight">
+      {loading ? (
+        <Card>
+          <CardContent className="p-12">
+            <div className="flex flex-col items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
+              <p className="text-gray-600">Đang tải danh sách địa chỉ...</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : addresses.length === 0 ? (
+        <Card>
+          <CardContent className="p-12">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Chưa có địa chỉ nào
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Thêm địa chỉ giao hàng đầu tiên của bạn để bắt đầu mua sắm
+              </p>
+              <Button onClick={() => openModal()} className="inline-flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                <span>Thêm địa chỉ mới</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {addresses.map((address) => (
+            <Card
+              key={address.id}
+              className={`transition-all duration-300 hover:shadow-lg ${
+                address.isDefault
+                  ? "ring-2 ring-green-500 border-green-200 bg-green-50/30"
+                  : "hover:border-gray-300"
+              }`}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="font-semibold text-lg text-gray-900">
                         {address.fullName}
-                      </p>
+                      </h3>
                       {address.isDefault && (
-                        <span className="inline-block mt-1 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                        <Badge className="bg-green-600 text-white">
+                          <Star className="w-3 h-3 mr-1 fill-white" />
                           Mặc định
-                        </span>
+                        </Badge>
                       )}
                     </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Phone className="w-4 h-4 shrink-0" />
+                        <span>{address.phone}</span>
+                      </div>
+
+                      <div className="flex items-start gap-2 text-gray-700">
+                        <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium">{address.subAddress}</p>
+                          {address.fullAddress && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              {address.fullAddress.replace(/\b[Pp]hường\s*/g, "")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-gray-600 mb-1">📞 {address.phone}</p>
-                  <p className="text-gray-700 mb-1 truncate">
-                    📍 {address.subAddress}
-                  </p>
-                  {address.fullAddress && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {address.fullAddress.replace(/\b[Pp]hường\s*/g, "")}
-                    </p>
-                  )}
-                </div>
 
-                <div className="flex flex-col gap-2 ml-4">
-                  {!address.isDefault && (
-                    <button
-                      onClick={() => handleSetDefault(address.id)}
-                      className="bg-yellow-400 text-white px-3 py-1 rounded-lg hover:brightness-95 transition text-sm"
-                      title="Đặt làm địa chỉ mặc định"
+                  <div className="flex flex-col gap-2 ml-4 shrink-0">
+                    {!address.isDefault && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSetDefault(address.id)}
+                        className="inline-flex items-center gap-2"
+                        title="Đặt làm địa chỉ mặc định"
+                      >
+                        <Star className="w-4 h-4" />
+                        <span className="hidden sm:inline">Mặc định</span>
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openModal(address)}
+                      className="inline-flex items-center gap-2"
+                      title="Chỉnh sửa địa chỉ"
                     >
-                      ⭐
-                    </button>
-                  )}
-                  <button
-                    onClick={() => openModal(address)}
-                    className="bg-indigo-600 text-white px-3 py-1 rounded-lg hover:brightness-95 transition text-sm"
-                    title="Chỉnh sửa địa chỉ"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDelete(address.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded-lg hover:brightness-95 transition text-sm"
-                    title="Xóa địa chỉ"
-                  >
-                    🗑️
-                  </button>
+                      <Edit className="w-4 h-4" />
+                      <span className="hidden sm:inline">Sửa</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(address.id)}
+                      className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Xóa địa chỉ"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Xóa</span>
+                    </Button>
+                  </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-        {/* Modal thêm/sửa địa chỉ */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-semibold">
-                  {editingAddress
-                    ? "✏️ Chỉnh sửa địa chỉ"
-                    : "➕ Thêm địa chỉ mới"}
-                </h3>
-                <button
-                  onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-700 rounded-full p-2"
-                  aria-label="Close modal"
-                >
-                  ×
-                </button>
-              </div>
+      {/* Modal thêm/sửa địa chỉ */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h3 className="text-xl font-semibold flex items-center gap-2">
+                {editingAddress ? (
+                  <>
+                    <Edit className="w-5 h-5" />
+                    Chỉnh sửa địa chỉ
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5" />
+                    Thêm địa chỉ mới
+                  </>
+                )}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeModal}
+                className="h-8 w-8 p-0"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="p-6">
 
               {/* Lỗi validation trong modal */}
               {Object.keys(errors).length > 0 && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 font-semibold text-sm mb-2">
-                    ❌ Lỗi:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1">
-                    {Object.entries(errors).map(([field, error]) => (
-                      <li key={field} className="text-red-700 text-sm">
-                        {error}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <Alert className="mb-4 bg-red-50 border-red-200">
+                  <AlertTitle className="text-red-800">Lỗi xác thực</AlertTitle>
+                  <AlertDescription>
+                    <ul className="list-disc list-inside space-y-1 mt-2">
+                      {Object.entries(errors).map(([field, error]) => (
+                        <li key={field} className="text-red-700 text-sm">
+                          {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Họ và tên
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Họ và tên <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="VD: Nguyễn Văn A"
-                    className={`border rounded w-full p-2 focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
                       errors.fullName
                         ? "border-red-500 focus:ring-red-500"
-                        : "focus:ring-blue-500"
+                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
                     }`}
                     value={formData.fullName}
                     onChange={(e) =>
@@ -480,16 +558,16 @@ const Address: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
-                    Số điện thoại
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Số điện thoại <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     placeholder="VD: 0912345678"
-                    className={`border rounded w-full p-2 focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
                       errors.phone
                         ? "border-red-500 focus:ring-red-500"
-                        : "focus:ring-blue-500"
+                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
                     }`}
                     value={formData.phone}
                     onChange={(e) =>
@@ -503,14 +581,17 @@ const Address: React.FC = () => {
 
                 {/* Province select */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Tỉnh / Thành phố <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`border rounded w-full p-2 focus:outline-none focus:ring-2 ${
-                      errors.provinceId
+                      disabled={provincesLoading}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                      provincesLoading
+                        ? "bg-gray-100 cursor-not-allowed text-gray-500"
+                        : errors.provinceId
                         ? "border-red-500 focus:ring-red-500"
-                        : "focus:ring-blue-500"
+                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
                     }`}
                     value={selectedProvince}
                     onChange={(e) => {
@@ -525,7 +606,11 @@ const Address: React.FC = () => {
                       });
                     }}
                   >
-                    <option value="">-- Chọn tỉnh / thành phố --</option>
+                    <option value="">
+                      {provincesLoading
+                        ? "Đang tải..."
+                        : "-- Chọn tỉnh / thành phố --"}
+                    </option>
                     {provinces.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -541,17 +626,17 @@ const Address: React.FC = () => {
 
                 {/* Ward select */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Quận / Xã <span className="text-red-500">*</span>
                   </label>
                   <select
                     disabled={!selectedProvince || wardsLoading}
-                    className={`border rounded w-full p-2 focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
                       !selectedProvince || wardsLoading
-                        ? "bg-gray-100 cursor-not-allowed"
+                        ? "bg-gray-100 cursor-not-allowed text-gray-500"
                         : errors.wardId
                         ? "border-red-500 focus:ring-red-500"
-                        : "focus:ring-blue-500"
+                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
                     }`}
                     value={selectedWard}
                     onChange={(e) => {
@@ -565,7 +650,14 @@ const Address: React.FC = () => {
                     }}
                   >
                     <option value="">
-                      {wardsLoading ? "Đang tải..." : "-- Chọn quận / xã --"}
+                      {wardsLoading ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Đang tải...
+                        </span>
+                      ) : (
+                        "-- Chọn quận / xã --"
+                      )}
                     </option>
                     {wards.map((w) => (
                       <option key={w.id} value={w.id}>
@@ -579,15 +671,16 @@ const Address: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Địa chỉ cụ thể <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     placeholder="VD: Số 123, Đường Nguyễn Văn Linh"
-                    className={`border rounded w-full p-2 focus:outline-none focus:ring-2 min-h-[80px] ${
+                    rows={3}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors resize-none ${
                       errors.subAddress
                         ? "border-red-500 focus:ring-red-500"
-                        : "focus:ring-blue-500"
+                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
                     }`}
                     value={formData.subAddress}
                     onChange={(e) =>
@@ -601,9 +694,10 @@ const Address: React.FC = () => {
                   )}
                 </div>
 
-                <label className="flex items-center space-x-2 cursor-pointer">
+                <div className="flex items-center space-x-2 pt-2">
                   <input
                     type="checkbox"
+                    id="isDefault"
                     checked={formData.isDefault}
                     onChange={(e) =>
                       setFormData({
@@ -611,40 +705,56 @@ const Address: React.FC = () => {
                         isDefault: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500 border-gray-300"
                   />
-                  <span className="text-sm text-gray-700">
+                  <label
+                    htmlFor="isDefault"
+                    className="text-sm text-gray-700 cursor-pointer flex items-center gap-2"
+                  >
+                    <Star className="w-4 h-4 text-yellow-500" />
                     Đặt làm địa chỉ mặc định
-                  </span>
-                </label>
+                  </label>
+                </div>
               </div>
 
-              <div className="mt-6 flex justify-end space-x-2">
-                <button
+              <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
                   onClick={closeModal}
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+                  disabled={
+                    addAddressMutation.isLoading ||
+                    updateAddressMutation.isLoading
+                  }
                 >
-                  Hủy
-                </button>
-                <button
+                  Hủy 
+                </Button>
+                <Button
                   onClick={handleSave}
                   disabled={
                     addAddressMutation.isLoading ||
                     updateAddressMutation.isLoading
                   }
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   {addAddressMutation.isLoading ||
-                  updateAddressMutation.isLoading
-                    ? "⏳ Đang lưu..."
-                    : "💾 Lưu"}
-                </button>
+                  updateAddressMutation.isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Lưu địa chỉ
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 };
 
