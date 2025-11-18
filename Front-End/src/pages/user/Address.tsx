@@ -23,7 +23,7 @@ import type { Address, CreateAddressRequest } from "@/types/address.type";
 import type { Province } from "@/types/province.type";
 import type { Ward } from "@/types/ward.type";
 
-const Address: React.FC = () => {
+export default function Address() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState<CreateAddressRequest>({
@@ -758,4 +758,3 @@ const Address: React.FC = () => {
   );
 };
 
-export default Address;

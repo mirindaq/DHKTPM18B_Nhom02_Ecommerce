@@ -1,4 +1,3 @@
-// src/routes/useRouteElements.tsx
 import { useRoutes } from "react-router"
 import Dashboard from "@/pages/admin/Dashboard"
 import Products from "@/pages/admin/Products"
@@ -21,13 +20,6 @@ import ProductDetail from "@/pages/user/ProductDetail"
 import Cart from "@/pages/user/Cart"
 import Profile from "@/pages/user/Profile"
 import Membership from "@/pages/user/Membership"
-import AdminLayout from "@/layouts/AdminLayout"
-import UserLayout from "@/layouts/UserLayout"
-import StaffLayout from "@/layouts/StaffLayout"
-import ShipperLayout from "@/layouts/ShipperLayout"
-import StaffDashboard from "@/pages/staff/StaffDashboard"
-import ShipperDashboard from "@/pages/shipper/ShipperDashboard"
-import ShipperOrders from "@/pages/shipper/ShipperOrders"
 import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH, STAFF_PATH, SHIPPER_PATH } from "@/constants/path"
 import UserLogin from "@/pages/auth/UserLogin"
 import AdminLogin from "@/pages/auth/AdminLogin"
@@ -53,33 +45,13 @@ import ShipperLayout from "@/layouts/ShipperLayout";
 import StaffDashboard from "@/pages/staff/StaffDashboard";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
 import ShipperOrders from "@/pages/shipper/ShipperOrders";
-
-import {
-  ADMIN_PATH,
-  AUTH_PATH,
-  PUBLIC_PATH,
-  STAFF_PATH,
-  SHIPPER_PATH,
-} from "@/constants/path";
-import UserLogin from "@/pages/auth/UserLogin";
-import AdminLogin from "@/pages/auth/AdminLogin";
-import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent";
-import {
-  AdminRoute,
-  StaffRoute,
-  ShipperRoute,
-  UserRoute,
-} from "@/components/auth/ProtectedRoute";
-import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect";
-import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper";
-import Error401 from "@/pages/error/Error401";
-import Promotions from "@/pages/admin/Promotions";
-import AddPromotion from "@/pages/admin/AddPromotion";
-import EditPromotion from "@/pages/admin/EditPromotion";
-import Vouchers from "@/pages/admin/Vouchers";
-import VoucherForm from "@/pages/admin/VoucherForm";
-import UserRegister from "@/pages/auth/UserRegister";
 import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
+import Checkout from "@/pages/user/Checkout"
+import PaymentStatus from "@/pages/user/PaymentStatus"
+import AddPromotion from "@/pages/admin/AddPromotion"
+import EditPromotion from "@/pages/admin/EditPromotion"
+import Address from "@/pages/user/Address"
+
 
 const useRouteElements = () => {
   return useRoutes([
@@ -129,7 +101,7 @@ const useRouteElements = () => {
               path: "membership",
               element: <Membership />,
             },
-            { path: "addresses", element: <AddressPage /> },
+            { path: "addresses", element: <Address /> },
           ],
         },
       ],

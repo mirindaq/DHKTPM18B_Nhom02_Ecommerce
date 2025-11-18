@@ -202,7 +202,8 @@ public class OrderServiceImpl implements OrderService {
             }
             case PAY_OS -> {
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
-                return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds);
+                return "";
+//                return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds);
             }
             default -> throw new InvalidParamException("Unsupported payment method");
         }
