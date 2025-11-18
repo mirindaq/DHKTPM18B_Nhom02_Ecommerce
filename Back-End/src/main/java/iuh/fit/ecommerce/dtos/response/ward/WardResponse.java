@@ -1,13 +1,14 @@
 package iuh.fit.ecommerce.dtos.response.ward;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class WardResponse {
-    private String code;
+    private Integer id;
     private String name;
-    private String provinceCode;
+    private Integer provinceId;
 }

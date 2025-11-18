@@ -19,5 +19,6 @@ public interface CategoryService {
     CategoryResponse updateCategory(Long id, @Valid CategoryAddRequest request);
 
     void changeStatusCategory(Long id);
+
     Category getCategoryEntityById(Long id);
 }

@@ -138,6 +138,16 @@ export default function Profile() {
       active: activeSidebarMenu === "Lịch sử mua hàng",
       onClick: () => handleMenuClick("Lịch sử mua hàng", "orders"),
     },
+    {
+      icon: <MapPin size={20} />,
+      label: "Địa chỉ nhận hàng",
+      active: location.pathname.includes("/profile/addresses"),
+      onClick: () => {
+        setActiveSidebarMenu("Địa chỉ nhận hàng");
+        navigate(`${PUBLIC_PATH.HOME}profile/addresses`);
+      },
+    },
+
     { icon: <Search size={20} />, label: "Tra cứu bảo hành" },
     {
       icon: <Heart size={20} />,
@@ -570,7 +580,7 @@ export default function Profile() {
 
           {/* Main Content Area */}
           <div className="col-span-9">
-            {location.pathname.includes("/profile/membership") ? (
+            {location.pathname.startsWith("/profile/") ? (
               <Outlet />
             ) : (
               <Card>

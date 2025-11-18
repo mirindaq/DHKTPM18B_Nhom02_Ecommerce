@@ -63,6 +63,12 @@ payment:
     version: 2.1.0
     command: pay
     orderType: other
+  pay_os:
+    client-id: 123
+    api-key: 123
+    checksum-key: 123
+    return-url: 123
+    cancel-url: 123
 
 cloudinary:
   url: ${CLOUDINARY_URL}

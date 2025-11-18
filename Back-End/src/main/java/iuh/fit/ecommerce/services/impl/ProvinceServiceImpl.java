@@ -21,22 +21,29 @@ public class ProvinceServiceImpl implements ProvinceService {
     @Override
     public List<ProvinceResponse> getAllProvinces() {
         return provinceRepository.findAll().stream()
-                .map(p -> new ProvinceResponse(p.getCode(), p.getName()))
+                .map(p -> new ProvinceResponse(p.getId(), p.getName()))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<WardResponse> getWardsByProvince(String provinceCode) {
-        return wardRepository.findByProvince_Code(provinceCode).stream()
-                .map(w -> new WardResponse(w.getCode(), w.getName(), w.getProvince().getCode()))
+    public List<WardResponse> getWardsByProvince(Integer provinceId) {
+        return wardRepository.findByProvince_Id(provinceId).stream()
+                .map(w -> new WardResponse(
+                        w.getId(),
+                        w.getName(),
+                        w.getProvince().getId()
+                ))
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<WardResponse> getAllWards() {
         return wardRepository.findAll().stream()
-                .map(w -> new WardResponse(w.getCode(), w.getName(), w.getProvince().getCode()))
+                .map(w -> new WardResponse(
+                        w.getId(),
+                        w.getName(),
+                        w.getProvince().getId()
+                ))
                 .collect(Collectors.toList());
     }
-
-
 }

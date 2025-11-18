@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { productService } from '@/services/product.service'
+import { articleService } from '@/services/article.service'
 import ProductCard from '@/components/user/ProductCard'
+import ArticleCard from '@/components/user/ArticleCard'
 import HeroBanner from '@/components/user/HeroBanner'
 import CategorySection from '@/components/user/CategorySection'
 import BrandSection from '@/components/user/BrandSection'
@@ -10,8 +12,11 @@ import { Input } from '@/components/ui/input'
 import { Search, Loader2, X } from 'lucide-react'
 import { useQuery } from '@/hooks'
 import type { ProductListResponse, Product } from '@/types/product.type'
+import type { Article } from '@/types/article.type'
 
 export default function Home() {
+  const [articles, setArticles] = useState<Article[]>([])
+  const [loadingArticles, setLoadingArticles] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [selectedBrand, setSelectedBrand] = useState<number | null>(null)
@@ -58,6 +63,30 @@ export default function Home() {
     return filtered
   }, [allProducts, selectedCategory, selectedBrand])
 
+  // Load articles
+  const loadArticles = async () => {
+    try {
+      setLoadingArticles(true)
+      const response = await articleService.getArticles(1, 100)
+
+      // Sắp xếp tất cả bài viết theo ngày đăng mới nhất
+      const sortedArticles = response.data.data.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+
+      // Giới hạn hiển thị 5 bài đầu tiên
+      setArticles(sortedArticles.slice(0, 5))
+    } catch (error) {
+      console.error('Lỗi khi tải bài viết:', error)
+    } finally {
+      setLoadingArticles(false)
+    }
+  }
+
+  useEffect(() => {
+    loadArticles()
+  }, [])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setCurrentPage(1)
@@ -75,6 +104,9 @@ export default function Home() {
     setSelectedCategory(null)
     setSelectedBrand(null)
     setSearchTerm('')
+    setCurrentPage(1)
+    setAllProducts([])
+    refetchProducts()
   }
 
   return (
@@ -84,7 +116,7 @@ export default function Home() {
         <HeroBanner />
 
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="mb-6 mt-6">
           <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -220,6 +252,31 @@ export default function Home() {
             </>
           )}
         </div>
+
+        {/* Article Section */}
+        <section className="bg-white rounded-lg shadow-sm py-8 px-6 mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Tin tức</h2>
+            <a
+              href="/sforum"
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+            >
+              Xem tất cả →
+            </a>
+          </div>
+
+          {loadingArticles ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {articles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   )

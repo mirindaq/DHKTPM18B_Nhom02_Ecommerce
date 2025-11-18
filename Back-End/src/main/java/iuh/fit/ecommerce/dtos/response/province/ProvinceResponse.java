@@ -1,13 +1,13 @@
 package iuh.fit.ecommerce.dtos.response.province;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-@Builder
+@AllArgsConstructor
 public class ProvinceResponse {
-    private String code;
+    private Integer id;
     private String name;
 }

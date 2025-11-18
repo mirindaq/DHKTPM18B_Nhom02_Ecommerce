@@ -32,6 +32,7 @@ import {
   ChevronRight,
   Newspaper,
   LayoutList,  
+  GitMerge,
 } from "lucide-react"
 
 const navigation = [
@@ -64,6 +65,11 @@ const navigation = [
         title: "Thương hiệu",
         href: "/admin/brands",
         icon: Award,
+      },
+      {
+        title: "Liên kết thương hiệu",
+        href: "/admin/category-brand-assignment",
+        icon: GitMerge,
       },
     ]
   },
