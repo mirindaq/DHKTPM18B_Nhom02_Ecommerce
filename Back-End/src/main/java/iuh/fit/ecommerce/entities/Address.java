@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @Table(name = "address")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,16 +25,15 @@ public class Address {
     @Column
     private String subAddress;
 
-    @Column
-    private Boolean isDefault;
-
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isDefault = false;
 
     @ManyToOne
-    @JoinColumn(name = "ward_code")
+    @JoinColumn(name = "ward_id")
     private Ward ward;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
-
 }

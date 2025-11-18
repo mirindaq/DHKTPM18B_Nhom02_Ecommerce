@@ -12,9 +12,15 @@ public class AddressResponse {
     private String fullName;
     private String phone;
     private String subAddress;
-    private Boolean isDefault;
 
+    @Builder.Default
+    private Boolean isDefault = false;
+
+    private Integer wardId;
     private String wardName;
+
+    private Integer provinceId;
     private String provinceName;
+
     private String fullAddress;
 }
