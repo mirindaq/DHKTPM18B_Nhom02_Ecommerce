@@ -1,29 +1,50 @@
 // src/routes/useRouteElements.tsx
-import { useRoutes } from "react-router";
-import Dashboard from "@/pages/admin/Dashboard";
-import Products from "@/pages/admin/Products";
-import AddProduct from "@/pages/admin/AddProduct";
-import EditProduct from "@/pages/admin/EditProduct";
-import Categories from "@/pages/admin/Categories";
-import Customers from "@/pages/admin/Customers";
-import Articles from "@/pages/admin/Articles";
-import AddArticle from "@/pages/admin/AddArticle";
-import EditArticle from "@/pages/admin/EditArticle";
-import ArticleCategories from "@/pages/admin/ArticleCategories";
-import Orders from "@/pages/admin/Orders";
-import Settings from "@/pages/admin/Settings";
-import Analytics from "@/pages/admin/Analytics";
-import Brands from "@/pages/admin/Brands";
-import Variants from "@/pages/admin/Variants";
-import Staffs from "@/pages/admin/Staff";
-import Home from "@/pages/user/Home";
-import ProductDetail from "@/pages/user/ProductDetail";
-import Cart from "@/pages/user/Cart";
-import Checkout from "@/pages/user/Checkout";
-import Profile from "@/pages/user/Profile";
-import Membership from "@/pages/user/Membership";
-import PaymentStatus from "@/pages/user/PaymentStatus";
-import AddressPage from "@/pages/user/Address";
+import { useRoutes } from "react-router"
+import Dashboard from "@/pages/admin/Dashboard"
+import Products from "@/pages/admin/Products"
+import AddProduct from "@/pages/admin/AddProduct"
+import EditProduct from "@/pages/admin/EditProduct"
+import Categories from "@/pages/admin/Categories"
+import Customers from "@/pages/admin/Customers"
+import Articles from "@/pages/admin/Articles"
+import AddArticle from "@/pages/admin/AddArticle"
+import EditArticle from "@/pages/admin/EditArticle"
+import ArticleCategories from "@/pages/admin/ArticleCategories"
+import Orders from "@/pages/admin/Orders"
+import Settings from "@/pages/admin/Settings"
+import Analytics from "@/pages/admin/Analytics"
+import Brands from "@/pages/admin/Brands"
+import Variants from "@/pages/admin/Variants"
+import Staffs from "@/pages/admin/Staff"
+import Home from "@/pages/user/Home"
+import ProductDetail from "@/pages/user/ProductDetail"
+import Cart from "@/pages/user/Cart"
+import Profile from "@/pages/user/Profile"
+import Membership from "@/pages/user/Membership"
+import AdminLayout from "@/layouts/AdminLayout"
+import UserLayout from "@/layouts/UserLayout"
+import StaffLayout from "@/layouts/StaffLayout"
+import ShipperLayout from "@/layouts/ShipperLayout"
+import StaffDashboard from "@/pages/staff/StaffDashboard"
+import ShipperDashboard from "@/pages/shipper/ShipperDashboard"
+import ShipperOrders from "@/pages/shipper/ShipperOrders"
+import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH, STAFF_PATH, SHIPPER_PATH } from "@/constants/path"
+import UserLogin from "@/pages/auth/UserLogin"
+import AdminLogin from "@/pages/auth/AdminLogin"
+import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent"
+import { AdminRoute, StaffRoute, ShipperRoute, UserRoute } from "@/components/auth/ProtectedRoute"
+import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect"
+import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper"
+import Error401 from "@/pages/error/Error401"
+import Promotions from "@/pages/admin/Promotions"
+import Vouchers from "@/pages/admin/Vouchers"
+import VoucherForm from "@/pages/admin/VoucherForm"
+import UserRegister from "@/pages/auth/UserRegister"
+import ArticleLayout from "@/layouts/ArticleLayout"
+import ArticleHomePage from "@/components/user/ArticleHomePage"
+import ArticleDetailPage from "@/components/user/ArticleDetailPage"
+import ArticleCategoryPage from "@/components/user/ArticleCategoryPage"
+import ArticleSearch from "@/pages/user/ArticleSearch"
 
 import AdminLayout from "@/layouts/AdminLayout";
 import UserLayout from "@/layouts/UserLayout";
@@ -114,6 +135,46 @@ const useRouteElements = () => {
       ],
     },
 
+    // Article routes - Sforum homepage
+    {
+      path: "/sforum",
+      element: (
+        <RoleBasedAuthWrapper>
+          <ArticleLayout />
+        </RoleBasedAuthWrapper>
+      ),
+      children: [
+        { index: true, element: <ArticleHomePage /> },
+        { path: "search", element: <ArticleSearch /> },
+      ]
+    },
+
+    // Article detail route
+    {
+      path: "/article/:slug",
+      element: (
+        <RoleBasedAuthWrapper>
+          <ArticleLayout />
+        </RoleBasedAuthWrapper>
+      ),
+      children: [
+        { index: true, element: <ArticleDetailPage /> },
+      ]
+    },
+
+    // Article category route
+    {
+      path: "/category/:slug",
+      element: (
+        <RoleBasedAuthWrapper>
+          <ArticleLayout />
+        </RoleBasedAuthWrapper>
+      ),
+      children: [
+        { index: true, element: <ArticleCategoryPage /> },
+      ]
+    },
+
     // Auth routes
     {
       path: AUTH_PATH.LOGIN_USER,
@@ -144,7 +205,7 @@ const useRouteElements = () => {
       element: <AuthCallbackComponent />,
     },
 
-    // Admin routes (chỉ admin mới truy cập được)
+    // Admin routes
     {
       path: ADMIN_PATH.DASHBOARD,
       element: (
@@ -180,7 +241,7 @@ const useRouteElements = () => {
       ],
     },
 
-    // Staff routes (admin và staff có thể truy cập)
+    // Staff routes
     {
       path: STAFF_PATH.DASHBOARD,
       element: (
@@ -196,7 +257,7 @@ const useRouteElements = () => {
       ],
     },
 
-    // Shipper routes (chỉ shipper mới truy cập được)
+    // Shipper routes
     {
       path: SHIPPER_PATH.DASHBOARD,
       element: (

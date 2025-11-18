@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Edit, Loader2, PowerOff, Power, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,19 +7,13 @@ import { Badge } from "@/components/ui/badge";
 interface Props {
   articles: Article[];
   onEdit: (article: Article) => void;
-  onSearch: (value: string) => void;
   onToggleStatus: (id: number) => void;
   isLoading?: boolean;
   currentPage?: number;
   pageSize?: number;
 }
 
-export default function ArticleTable({ articles, onEdit, onSearch, onToggleStatus, isLoading, currentPage = 1, pageSize = 7 }: Props) {
-  const [search, setSearch] = useState("");
-
-  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") onSearch(search);
-  };
+export default function ArticleTable({ articles, onEdit, onToggleStatus, isLoading, currentPage = 1, pageSize = 7 }: Props) {
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("vi-VN", {
@@ -74,10 +67,10 @@ export default function ArticleTable({ articles, onEdit, onSearch, onToggleStatu
                     </div>
                     <div className="space-y-2">
                       <p className="text-lg font-medium text-gray-600">
-                        {search ? "Không tìm thấy bài viết nào" : "Chưa có bài viết nào"}
+                        Không tìm thấy bài viết nào
                       </p>
                       <p className="text-sm text-gray-400">
-                        {search ? "Thử tìm kiếm với từ khóa khác" : "Hãy thêm bài viết đầu tiên"}
+                        Thử tìm kiếm với từ khóa khác hoặc thêm bài viết mới
                       </p>
                     </div>
                   </div>
