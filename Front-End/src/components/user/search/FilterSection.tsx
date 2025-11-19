@@ -15,12 +15,27 @@ import {
 import type { Variant } from '@/types/variant.type';
 import { useState, useEffect, useRef } from 'react';
 
+interface SearchFilters {
+  brands?: number[];
+  inStock?: boolean;
+  priceMin?: number;
+  priceMax?: number;
+  variants?: { [variantId: number]: number[] };
+}
+
 interface FilterSectionProps {
   variants: Variant[];
   loading?: boolean;
+  filters?: SearchFilters;
+  onFilterChange?: (filters: SearchFilters) => void;
 }
 
-export default function FilterSection({ variants, loading }: FilterSectionProps) {
+export default function FilterSection({ 
+  variants, 
+  loading,
+  filters: externalFilters,
+  onFilterChange 
+}: FilterSectionProps) {
   const [selectedFilters, setSelectedFilters] = useState<{
     inStock?: boolean;
     priceView?: boolean;
@@ -32,6 +47,23 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
   const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
   const [selectedVariantValues, setSelectedVariantValues] = useState<{ [variantId: number]: number[] }>({});
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  useEffect(() => {
+    if (externalFilters) {
+      if (externalFilters.inStock) {
+        setSelectedFilters(prev => ({ ...prev, inStock: true }));
+      }
+      if (externalFilters.priceMin !== undefined || externalFilters.priceMax !== undefined) {
+        setPriceRange([
+          externalFilters.priceMin || 50000, 
+          externalFilters.priceMax || 10000000
+        ]);
+      }
+      if (externalFilters.variants) {
+        setSelectedVariantValues(externalFilters.variants);
+      }
+    }
+  }, [externalFilters]);
 
   const toggleDropdown = (key: string) => {
     setOpenDropdowns((prev) => {
@@ -77,7 +109,6 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
     { key: 'priceView', label: 'Xem theo giá', icon: DollarSign },
   ];
 
-  // Map variant names to icons (fallback icons)
   const getIconForVariant = (variantName: string) => {
     const name = variantName.toLowerCase();
     if (name.includes('bộ nhớ') || name.includes('dung lượng') || name.includes('storage') || name.includes('memory')) {
@@ -118,7 +149,6 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
     <div className="mb-8">
       <h3 className="text-lg font-semibold mb-4">Chọn theo tiêu chí</h3>
       
-      {/* First Row - Filter Buttons */}
       <div className="flex flex-wrap gap-3 mb-3">
         {filterButtons.map((filter) => {
           const Icon = filter.icon;
@@ -131,10 +161,18 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
                 variant={isActive ? 'default' : 'outline'}
                 onClick={() => {
                   if (filter.key !== 'filter') {
+                    const newValue = !selectedFilters[filter.key];
                     setSelectedFilters((prev) => ({
                       ...prev,
-                      [filter.key]: !prev[filter.key],
+                      [filter.key]: newValue,
                     }));
+                    
+                    if (filter.key === 'inStock' && onFilterChange) {
+                      onFilterChange({
+                        ...externalFilters,
+                        inStock: newValue,
+                      });
+                    }
                   }
                 }}
                 className={
@@ -147,7 +185,6 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
                 {filter.label}
               </Button>
               
-              {/* Price Range Slider Dropdown */}
               {isPriceView && selectedFilters.priceView && (
                 <div 
                   ref={priceDropdownRef}
@@ -184,7 +221,13 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
                       size="sm"
                       onClick={() => {
                         setSelectedFilters((prev) => ({ ...prev, priceView: false }));
-                        // Handle view results with price range
+                        if (onFilterChange) {
+                          onFilterChange({
+                            ...externalFilters,
+                            priceMin: priceRange[0],
+                            priceMax: priceRange[1],
+                          });
+                        }
                       }}
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
@@ -197,7 +240,6 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
           );
         })}
 
-        {/* Dropdown Filters - First Row - Show variants from API */}
         {variants.slice(0, 3).map((variant) => {
           const Icon = getIconForVariant(variant.name);
           const isOpen = openDropdowns[`variant-${variant.id}`];
@@ -267,7 +309,12 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
                         size="sm"
                         onClick={() => {
                           toggleDropdown(`variant-${variant.id}`);
-                          // Handle view results
+                          if (onFilterChange) {
+                            onFilterChange({
+                              ...externalFilters,
+                              variants: selectedVariantValues,
+                            });
+                          }
                         }}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
@@ -282,7 +329,6 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
         })}
       </div>
 
-      {/* Second Row - More Dropdown Filters - Show remaining variants from API */}
       <div className="flex flex-wrap gap-3">
         {variants.slice(3).map((variant) => {
           const Icon = getIconForVariant(variant.name);
@@ -353,7 +399,12 @@ export default function FilterSection({ variants, loading }: FilterSectionProps)
                         size="sm"
                         onClick={() => {
                           toggleDropdown(`variant-${variant.id}`);
-                          // Handle view results
+                          if (onFilterChange) {
+                            onFilterChange({
+                              ...externalFilters,
+                              variants: selectedVariantValues,
+                            });
+                          }
                         }}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >

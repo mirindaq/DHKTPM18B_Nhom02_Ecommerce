@@ -7,6 +7,7 @@ export type Brand = {
   image: string;
   origin: string;
   status: boolean;
+  slug: string;
   createdAt: string;
   modifiedAt: string;
 };
