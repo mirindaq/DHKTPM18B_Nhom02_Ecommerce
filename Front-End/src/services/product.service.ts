@@ -48,5 +48,17 @@ export const productService = {
   getProductsVariantPromotions: async (request: ProductVariantPromotionRequest) => {
     const response = await axiosClient.post<ProductVariantPromotionResponseApi>('/products/variants/promotions', request)
     return response.data
+  },
+
+  searchProducts: async (categorySlug: string, page: number = 1, size: number = 8, filters: Record<string, string> = {}) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+      ...filters
+    })
+    const response = await axiosClient.get<ProductListResponse>(
+      `/products/search/${categorySlug}?${params.toString()}`
+    )
+    return response.data
   }
 }

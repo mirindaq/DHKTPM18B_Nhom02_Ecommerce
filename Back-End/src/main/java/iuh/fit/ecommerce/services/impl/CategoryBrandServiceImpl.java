@@ -98,4 +98,10 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
 
         return categories.stream().map(categoryMapper::toResponse).collect(Collectors.toList());
     }
+
+    @Override
+    public List<BrandResponse> getBrandsByCategorySlug(String slug) {
+        List<Brand> brands = categoryBrandRepository.findBrandsByCategorySlug(slug);
+        return brands.stream().map(brandMapper::toResponse).collect(Collectors.toList());
+    }
 }

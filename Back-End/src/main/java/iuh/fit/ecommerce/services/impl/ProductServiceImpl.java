@@ -141,6 +141,62 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
     }
 
+    @Override
+    public ResponseWithPagination<List<ProductResponse>> searchProductForUser(String categorySlug, int page, int size, Map<String, String> filters) {
+        page = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(page, size);
+        
+        List<String> brandSlugs = parseCommaSeparatedParam(filters.get("brands"));
+        Boolean inStock = parseBooleanParam(filters.get("inStock"));
+        Double priceMin = parseDoubleParam(filters.get("priceMin"));
+        Double priceMax = parseDoubleParam(filters.get("priceMax"));
+        
+        Map<String, List<String>> variantFilters = new java.util.HashMap<>();
+        if (filters != null) {
+            for (Map.Entry<String, String> entry : filters.entrySet()) {
+                String key = entry.getKey();
+                if (!key.equals("brands") && !key.equals("inStock") && 
+                    !key.equals("priceMin") && !key.equals("priceMax")) {
+                    variantFilters.put(key, parseCommaSeparatedParam(entry.getValue()));
+                }
+            }
+        }
+        
+        Page<Product> productPage = productRepository.findAll(
+            iuh.fit.ecommerce.specifications.ProductSpecification.filterProducts(
+                categorySlug, brandSlugs, inStock, priceMin, priceMax, variantFilters
+            ),
+            pageable
+        );
+        
+        return ResponseWithPagination.fromPage(productPage, productMapper::toResponse);
+    }
+    
+    private List<String> parseCommaSeparatedParam(String param) {
+        if (param == null || param.trim().isEmpty()) {
+            return null;
+        }
+        return java.util.Arrays.asList(param.split(","));
+    }
+    
+    private Boolean parseBooleanParam(String param) {
+        if (param == null || param.trim().isEmpty()) {
+            return null;
+        }
+        return Boolean.parseBoolean(param);
+    }
+    
+    private Double parseDoubleParam(String param) {
+        if (param == null || param.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(param);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     private Product buildProduct(ProductAddRequest request, Brand brand, Category category) {
         Product product = new Product();
         productMapper.requestToEntity(request, product);

@@ -56,4 +56,15 @@ public class CategoryBrandController {
                 null
         ));
     }
+
+    @GetMapping("/categories/slug/{slug}/brands")
+    public ResponseEntity<ResponseSuccess<List<BrandResponse>>> getBrandsByCategorySlug(
+            @PathVariable String slug
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get brands by category success",
+                categoryBrandService.getBrandsByCategorySlug(slug)
+        ));
+    }
 }

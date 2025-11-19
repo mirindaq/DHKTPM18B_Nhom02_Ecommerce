@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import iuh.fit.ecommerce.dtos.request.product.ProductAddRequest;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -90,5 +91,21 @@ public class ProductController {
         ));
     }
 
+    @GetMapping("/search/{categorySlug}")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ProductResponse>>>> searchProductByCategory(
+            @PathVariable String categorySlug,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam Map<String, String> allParams
+    ){
+        allParams.remove("page");
+        allParams.remove("size");
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Search products in category success",
+                productService.searchProductForUser(categorySlug, page, size, allParams)
+        ));
+    }
 
 }

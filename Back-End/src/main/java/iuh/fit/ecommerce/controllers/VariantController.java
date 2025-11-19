@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import iuh.fit.ecommerce.dtos.request.variant.VariantAddRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
@@ -35,7 +36,8 @@ public class VariantController {
         ));
     }
 
-    @GetMapping("/category/{id}")
+    @GetMapping("/category/id/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<List<VariantResponse>>> getVariantsByCategory(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
@@ -81,6 +83,15 @@ public class VariantController {
                 OK,
                 "Change status variant success",
                 null
+        ));
+    }
+
+    @GetMapping("/category/slug/{slug}")
+    public ResponseEntity<ResponseSuccess<List<VariantResponse>>> getVariantsByCategorySlug(@PathVariable String slug) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get variants by category success",
+                variantService.getVariantsByCategorySlug(slug)
         ));
     }
 }

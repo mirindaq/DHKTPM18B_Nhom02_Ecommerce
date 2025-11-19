@@ -26,4 +26,6 @@ public class BrandResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime modifiedAt;
+
+    private String slug;
 }

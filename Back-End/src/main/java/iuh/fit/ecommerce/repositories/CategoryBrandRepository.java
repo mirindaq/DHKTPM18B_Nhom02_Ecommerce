@@ -33,4 +33,10 @@ public interface CategoryBrandRepository extends JpaRepository<CategoryBrand, Lo
             @Param("brandId") Long brandId,
             @Param("categoryName") String categoryName
     );
+
+    @Query("SELECT cb.brand FROM CategoryBrand cb " +
+            "WHERE cb.category.slug = :slug ")
+    List<Brand> findBrandsByCategorySlug(
+            @Param("slug") String slug
+    );
 }

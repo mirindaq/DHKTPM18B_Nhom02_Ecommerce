@@ -98,6 +98,14 @@ public class VariantServiceImpl implements VariantService {
                 .toList();
     }
 
+    @Override
+    public List<VariantResponse> getVariantsByCategorySlug(String slug) {
+        List<Variant> variants = variantRepository.findByStatusAndCategory_Slug(true,slug);
+        return variants.stream()
+                .map(variantMapper::toResponse)
+                .toList();
+    }
+
     private Variant findVariantOrThrow(Long id) {
         return variantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + id));
@@ -105,12 +113,12 @@ public class VariantServiceImpl implements VariantService {
 
 
     private void mapVariantFields(Variant variant, VariantAddRequest request) {
+        Category category = categoryService.getCategoryEntityById(request.getCategoryId());
         variant.setName(request.getName());
-        variant.setSlug(StringUtils.normalizeString(request.getName()));
+        variant.setSlug(StringUtils.normalizeString( request.getName() + category.getName()));
         if (request.getStatus() != null) {
             variant.setStatus(request.getStatus());
         }
-        Category category = categoryService.getCategoryEntityById(request.getCategoryId());
         variant.setCategory(category);
     }
 }
