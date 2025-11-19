@@ -44,32 +44,35 @@ export default function UserLogin() {
 
   // Lắng nghe message từ popup
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
       if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
         const { data } = event.data;
         if (data) {
-          const { accessToken, refreshToken, email, roles } = data;
+          const { accessToken, refreshToken } = data;
 
-          const userProfile: UserProfile = {
-            id: email,
-            email: email,
-            fullName: email.split("@")[0],
-            roles: roles,
-          };
+          try {
+            // 1. Lưu tokens trước
+            AuthStorageUtil.setTokens({ accessToken, refreshToken });
 
-          // Lưu token và data cùng lúc
-          AuthStorageUtil.setTokensAndData(
-            { accessToken, refreshToken },
-            userProfile
-          );
+            // 2. Gọi API getProfile để lấy thông tin user đầy đủ
+            const profileResponse = await authService.getProfile();
+            
+            if (profileResponse.data.status === 200) {
+              const userProfile: UserProfile = profileResponse.data.data;
+              
+              // 3. Lưu user profile vào localStorage và context
+              login(userProfile);
 
-          // Sử dụng UserContext để login
-          login(userProfile);
-
-          toast.success("Đăng nhập thành công!");
-          navigate(PUBLIC_PATH.HOME);
+              toast.success("Đăng nhập thành công!");
+              navigate(PUBLIC_PATH.HOME);
+            }
+          } catch (error) {
+            console.error("Get profile error:", error);
+            toast.error("Không thể lấy thông tin người dùng");
+            AuthStorageUtil.clearAll();
+          }
         }
       } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
         console.error("Login error:", event.data.error);
@@ -79,7 +82,7 @@ export default function UserLogin() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [navigate]);
+  }, [navigate, login]);
 
   const {
     register,
@@ -90,27 +93,31 @@ export default function UserLogin() {
   });
 
   const loginMutation = useMutation<AuthResponse>(authService.login, {
-    onSuccess: (data) => {
-      const userProfile: UserProfile = {
-        id: data.data.email,
-        email: data.data.email,
-        name: data.data.email.split("@")[0],
-        roles: data.data.roles,
-      };
-
-      AuthStorageUtil.setTokensAndData(
-        {
+    onSuccess: async (data) => {
+      try {
+        // 1. Lưu tokens trước
+        AuthStorageUtil.setTokens({
           accessToken: data.data.accessToken,
           refreshToken: data.data.refreshToken,
-        },
-        userProfile
-      );
+        });
 
-      login(userProfile);
+        // 2. Gọi API getProfile để lấy thông tin user đầy đủ
+        const profileResponse = await authService.getProfile();
+        
+        if (profileResponse.data.status === 200) {
+          const userProfile: UserProfile = profileResponse.data.data;
+          
+          // 3. Lưu user profile vào localStorage và context
+          login(userProfile);
 
-      toast.success("Đăng nhập thành công!");
-
-      navigate(PUBLIC_PATH.HOME);
+          toast.success("Đăng nhập thành công!");
+          navigate(PUBLIC_PATH.HOME);
+        }
+      } catch (error) {
+        console.error("Get profile error:", error);
+        toast.error("Không thể lấy thông tin người dùng");
+        AuthStorageUtil.clearAll();
+      }
     },
     onError: (error) => {
       console.error("Login error:", error);

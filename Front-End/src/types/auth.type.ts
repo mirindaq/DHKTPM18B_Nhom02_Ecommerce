@@ -19,16 +19,17 @@ export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
   email: string;
+  fullName: string;
   roles: string[];
 };
 
 export type UserProfile = {
+  id: number;
   email: string;
   fullName: string;
   roles: string[];
   avatar?: string;
   phone?: string;
-  address?: string;
   rank?: Rank;
 };
 

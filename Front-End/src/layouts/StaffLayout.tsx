@@ -12,6 +12,7 @@ const StaffLayout: React.FC = () => {
     { name: 'Sản phẩm', href: STAFF_PATH.PRODUCTS, icon: '📦' },
     { name: 'Đơn hàng', href: STAFF_PATH.ORDERS, icon: '📋' },
     { name: 'Khách hàng', href: STAFF_PATH.CUSTOMERS, icon: '👥' },
+    { name: 'Chat', href: STAFF_PATH.CHAT, icon: '💬' },
   ];
 
   return (

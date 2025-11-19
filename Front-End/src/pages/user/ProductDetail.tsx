@@ -12,8 +12,6 @@ import {
   Settings,
   ChevronRight,
   Shield,
-  Headphones,
-  ArrowUp,
   Zap,
   Truck,
   RotateCcw,
@@ -44,7 +42,6 @@ export default function ProductDetail() {
   const [availableVariants, setAvailableVariants] = useState<{ [key: string]: string[] }>({});
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [questionContent, setQuestionContent] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,15 +132,6 @@ export default function ProductDetail() {
 
     }
   }, [product?.id]);
-
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -312,10 +300,6 @@ export default function ProductDetail() {
       content: content.trim(),
       productQuestionId: questionId
     });
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Handle variant selection
@@ -832,25 +816,6 @@ export default function ProductDetail() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Floating Buttons */}
-      {showScrollTop && (
-        <div className="fixed bottom-6 right-6 space-y-3 space-x-3 z-50">
-          <Button
-            onClick={scrollToTop}
-            size="lg"
-            className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-          >
-            <ArrowUp className="w-6 h-6" />
-          </Button>
-          <Button
-            size="lg"
-            className="w-14 h-14 rounded-full bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-          >
-            <Headphones className="w-6 h-6" />
-          </Button>
-        </div>
-      )}
 
       {/* Login Modal */}
       <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />

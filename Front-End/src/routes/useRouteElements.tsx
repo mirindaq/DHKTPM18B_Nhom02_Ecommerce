@@ -52,6 +52,8 @@ import PaymentStatus from "@/pages/user/PaymentStatus"
 import AddPromotion from "@/pages/admin/AddPromotion"
 import EditPromotion from "@/pages/admin/EditPromotion"
 import Address from "@/pages/user/Address"
+import CustomerChat from "@/pages/user/CustomerChat"
+import ChatManagement from "@/pages/admin/ChatManagement"
 
 
 const useRouteElements = () => {
@@ -90,6 +92,14 @@ const useRouteElements = () => {
         {
           path: "payment-status",
           element: <PaymentStatus />,
+        },
+        {
+          path: "chat",
+          element: (
+            <UserRoute>
+              <CustomerChat />
+            </UserRoute>
+          ),
         },
         {
           path: "profile",
@@ -212,6 +222,7 @@ const useRouteElements = () => {
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
         { path: "category-brand-assignment", element: <CategoryBrandAssignmentPage />},
+        { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
       ],
     },
 
@@ -228,6 +239,7 @@ const useRouteElements = () => {
         { path: STAFF_PATH.PRODUCTS, element: <Products /> },
         { path: STAFF_PATH.ORDERS, element: <Orders /> },
         { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
+        { path: STAFF_PATH.CHAT, element: <ChatManagement /> },
       ],
     },
 
