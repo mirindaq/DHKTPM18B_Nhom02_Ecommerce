@@ -38,4 +38,12 @@ public class DeliveryAssignment extends BaseEntity{
 
     @OneToMany(mappedBy = "deliveryAssignment")
     private List<DeliveryImage> deliveryImages;
+
+    @OneToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "shipper_id")
+    private Staff shipper;
 }

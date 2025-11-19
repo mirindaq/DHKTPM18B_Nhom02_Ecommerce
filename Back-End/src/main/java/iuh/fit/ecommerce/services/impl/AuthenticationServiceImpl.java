@@ -20,13 +20,12 @@ import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
 import iuh.fit.ecommerce.mappers.UserMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.AuthenticationService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -37,12 +36,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
-
-import static iuh.fit.ecommerce.enums.TokenType.ACCESS_TOKEN;
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +70,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
     private final OAuth2ClientProperties oAuth2ClientProperties;
     private final UserMapper userMapper;
 
@@ -98,7 +94,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public UserProfileResponse getProfile() {
-        User user = securityUtil.getCurrentUser();
+        User user = securityUtils.getCurrentUser();
         return userMapper.toUserProfileResponse(user);
     }
 
@@ -179,7 +175,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(HttpServletRequest request) {
-        User currentUser = securityUtil.getCurrentUser();
+        User currentUser = securityUtils.getCurrentUser();
         String refreshToken = getRefreshTokenFromCookie(request);
 
         if (refreshToken == null) {
