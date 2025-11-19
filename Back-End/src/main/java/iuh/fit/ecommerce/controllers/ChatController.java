@@ -165,11 +165,5 @@ public class ChatController {
                 messageResponse
         );
     }
-    
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/users")
-    public MessageRequest addUser(@Payload MessageRequest messageRequest) {
-        // Thông báo user đã join chat
-        return messageRequest;
-    }
+
 }

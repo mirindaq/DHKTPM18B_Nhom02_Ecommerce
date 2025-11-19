@@ -112,17 +112,6 @@ class WebSocketService {
     });
   }
 
-  addUser(messageRequest: MessageRequest) {
-    if (!this.client || !this.isConnected) {
-      console.error('WebSocket not connected');
-      return;
-    }
-
-    this.client.publish({
-      destination: '/app/chat.addUser',
-      body: JSON.stringify(messageRequest),
-    });
-  }
 
   disconnect() {
     if (this.client) {
