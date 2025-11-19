@@ -121,40 +121,49 @@ public class ChatController {
         ));
     }
     
-    @PutMapping("/{chatId}/read")
-    public ResponseEntity<ResponseSuccess<Void>> markMessagesAsRead(@PathVariable Long chatId) {
-        chatService.markMessagesAsRead(chatId);
+    @PutMapping("/{chatId}/read/customer")
+    public ResponseEntity<ResponseSuccess<Void>> markMessagesAsReadByCustomer(@PathVariable Long chatId) {
+        chatService.markMessagesAsReadByCustomer(chatId);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
-                "Messages marked as read",
+                "Messages marked as read by customer",
                 null
         ));
     }
     
-    @GetMapping("/{chatId}/unread-count")
-    public ResponseEntity<ResponseSuccess<Long>> getUnreadMessageCount(@PathVariable Long chatId) {
-        Long count = chatService.getUnreadMessageCount(chatId);
+    @PutMapping("/{chatId}/read/staff")
+    public ResponseEntity<ResponseSuccess<Void>> markMessagesAsReadByStaff(@PathVariable Long chatId) {
+        chatService.markMessagesAsReadByStaff(chatId);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Messages marked as read by staff",
+                null
+        ));
+    }
+
+    @GetMapping("/{chatId}/unread-count/{userId}")
+    public ResponseEntity<ResponseSuccess<Long>> getUnreadMessageCount(
+            @PathVariable Long chatId,
+            @PathVariable Long userId) {
+
+        Long count = chatService.getUnreadMessageCount(chatId, userId);
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get unread message count successfully",
                 count
         ));
     }
-    
-    // WebSocket Endpoints
-    
+
+
     @MessageMapping("/chat.send")
-    @SendTo("/topic/messages")
-    public MessageResponse sendMessage(@Payload MessageRequest messageRequest) {
+    public void sendMessage(@Payload MessageRequest messageRequest) {
         MessageResponse messageResponse = chatService.sendMessage(messageRequest);
-        
-        // Gửi tin nhắn đến topic cụ thể của chat
+
         messagingTemplate.convertAndSend(
                 "/topic/chat/" + messageRequest.getChatId(),
                 messageResponse
         );
-        
-        return messageResponse;
     }
     
     @MessageMapping("/chat.addUser")

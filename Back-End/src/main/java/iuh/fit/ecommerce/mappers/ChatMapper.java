@@ -32,21 +32,29 @@ public abstract class ChatMapper {
     public abstract ChatResponse toResponse(Chat chat);
 
     @AfterMapping
-    protected void setMessagesAndUnreadCount(Chat chat, @MappingTarget ChatResponse response) {
+    protected void setMessagesAndLastMessage(Chat chat, @MappingTarget ChatResponse response) {
         List<Message> messages = messageRepository.findByChatIdWithSenderOrderByCreatedAtAsc(chat.getId());
         List<MessageResponse> messageResponses = messages.stream()
                 .map(message -> messageMapper.toResponse(message))
                 .collect(Collectors.toList());
         response.setMessages(messageResponses);
 
-        // Set last message
         if (!messageResponses.isEmpty()) {
             response.setLastMessage(messageResponses.getLast());
         }
 
-        // Set unread count
-        Long unreadCount = messageRepository.countUnreadMessagesByChatId(chat.getId());
-        response.setUnreadCount(unreadCount);
+        response.setUnreadCount(0L);
+    }
+
+    // Helper method to set unread count for specific user
+    public void setUnreadCountForUser(ChatResponse response, Long userId) {
+        if (userId != null && response != null) {
+            Long unreadCount = messageRepository.countUnreadMessagesByChatIdNotFromUserId(
+                    response.getId(), 
+                    userId
+            );
+            response.setUnreadCount(unreadCount);
+        }
     }
 
 }

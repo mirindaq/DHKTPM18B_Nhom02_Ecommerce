@@ -23,7 +23,6 @@ export function useChat(options: UseChatOptions = {}) {
   const chatSubscriptionRef = useRef<any>(null);
   const lastReadChatIdRef = useRef<number | null>(null);
 
-  // Initialize chat
   const initializeChat = useCallback(async () => {
     if (!userId) return;
 
@@ -31,10 +30,8 @@ export function useChat(options: UseChatOptions = {}) {
       setLoading(true);
       
       if (isStaff) {
-        // Admin loads all chats
         return;
       } else {
-        // Customer loads or creates their chat
         try {
           const response = await chatService.getChatByCustomerId(userId);
           setChat(response.data);
@@ -63,7 +60,6 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, [userId, isStaff]);
 
-  // Load chat by ID (for admin selecting a chat)
   const loadChat = useCallback(async (chatId: number) => {
     try {
       const response = await chatService.getMessagesByChatId(chatId);
@@ -76,20 +72,22 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, []);
 
-  // Mark messages as read
   const markAsRead = useCallback(async (chatId: number) => {
     if (lastReadChatIdRef.current === chatId) return;
-    
+
     try {
-      await chatService.markMessagesAsRead(chatId);
+      if (isStaff) {
+        await chatService.markMessagesAsReadByStaff(chatId);
+      } else {
+        await chatService.markMessagesAsReadByCustomer(chatId);
+      }
       lastReadChatIdRef.current = chatId;
       setUnreadCount(0);
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
-  }, []);
+  }, [isStaff]);
 
-  // Send message
   const sendMessage = useCallback(async (content: string, chatId?: number) => {
     const targetChatId = chatId || chat?.id;
     if (!targetChatId || !userId || !content.trim()) return;
@@ -119,12 +117,10 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, [chat?.id, userId, isStaff, isConnected]);
 
-  // Connect to WebSocket
   const connect = useCallback((chatId?: number) => {
     const handleMessageReceived = (message: Message) => {
       const targetChatId = chatId || chat?.id;
       
-      // Add message to list if it belongs to current chat
       if (message.chatId === targetChatId) {
         setMessages((prev) => {
           if (prev.some(m => m.id === message.id)) {
@@ -132,40 +128,35 @@ export function useChat(options: UseChatOptions = {}) {
           }
           return [...prev, message];
         });
-        
-        // Mark as read if it's from staff and we're customer, or vice versa
-        if ((isStaff && !message.isStaff) || (!isStaff && message.isStaff)) {
-          if (targetChatId) {
-            markAsRead(targetChatId);
-          }
-        }
       }
       
-      // Call custom handler
       onMessageReceived?.(message);
     };
 
-    webSocketService.connect(handleMessageReceived, (error) => {
-      console.error("WebSocket error:", error);
-      setIsConnected(false);
-    });
+    webSocketService.connect(
+      () => {
+        console.log('User WebSocket connected, subscribing to chat...');
+        
+        const targetChatId = chatId || chat?.id;
+        if (targetChatId) {
+          if (chatSubscriptionRef.current) {
+            chatSubscriptionRef.current.unsubscribe();
+          }
+          chatSubscriptionRef.current = webSocketService.subscribeToChatRoom(
+            targetChatId,
+            handleMessageReceived
+          );
+        }
 
-    // Subscribe to specific chat room if chatId is provided
-    const targetChatId = chatId || chat?.id;
-    if (targetChatId) {
-      if (chatSubscriptionRef.current) {
-        chatSubscriptionRef.current.unsubscribe();
+        setIsConnected(true);
+      },
+      (error) => {
+        console.error("WebSocket error:", error);
+        setIsConnected(false);
       }
-      chatSubscriptionRef.current = webSocketService.subscribeToChatRoom(
-        targetChatId,
-        handleMessageReceived
-      );
-    }
+    );
+  }, [chat?.id, onMessageReceived]);
 
-    setIsConnected(true);
-  }, [chat?.id, isStaff, markAsRead, onMessageReceived]);
-
-  // Disconnect
   const disconnect = useCallback(() => {
     if (chatSubscriptionRef.current) {
       chatSubscriptionRef.current.unsubscribe();
@@ -175,7 +166,6 @@ export function useChat(options: UseChatOptions = {}) {
     setIsConnected(false);
   }, []);
 
-  // Assign staff to chat
   const assignStaff = useCallback(async (chatId: number, staffId: number) => {
     try {
       await chatService.assignStaffToChat(chatId, staffId);
@@ -187,7 +177,6 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       disconnect();
@@ -214,7 +203,6 @@ export function useChat(options: UseChatOptions = {}) {
   };
 }
 
-// Hook for fetching unread count (for notification badge)
 export function useUnreadCount(userId?: number) {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -239,7 +227,6 @@ export function useUnreadCount(userId?: number) {
   useEffect(() => {
     fetchUnreadCount();
     
-    // Refresh every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
     
     return () => clearInterval(interval);
@@ -248,7 +235,6 @@ export function useUnreadCount(userId?: number) {
   return { count, loading, refetch: fetchUnreadCount };
 }
 
-// Hook for fetching all chats (admin)
 export function useChats() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);

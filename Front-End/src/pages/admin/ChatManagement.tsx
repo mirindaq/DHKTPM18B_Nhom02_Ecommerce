@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/context/UserContext";
 import { useChat, useChats } from "@/hooks";
+import { webSocketService } from "@/services/websocket.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,7 @@ import {
   MessageCircleMore
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Chat, Message } from "@/types/chat.type";
+import type { Chat } from "@/types/chat.type";
 import { cn } from "@/lib/utils";
 import { CustomBadge, CountBadge, StatusBadge } from "@/components/ui/CustomBadge";
 
@@ -27,45 +28,32 @@ export default function ChatManagement() {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "unassigned" | "mine">("all");
+  const [isConnected, setIsConnected] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const selectedChatRef = useRef<Chat | null>(null);
+  const hasSubscribedRef = useRef(false);
 
   const { chats, setChats, loading: chatsLoading, refetch: refetchChats } = useChats();
 
   const {
     messages,
-    setMessages,
     sending,
-    isConnected,
     loadChat,
     sendMessage,
     markAsRead,
-    connect,
-    disconnect,
     assignStaff,
+    connect,
   } = useChat({
     userId: user?.id,
     isStaff: true,
-    onMessageReceived: (message: Message) => {
-      // Update messages if viewing this chat
-      if (selectedChat && message.chatId === selectedChat.id) {
-        setMessages((prev) => {
-          if (prev.some(m => m.id === message.id)) {
-            return prev;
-          }
-          return [...prev, message];
-        });
-      }
-
-      // Update chat list
+    onMessageReceived: (message) => {
       setChats((prevChats) => 
         prevChats.map((chat) => {
           if (chat.id === message.chatId) {
             return {
               ...chat,
               lastMessage: message,
-              unreadCount: message.isStaff || chat.id === selectedChat?.id 
-                ? chat.unreadCount 
-                : (chat.unreadCount || 0) + 1,
+              unreadCount: 0,
             };
           }
           return chat;
@@ -74,41 +62,109 @@ export default function ChatManagement() {
     },
   });
 
-  // Connect to WebSocket on mount
   useEffect(() => {
-    connect();
-    return () => disconnect();
-  }, [connect, disconnect]);
+    const checkConnection = () => {
+      setIsConnected(webSocketService.isWebSocketConnected());
+    };
 
-  // Auto scroll
+    checkConnection();
+    const interval = setInterval(checkConnection, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+  useEffect(() => {
+    console.log('ChatManagement useEffect check:', { 
+      chatsLength: chats.length, 
+      hasUser: !!user, 
+      hasSubscribed: hasSubscribedRef.current,
+      isConnected: webSocketService.isWebSocketConnected()
+    });
+
+    if (chats.length === 0 || !user || hasSubscribedRef.current) return;
+
+    if (!webSocketService.isWebSocketConnected()) {
+      console.log('ChatManagement: Waiting for WebSocket connection...');
+      const checkInterval = setInterval(() => {
+        if (webSocketService.isWebSocketConnected()) {
+          clearInterval(checkInterval);
+          console.log('ChatManagement: WebSocket connected, now subscribing...');
+          subscribeToAllChats();
+        }
+      }, 500);
+      
+      return () => clearInterval(checkInterval);
+    }
+
+    subscribeToAllChats();
+
+    function subscribeToAllChats() {
+      if (hasSubscribedRef.current) return;
+
+      console.log('ChatManagement: Subscribing to all chats for realtime updates...');
+      const chatIds = chats.map(chat => chat.id);
+      
+      webSocketService.subscribeToMultipleChats(chatIds, (message) => {
+        console.log('ChatManagement useEffect: Message received for chat', message.chatId, 'from:', message.isStaff ? 'STAFF' : 'CUSTOMER');
+        
+        const isCurrentlyViewing = selectedChatRef.current?.id === message.chatId;
+        const isFromCustomer = !message.isStaff;
+        
+        console.log('Update chat list:', { chatId: message.chatId, isCurrentlyViewing, isFromCustomer });
+        
+        setChats((prevChats) => {
+          console.log('Previous chats:', prevChats.map(c => ({ id: c.id, lastMsg: c.lastMessage?.content })));
+          
+          const updated = prevChats.map((chat) => {
+            if (chat.id === message.chatId) {
+              const newUnreadCount = isCurrentlyViewing || !isFromCustomer
+                ? 0
+                : (chat.unreadCount || 0) + 1;
+              
+              console.log('Updating chat:', { id: chat.id, newUnreadCount, newMessage: message.content });
+              
+              return {
+                ...chat,
+                lastMessage: message,
+                unreadCount: newUnreadCount,
+              };
+            }
+            return chat;
+          });
+          
+          console.log('Updated chats:', updated.map(c => ({ id: c.id, lastMsg: c.lastMessage?.content })));
+          return updated;
+        });
+      });
+
+      hasSubscribedRef.current = true;
+      console.log('ChatManagement: Subscribed to chat IDs:', chatIds);
+    }
+  }, [chats, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
-  // Handle chat selection
   const handleSelectChat = async (chat: Chat) => {
     setSelectedChat(chat);
-    
-    // Load messages
     await loadChat(chat.id);
-
-    // Mark as read
     await markAsRead(chat.id);
     
-    // Update chat list
     setChats((prevChats) =>
       prevChats.map((c) =>
         c.id === chat.id ? { ...c, unreadCount: 0 } : c
       )
     );
 
-    // Subscribe to this chat
     connect(chat.id);
   };
 
-  // Handle assign staff
   const handleAssignToMe = async (chatId: number) => {
     if (!user) return;
 
@@ -117,7 +173,6 @@ export default function ChatManagement() {
       await refetchChats();
       toast.success("Đã nhận chat thành công");
       
-      // If this is the selected chat, update it
       if (selectedChat?.id === chatId) {
         setSelectedChat(prev => prev ? { ...prev, staffId: user.id, staffName: user.fullName } : null);
       }
@@ -126,7 +181,6 @@ export default function ChatManagement() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!newMessage.trim() || !selectedChat) return;
 
     const success = await sendMessage(newMessage, selectedChat.id);
@@ -135,7 +189,6 @@ export default function ChatManagement() {
     }
   };
 
-  // Filter chats
   const filteredChats = chats.filter((chat) => {
     const matchesSearch = chat.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          chat.customerEmail.toLowerCase().includes(searchQuery.toLowerCase());
@@ -148,7 +201,6 @@ export default function ChatManagement() {
     return matchesSearch;
   });
 
-  // Format time
   const formatTime = (date: string) => {
     const messageDate = new Date(date);
     const today = new Date();

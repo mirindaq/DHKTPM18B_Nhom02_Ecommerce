@@ -76,22 +76,29 @@ export default function CustomerChat() {
         
         // Đánh dấu đã đọc nếu là tin nhắn từ staff
         if (message.isStaff) {
-          chatService.markMessagesAsRead(chat.id).catch(console.error);
+          chatService.markMessagesAsReadByCustomer(chat.id).catch(console.error);
         }
       }
     };
 
-    // Connect to WebSocket
-    webSocketService.connect(handleMessageReceived, (error) => {
-      console.error("WebSocket error:", error);
-      toast.error("Mất kết nối chat");
-      setIsConnected(false);
-    });
-
-    // Subscribe to specific chat room
-    const subscription = webSocketService.subscribeToChatRoom(chat.id, handleMessageReceived);
-    chatSubscriptionRef.current = subscription;
-    setIsConnected(true);
+    // Connect to WebSocket with callbacks
+    webSocketService.connect(
+      // onConnected callback - subscribe after connection is ready
+      () => {
+        console.log('Customer chat WebSocket connected, subscribing...');
+        
+        // Subscribe to specific chat room
+        const subscription = webSocketService.subscribeToChatRoom(chat.id, handleMessageReceived);
+        chatSubscriptionRef.current = subscription;
+        setIsConnected(true);
+      },
+      // onError callback
+      (error) => {
+        console.error("WebSocket error:", error);
+        toast.error("Mất kết nối chat");
+        setIsConnected(false);
+      }
+    );
 
     return () => {
       if (chatSubscriptionRef.current) {

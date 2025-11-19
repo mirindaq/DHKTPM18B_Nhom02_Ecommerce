@@ -7,18 +7,22 @@ class WebSocketService {
   private isConnected = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private subscriptions: Map<number, any[]> = new Map(); // Track all chat subscriptions (multiple per chat)
 
-  connect(onMessageReceived: (message: Message) => void, onError?: (error: any) => void) {
+  connect(onConnected?: () => void, onError?: (error: any) => void) {
     if (this.isConnected) {
       console.log('WebSocket already connected');
+      onConnected?.();
+      return;
+    }
+
+    if (this.client && this.client.active) {
+      console.log('WebSocket connection in progress...');
       return;
     }
 
     this.client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-      debug: (str) => {
-        console.log('STOMP Debug:', str);
-      },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -26,12 +30,7 @@ class WebSocketService {
         console.log('WebSocket Connected');
         this.isConnected = true;
         this.reconnectAttempts = 0;
-
-        // Subscribe to messages
-        this.client?.subscribe('/topic/messages', (message) => {
-          const receivedMessage = JSON.parse(message.body) as Message;
-          onMessageReceived(receivedMessage);
-        });
+        onConnected?.();
       },
       onStompError: (frame) => {
         console.error('STOMP Error:', frame);
@@ -60,10 +59,45 @@ class WebSocketService {
       return;
     }
 
-    return this.client.subscribe(`/topic/chat/${chatId}`, (message) => {
+    const subscription = this.client.subscribe(`/topic/chat/${chatId}`, (message) => {
       const receivedMessage = JSON.parse(message.body) as Message;
       onMessageReceived(receivedMessage);
     });
+
+    if (!this.subscriptions.has(chatId)) {
+      this.subscriptions.set(chatId, []);
+    }
+    this.subscriptions.get(chatId)?.push(subscription);
+    
+    console.log(`Subscribed to chat ${chatId}, total subscriptions: ${this.subscriptions.get(chatId)?.length}`);
+    
+    return subscription;
+  }
+
+  subscribeToMultipleChats(chatIds: number[], onMessageReceived: (message: Message) => void) {
+    if (!this.client || !this.isConnected) {
+      console.error('WebSocket not connected');
+      return;
+    }
+
+    chatIds.forEach(chatId => {
+      this.subscribeToChatRoom(chatId, onMessageReceived);
+    });
+  }
+
+  unsubscribeFromChat(chatId: number) {
+    const subscriptions = this.subscriptions.get(chatId);
+    if (subscriptions) {
+      subscriptions.forEach(sub => sub.unsubscribe());
+      this.subscriptions.delete(chatId);
+    }
+  }
+
+  unsubscribeFromAllChats() {
+    this.subscriptions.forEach(subscriptions => {
+      subscriptions.forEach(sub => sub.unsubscribe());
+    });
+    this.subscriptions.clear();
   }
 
   sendMessage(messageRequest: MessageRequest) {
@@ -92,6 +126,7 @@ class WebSocketService {
 
   disconnect() {
     if (this.client) {
+      this.unsubscribeFromAllChats();
       this.client.deactivate();
       this.isConnected = false;
       console.log('WebSocket Disconnected');

@@ -14,11 +14,13 @@ import iuh.fit.ecommerce.services.ChatService;
 import iuh.fit.ecommerce.services.CustomerService;
 import iuh.fit.ecommerce.services.StaffService;
 import iuh.fit.ecommerce.services.UserService;
+import iuh.fit.ecommerce.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserService userService;
     private final ChatMapper chatMapper;
     private final MessageMapper messageMapper;
+    private final SecurityUtil securityUtil;
 
     @Override
     @Transactional
@@ -65,30 +68,50 @@ public class ChatServiceImpl implements ChatService {
     public ChatResponse getChatByCustomerId(Long customerId) {
         Chat chat = chatRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chat not found for customer id: " + customerId));
-        return chatMapper.toResponse(chat);
+        ChatResponse response = chatMapper.toResponse(chat);
+        chatMapper.setUnreadCountForUser(response, customerId);
+        return response;
     }
     
     @Override
     public List<ChatResponse> getChatsByStaffId(Long staffId) {
         List<Chat> chats = chatRepository.findByStaffId(staffId);
         return chats.stream()
-                .map(chatMapper::toResponse)
+                .map(chat -> {
+                    ChatResponse response = chatMapper.toResponse(chat);
+                    chatMapper.setUnreadCountForUser(response, staffId);
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
     
     @Override
     public List<ChatResponse> getAllChats() {
         List<Chat> chats = chatRepository.findAll();
+
+        User currentUser = securityUtil.getCurrentUser();
+        
         return chats.stream()
-                .map(chatMapper::toResponse)
+                .map(chat -> {
+                    ChatResponse response = chatMapper.toResponse(chat);
+                    chatMapper.setUnreadCountForUser(response, currentUser.getId());
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
     
     @Override
     public List<ChatResponse> getUnassignedChats() {
         List<Chat> chats = chatRepository.findUnassignedChats();
+        User currentUser = securityUtil.getCurrentUser();
+        
         return chats.stream()
-                .map(chatMapper::toResponse)
+                .map(chat -> {
+                    ChatResponse response = chatMapper.toResponse(chat);
+                    // Set unread count for current staff viewing
+                    chatMapper.setUnreadCountForUser(response, currentUser.getId());
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -138,22 +161,64 @@ public class ChatServiceImpl implements ChatService {
                 .map(messageMapper::toResponse)
                 .collect(Collectors.toList());
     }
-    
+
     @Override
     @Transactional
-    public void markMessagesAsRead(Long chatId) {
-        if (!chatRepository.existsById(chatId)) {
-            throw new ResourceNotFoundException("Chat not found with id: " + chatId);
+    public void markMessagesAsReadByCustomer(Long chatId) {
+        User currentUser = securityUtil.getCurrentUser();
+        Chat chat = getChatEntityById(chatId);
+
+        if (!chat.getCustomer().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("User is not the customer of this chat");
+        }
+
+        Optional<Message> lastMessageOptional = messageRepository.findTopByChat_IdOrderByCreatedAtDesc(chatId);
+        if (lastMessageOptional.isEmpty()) {
+            throw new ResourceNotFoundException("No messages found in chat with id: " + chatId);
+        }
+
+        Message lastMessage = lastMessageOptional.get();
+        if (lastMessage.getSender().getId().equals(currentUser.getId())) {
+            return;
         }
         messageRepository.markMessagesAsRead(chatId);
     }
+
+
+    @Override
+    @Transactional
+    public void markMessagesAsReadByStaff(Long chatId) {
+        User currentUser = securityUtil.getCurrentUser();
+        Chat chat = getChatEntityById(chatId);
+
+        if (chat.getStaff() == null) {
+            throw new IllegalStateException("Chat has no staff assigned");
+        }
+
+        if (!chat.getStaff().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("Staff is not assigned to this chat");
+        }
+
+        Optional<Message> lastMessageOptional = messageRepository.findTopByChat_IdOrderByCreatedAtDesc(chatId);
+        if (lastMessageOptional.isEmpty()) {
+            throw new ResourceNotFoundException("No messages found in chat with id: " + chatId);
+        }
+
+        Message lastMessage = lastMessageOptional.get();
+        if (lastMessage.getSender().getId().equals(currentUser.getId())) {
+            return;
+        }
+
+        messageRepository.markMessagesAsRead(chatId);
+    }
+
     
     @Override
-    public Long getUnreadMessageCount(Long chatId) {
+    public Long getUnreadMessageCount(Long chatId, Long userId) {
         if (!chatRepository.existsById(chatId)) {
             throw new ResourceNotFoundException("Chat not found with id: " + chatId);
         }
-        return messageRepository.countUnreadMessagesByChatId(chatId);
+        return messageRepository.countUnreadMessagesByChatIdNotFromUserId(chatId, userId);
     }
 }
 

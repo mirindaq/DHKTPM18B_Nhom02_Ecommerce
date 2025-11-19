@@ -38,10 +38,18 @@ export default function FloatingButtons() {
     userId: user?.id,
     isStaff: false,
     onMessageReceived: (message) => {
-      if (message.isStaff && isChatOpen) {
-        markAsRead(message.chatId);
+      // Only handle messages from staff
+      const isFromStaff = message.isStaff;
+      
+      if (isFromStaff) {
+        // If chat modal is open, mark as read immediately
+        if (isChatOpen && message.chatId === chat?.id) {
+          markAsRead(message.chatId);
+        } else {
+          // If chat is closed, refetch unread count to update badge
+          refetchUnread();
+        }
       }
-      refetchUnread();
     },
   });
 
@@ -55,31 +63,32 @@ export default function FloatingButtons() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Initialize chat when modal opens
+  // Auto connect to WebSocket and subscribe to chat when user is authenticated
   useEffect(() => {
-    if (isChatOpen && user && !chat) {
+    if (isAuthenticated && user && isCustomer) {
+      // Initialize chat and subscribe
       initializeChat().then((loadedChat) => {
         if (loadedChat) {
+          // Connect to WebSocket and subscribe to this chat
           connect(loadedChat.id);
-          markAsRead(loadedChat.id);
         }
       });
     }
-  }, [isChatOpen, user, chat, initializeChat, connect, markAsRead]);
 
-  // Connect to WebSocket when chat is loaded
-  useEffect(() => {
-    if (chat && isChatOpen) {
-      connect(chat.id);
-      markAsRead(chat.id);
-    }
-    
+    // Cleanup on logout
     return () => {
-      if (!isChatOpen) {
+      if (!isAuthenticated) {
         disconnect();
       }
     };
-  }, [chat, isChatOpen, connect, disconnect, markAsRead]);
+  }, [isAuthenticated, user, isCustomer]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mark as read when chat modal opens
+  useEffect(() => {
+    if (isChatOpen && chat) {
+      markAsRead(chat.id);
+    }
+  }, [isChatOpen, chat, markAsRead]);
 
   // Auto scroll
   useEffect(() => {

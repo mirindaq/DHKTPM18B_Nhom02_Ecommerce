@@ -51,13 +51,18 @@ export const chatService = {
     return response.data;
   },
 
-  markMessagesAsRead: async (chatId: number) => {
-    const response = await axiosClient.put<ResponseApi<void>>(`/chats/${chatId}/read`);
+  markMessagesAsReadByCustomer: async (chatId: number) => {
+    const response = await axiosClient.put<ResponseApi<void>>(`/chats/${chatId}/read/customer`);
     return response.data;
   },
 
-  getUnreadMessageCount: async (chatId: number) => {
-    const response = await axiosClient.get<UnreadCountResponse>(`/chats/${chatId}/unread-count`);
+  markMessagesAsReadByStaff: async (chatId: number) => {
+    const response = await axiosClient.put<ResponseApi<void>>(`/chats/${chatId}/read/staff`);
+    return response.data;
+  },
+
+  getUnreadMessageCount: async (chatId: number, userId: number) => {
+    const response = await axiosClient.get<UnreadCountResponse>(`/chats/${chatId}/unread-count/${userId}`);
     return response.data;
   },
 };

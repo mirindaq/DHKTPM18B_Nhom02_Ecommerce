@@ -35,6 +35,7 @@ import {
   GitMerge,
   MessageSquare,
 } from "lucide-react"
+import AdminChatListener from "@/components/admin/AdminChatListener"
 
 const navigation = [
   {
@@ -322,6 +323,9 @@ export default function AdminLayout() {
           </main>
         </SidebarInset>
       </div>
+
+      {/* Auto-connect to WebSocket for staff */}
+      <AdminChatListener />
     </SidebarProvider>
   )
 }

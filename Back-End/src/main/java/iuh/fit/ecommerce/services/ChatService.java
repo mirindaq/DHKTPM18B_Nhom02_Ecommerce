@@ -27,8 +27,10 @@ public interface ChatService {
     
     List<MessageResponse> getMessagesByChatId(Long chatId);
     
-    void markMessagesAsRead(Long chatId);
+    void markMessagesAsReadByCustomer(Long chatId);
     
-    Long getUnreadMessageCount(Long chatId);
+    void markMessagesAsReadByStaff(Long chatId);
+    
+    Long getUnreadMessageCount(Long chatId, Long userId);
 }
 
