@@ -97,7 +97,7 @@ public class StaffServiceImpl implements StaffService {
         staffRepository.save(staff);
     }
 
-    private Staff getStaffEntityById(Long id) {
+    public Staff getStaffEntityById(Long id) {
         return staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff not found with id: " + id));
     }

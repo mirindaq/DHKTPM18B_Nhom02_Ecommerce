@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SecurityUtil {
+public class SecurityUtils {
     private final UserRepository userRepository;
 
     public User getCurrentUser() {

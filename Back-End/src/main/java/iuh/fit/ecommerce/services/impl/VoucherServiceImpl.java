@@ -11,7 +11,6 @@ import iuh.fit.ecommerce.enums.VoucherType;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.VoucherMapper;
-import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.repositories.VoucherCustomerRepository;
 import iuh.fit.ecommerce.repositories.VoucherRepository;
 import iuh.fit.ecommerce.repositories.VoucherUsageHistoryRepository;
@@ -20,7 +19,7 @@ import iuh.fit.ecommerce.services.EmailService;
 import iuh.fit.ecommerce.services.RankingService;
 import iuh.fit.ecommerce.services.VoucherService;
 import iuh.fit.ecommerce.utils.CodeGenerator;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Service;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -44,7 +42,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final EmailService emailService;
     private final CustomerService customerService;
     private final RankingService rankingService;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
     private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
 
     @Override
@@ -211,7 +209,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public List<VoucherAvailableResponse> getAvailableVouchersForCustomer() {
-        Customer customer = securityUtil.getCurrentCustomer();
+        Customer customer = securityUtils.getCurrentCustomer();
         LocalDate now = LocalDate.now();
 
         List<VoucherAvailableResponse> customerVoucherResponses =
