@@ -3,12 +3,13 @@ package iuh.fit.ecommerce.services.impl;
 import iuh.fit.ecommerce.dtos.request.order.OrderCreationRequest;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
+import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.OrderMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.OrderService;
 import iuh.fit.ecommerce.services.PaymentService;
 import iuh.fit.ecommerce.services.PromotionService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ import static iuh.fit.ecommerce.enums.PaymentMethod.*;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
     private final CartRepository cartRepository;
     private final VoucherRepository voucherRepository;
     private final VoucherCustomerRepository voucherCustomerRepository;
@@ -40,7 +41,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Object customerCreateOrder(OrderCreationRequest orderCreationRequest, HttpServletRequest request) {
-        Customer customer = securityUtil.getCurrentCustomer();
+        Customer customer = securityUtils.getCurrentCustomer();
         Cart cart = getCustomerCart(customer);
 
         validateCartNotEmpty(cart);
@@ -63,6 +64,12 @@ public class OrderServiceImpl implements OrderService {
         handleVoucherUsage(voucher, order, voucherDiscountAmount);
 
         return processPayment(orderCreationRequest, request, voucher, order, cart, orderCreationRequest.getCartItemIds());
+    }
+
+    @Override
+    public Order findById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id = " + id));
     }
 
     private Cart getCustomerCart(Customer customer) {
