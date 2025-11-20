@@ -3,22 +3,20 @@ import { useUser } from "@/context/UserContext";
 import { chatService } from "@/services/chat.service";
 import { webSocketService } from "@/services/websocket.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Send, MessageSquare, Loader2 } from "lucide-react";
+import { MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Chat, Message, MessageType } from "@/types/chat.type";
+import type { Chat, Message } from "@/types/chat.type";
 import { cn } from "@/lib/utils";
+import ChatInput from "@/components/user/chat/ChatInput";
 
 export default function CustomerChat() {
   const { user } = useUser();
   const [chat, setChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -112,35 +110,35 @@ export default function CustomerChat() {
   // Auto scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
     }
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newMessage.trim() || !chat || !user) return;
+  const handleSendMessage = async (content: string, messageType: "TEXT" | "IMAGE" = "TEXT"): Promise<boolean> => {
+    if (!content.trim() || !chat || !user) return false;
 
     try {
       setSending(true);
       
       const messageRequest = {
         chatId: chat.id,
-        content: newMessage.trim(),
-        messageType: "TEXT" as MessageType,
+        content: content.trim(),
+        messageType: messageType,
         senderId: user.id,
         isStaff: false,
       };
 
-      // Gửi qua WebSocket
       if (isConnected) {
         webSocketService.sendMessage(messageRequest);
       }
 
-      setNewMessage("");
+      return true;
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Không thể gửi tin nhắn");
+      return false;
     } finally {
       setSending(false);
     }
@@ -190,9 +188,10 @@ export default function CustomerChat() {
           )}
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-0">
+        <CardContent className="flex-1 flex flex-col min-h-0 p-0">
           {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="p-4">
             <div className="space-y-4">
               {messages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
@@ -223,29 +222,50 @@ export default function CustomerChat() {
                         message.isStaff ? "items-start" : "items-end"
                       )}
                     >
-                      <div
-                        className={cn(
-                          "rounded-lg px-4 py-2",
-                          message.isStaff
-                            ? "bg-muted text-foreground"
-                            : "bg-primary text-primary-foreground"
-                        )}
-                      >
-                        {message.isStaff && (
-                          <p className="text-xs font-medium mb-1">
-                            {message.senderName}
+                      {message.messageType === "IMAGE" ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="rounded-xl overflow-hidden shadow-md border-2 border-white">
+                            <img 
+                              src={message.content} 
+                              alt="Shared image" 
+                              className="max-w-[280px] max-h-[280px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(message.content, '_blank')}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground px-1">
+                            {new Date(message.createdAt).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </p>
-                        )}
-                        <p className="text-sm whitespace-pre-wrap break-words">
-                          {message.content}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground px-1">
-                        {new Date(message.createdAt).toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            className={cn(
+                              "rounded-lg px-4 py-2",
+                              message.isStaff
+                                ? "bg-muted text-foreground"
+                                : "bg-primary text-primary-foreground"
+                            )}
+                          >
+                            {message.isStaff && (
+                              <p className="text-xs font-medium mb-1">
+                                {message.senderName}
+                              </p>
+                            )}
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {message.content}
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground px-1">
+                            {new Date(message.createdAt).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     {!message.isStaff && (
@@ -260,38 +280,16 @@ export default function CustomerChat() {
               )}
               <div ref={scrollRef} />
             </div>
+            </div>
           </ScrollArea>
 
-          {/* Input Area */}
-          <div className="border-t p-4">
-            {!chat?.staffId && messages.length === 0 && (
-              <Alert className="mb-3">
-                <AlertDescription className="text-sm">
-                  Tin nhắn của bạn sẽ được nhân viên hỗ trợ sớm nhất có thể.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Nhập tin nhắn..."
-                disabled={sending || !isConnected}
-                className="flex-1"
-              />
-              <Button
-                type="submit"
-                disabled={sending || !isConnected || !newMessage.trim()}
-                size="icon"
-              >
-                {sending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </form>
+          <div className="flex-shrink-0">
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isConnected={isConnected}
+              isSending={sending}
+              showStaffWarning={!chat?.staffId && messages.length === 0}
+            />
           </div>
         </CardContent>
       </Card>

@@ -93,7 +93,9 @@ export default function FloatingButtons() {
   // Auto scroll
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
     }
   }, [messages]);
 
@@ -101,8 +103,8 @@ export default function FloatingButtons() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSendMessage = async (message: string): Promise<boolean> => {
-    const result = await sendMessage(message);
+  const handleSendMessage = async (message: string, messageType?: "TEXT" | "IMAGE"): Promise<boolean> => {
+    const result = await sendMessage(message, messageType || "TEXT");
     return result ?? false;
   };
 
@@ -156,10 +158,10 @@ export default function FloatingButtons() {
     <>
       {/* Chat Window - Only show when authenticated and chat is open */}
       {isAuthenticated && user && isCustomer && isChatOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[400px] h-[calc(100vh-10rem)] sm:h-[600px] max-h-[600px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 overflow-hidden rounded-xl bg-white">
+        <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[400px] h-[calc(100vh-10rem)] sm:h-[600px] max-h-[600px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 rounded-xl bg-white">
           <ChatHeader onClose={handleToggleChat} />
 
-          <div className="flex-1 flex flex-col p-0 min-h-0 bg-white">
+          <div className="flex-1 flex flex-col p-0 min-h-0 bg-white overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center flex-1">
                 <div className="text-center p-4">

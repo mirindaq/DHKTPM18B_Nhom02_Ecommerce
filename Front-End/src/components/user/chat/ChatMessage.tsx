@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 interface Message {
   id: number;
   content: string;
+  messageType?: "TEXT" | "IMAGE";
   senderName: string;
   isStaff: boolean;
   createdAt: string;
@@ -44,21 +45,39 @@ export default function ChatMessage({
         "flex flex-col max-w-[80%] min-w-0",
         message.isStaff ? "items-start" : "items-end"
       )}>
-        <div
-          className={cn(
-            "rounded-2xl px-4 py-3 shadow-sm break-words",
-            message.isStaff
-              ? "bg-white border border-gray-200 text-foreground rounded-bl-md"
-              : "bg-primary text-primary-foreground rounded-br-md"
-          )}
-        >
-          <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
-        </div>
-        <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
-          {formatTime(message.createdAt)}
-        </p>
+        {message.messageType === "IMAGE" ? (
+          <div className="flex flex-col gap-1">
+            <div className="rounded-xl overflow-hidden shadow-md border-2 border-white">
+              <img 
+                src={message.content} 
+                alt="Shared image" 
+                className="max-w-[280px] max-h-[280px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => window.open(message.content, '_blank')}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
+              {formatTime(message.createdAt)}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              className={cn(
+                "rounded-2xl px-4 py-3 shadow-sm break-words",
+                message.isStaff
+                  ? "bg-white border border-gray-200 text-foreground rounded-bl-md"
+                  : "bg-primary text-primary-foreground rounded-br-md"
+              )}
+            >
+              <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+                {message.content}
+              </p>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
+              {formatTime(message.createdAt)}
+            </p>
+          </>
+        )}
       </div>
 
       {!message.isStaff && (

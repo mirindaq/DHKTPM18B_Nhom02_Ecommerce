@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
-  Send, 
   MessageSquare, 
   Loader2, 
   Users,
@@ -21,11 +20,11 @@ import { toast } from "sonner";
 import type { Chat } from "@/types/chat.type";
 import { cn } from "@/lib/utils";
 import { CustomBadge, CountBadge, StatusBadge } from "@/components/ui/CustomBadge";
+import ChatInput from "@/components/user/chat/ChatInput";
 
 export default function ChatManagement() {
   const { user } = useUser();
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "unassigned" | "mine">("all");
   const [isConnected, setIsConnected] = useState(false);
@@ -147,9 +146,11 @@ export default function ChatManagement() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
     }
-  }, [messages]);
+  }, [messages, selectedChat?.id]);
 
   const handleSelectChat = async (chat: Chat) => {
     setSelectedChat(chat);
@@ -179,14 +180,11 @@ export default function ChatManagement() {
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedChat) return;
+  const handleSendMessage = async (message: string, messageType?: "TEXT" | "IMAGE"): Promise<boolean> => {
+    if (!message.trim() || !selectedChat) return false;
 
-    const success = await sendMessage(newMessage, selectedChat.id);
-    if (success) {
-      setNewMessage("");
-    }
+    const success = await sendMessage(message, messageType || "TEXT", selectedChat.id);
+    return success ?? false;
   };
 
   const filteredChats = chats.filter((chat) => {
@@ -400,7 +398,9 @@ export default function ChatManagement() {
                               ? "text-foreground font-medium" 
                               : "text-muted-foreground"
                           )}>
-                            {chat.lastMessage?.content || "Chưa có tin nhắn"}
+                            {chat.lastMessage?.messageType === "IMAGE" 
+                              ? "📷 Hình ảnh" 
+                              : chat.lastMessage?.content || "Chưa có tin nhắn"}
                           </p>
                           
                           <div className="flex items-center gap-2">
@@ -474,10 +474,10 @@ export default function ChatManagement() {
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col p-0 overflow-hidden bg-gradient-to-b from-muted/10 to-background">
+              <CardContent className="flex-1 flex flex-col min-h-0 p-0 bg-gradient-to-b from-muted/10 to-background">
                 {/* Messages Area */}
-                <ScrollArea className="flex-1 p-3">
-                  <div className="space-y-2.5">
+                <ScrollArea className="flex-1 min-h-0">
+                  <div className="space-y-2.5 p-3">
                     {messages.length === 0 ? (
                       <div className="text-center text-muted-foreground py-16">
                         <MessageSquare className="h-14 w-14 mx-auto mb-3 opacity-20" />
@@ -511,21 +511,39 @@ export default function ChatManagement() {
                               "flex flex-col max-w-[70%]",
                               message.isStaff ? "items-end" : "items-start"
                             )}>
-                              <div
-                                className={cn(
-                                  "rounded-2xl px-3 py-2 shadow-sm",
-                                  message.isStaff
-                                    ? "bg-primary text-primary-foreground rounded-br-md"
-                                    : "bg-white border border-gray-200 text-foreground rounded-bl-md"
-                                )}
-                              >
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                                  {message.content}
-                                </p>
-                              </div>
-                              <p className="text-[10px] text-muted-foreground mt-1 px-1">
-                                {formatTime(message.createdAt)}
-                              </p>
+                              {message.messageType === "IMAGE" ? (
+                                <div className="flex flex-col gap-1">
+                                  <div className="rounded-xl overflow-hidden shadow-md border-2 border-white">
+                                    <img 
+                                      src={message.content} 
+                                      alt="Shared image" 
+                                      className="max-w-[250px] max-h-[250px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() => window.open(message.content, '_blank')}
+                                    />
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground mt-1 px-1">
+                                    {formatTime(message.createdAt)}
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  <div
+                                    className={cn(
+                                      "rounded-2xl px-3 py-2 shadow-sm",
+                                      message.isStaff
+                                        ? "bg-primary text-primary-foreground rounded-br-md"
+                                        : "bg-white border border-gray-200 text-foreground rounded-bl-md"
+                                    )}
+                                  >
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                                      {message.content}
+                                    </p>
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground mt-1 px-1">
+                                    {formatTime(message.createdAt)}
+                                  </p>
+                                </>
+                              )}
                             </div>
 
                             {message.isStaff && (
@@ -546,56 +564,39 @@ export default function ChatManagement() {
                   </div>
                 </ScrollArea>
 
-                {/* Input Area */}
-                <div className="border-t bg-white p-2.5">
+                {/* Input Area - Fixed at bottom */}
+                <div className="flex-shrink-0">
                   {!selectedChat.staffId ? (
-                    <div className="text-center p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-xs text-amber-800 font-medium mb-2">
-                        ⚠️ Cần nhận chat trước khi gửi tin nhắn
-                      </p>
-                      <Button
-                        size="sm"
-                        className="h-7"
-                        onClick={() => handleAssignToMe(selectedChat.id)}
-                      >
-                        <Clock className="h-3 w-3 mr-1.5" />
-                        Nhận chat ngay
-                      </Button>
+                    <div className="border-t bg-white p-2.5">
+                      <div className="text-center p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-800 font-medium mb-2">
+                          ⚠️ Cần nhận chat trước khi gửi tin nhắn
+                        </p>
+                        <Button
+                          size="sm"
+                          className="h-7"
+                          onClick={() => handleAssignToMe(selectedChat.id)}
+                        >
+                          <Clock className="h-3 w-3 mr-1.5" />
+                          Nhận chat ngay
+                        </Button>
+                      </div>
                     </div>
                   ) : selectedChat.staffId !== user?.id ? (
-                    <div className="text-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                      <p className="text-xs text-gray-600">
-                        Chat đang được xử lý bởi <strong>{selectedChat.staffName}</strong>
-                      </p>
+                    <div className="border-t bg-white p-2.5">
+                      <div className="text-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <p className="text-xs text-gray-600">
+                          Chat đang được xử lý bởi <strong>{selectedChat.staffName}</strong>
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    <form onSubmit={handleSendMessage} className="flex gap-2">
-                      <Input
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Nhập tin nhắn..."
-                        disabled={sending || !isConnected}
-                        className="flex-1 text-sm rounded-full border-2 h-9"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage(e);
-                          }
-                        }}
-                      />
-                      <Button
-                        type="submit"
-                        disabled={sending || !isConnected || !newMessage.trim()}
-                        size="icon"
-                        className="flex-shrink-0 rounded-full h-9 w-9"
-                      >
-                        {sending ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Send className="h-3.5 w-3.5" />
-                        )}
-                      </Button>
-                    </form>
+                    <ChatInput
+                      onSendMessage={handleSendMessage}
+                      isConnected={isConnected}
+                      isSending={sending}
+                      showStaffWarning={false}
+                    />
                   )}
                 </div>
               </CardContent>

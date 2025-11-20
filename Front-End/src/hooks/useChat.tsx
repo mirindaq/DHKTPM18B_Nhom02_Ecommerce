@@ -88,7 +88,11 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, [isStaff]);
 
-  const sendMessage = useCallback(async (content: string, chatId?: number) => {
+  const sendMessage = useCallback(async (
+    content: string, 
+    messageType: MessageType = "TEXT",
+    chatId?: number
+  ) => {
     const targetChatId = chatId || chat?.id;
     if (!targetChatId || !userId || !content.trim()) return;
 
@@ -98,7 +102,7 @@ export function useChat(options: UseChatOptions = {}) {
       const messageRequest = {
         chatId: targetChatId,
         content: content.trim(),
-        messageType: "TEXT" as MessageType,
+        messageType: messageType,
         senderId: userId,
         isStaff,
       };
