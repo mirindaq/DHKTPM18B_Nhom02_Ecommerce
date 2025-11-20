@@ -15,6 +15,7 @@ import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.*;
+import iuh.fit.ecommerce.services.VectorStoreService;
 import iuh.fit.ecommerce.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductVariantValueRepository productVariantValueRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final VectorStoreService vectorStoreService;
 
     @Override
     @Transactional
@@ -242,6 +244,13 @@ public class ProductServiceImpl implements ProductService {
 
             productVariantRepository.save(variant);
             saveVariantValues(req.getVariantValueIds(), variant);
+            
+            // Reload variant để có đầy đủ thông tin (product, variant values)
+            ProductVariant savedVariant = productVariantRepository.findById(variant.getId())
+                    .orElse(variant);
+            
+            // Index vào Qdrant vector store
+            vectorStoreService.indexProductVariant(savedVariant);
         }
     }
 

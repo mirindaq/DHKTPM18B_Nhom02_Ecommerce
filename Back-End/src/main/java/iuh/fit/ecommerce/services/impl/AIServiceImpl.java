@@ -12,6 +12,7 @@ import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.repositories.ProductRepository;
 import iuh.fit.ecommerce.services.AIService;
 import iuh.fit.ecommerce.services.ChatMemoryService;
+import iuh.fit.ecommerce.services.VectorStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -33,11 +34,18 @@ public class AIServiceImpl implements AIService {
     private final ProductRepository productRepository;
     private final ChatModel chatModel;
     private final ChatMemoryService chatMemoryService;
+    private final VectorStoreService vectorStoreService;
 
     @Override
     public ChatAIResponse chat(String message, Long customerId, String sessionId) {
         // Lấy conversation history (10 tin nhắn gần nhất)
         List<ChatHistoryMessage> conversationHistory = chatMemoryService.getRecentMessages(sessionId, 10);
+        
+        // Search sản phẩm liên quan từ Qdrant (semantic search)
+        List<String> relevantProducts = vectorStoreService.searchSimilarProducts(message, 5);
+        String productsContext = relevantProducts.isEmpty() 
+                ? "(Không tìm thấy sản phẩm liên quan)" 
+                : String.join("\n---\n", relevantProducts);
         
         // Xây dựng context (có thể null nếu chưa đăng nhập)
         String context = (customerId != null) 
@@ -58,8 +66,11 @@ public class AIServiceImpl implements AIService {
                 - Hướng dẫn về sử dụng, bảo hành, đổi trả sản phẩm
                 - Hỗ trợ bạn một cách lịch sự, nhiệt tình và chuyên nghiệp
                 
-                Thông tin khách hàng và sản phẩm:
+                Thông tin khách hàng:
                 {context}
+                
+                Sản phẩm liên quan (tìm kiếm thông minh):
+                {products}
                 
                 Lịch sử hội thoại gần đây:
                 {history}
@@ -82,6 +93,7 @@ public class AIServiceImpl implements AIService {
         PromptTemplate promptTemplate = new PromptTemplate(promptTemplateString);
         Prompt prompt = promptTemplate.create(Map.of(
                 "context", context,
+                "products", productsContext,
                 "history", historyString,
                 "question", message
         ));
@@ -177,23 +189,7 @@ public class AIServiceImpl implements AIService {
     private String buildContextForGuest() {
         StringBuilder context = new StringBuilder();
         
-        context.append("Khách: Khách vãng lai (chưa đăng nhập)\n\n");
-        
-        // Chỉ hiển thị sản phẩm nổi bật
-        List<Product> topProducts = productRepository.findAll(PageRequest.of(0, 10))
-                .getContent();
-
-        if (!topProducts.isEmpty()) {
-            context.append("Sản phẩm nổi bật hiện có:\n");
-            for (Product product : topProducts) {
-                Double minPrice = findMinPrice(product);
-                context.append("  - ").append(product.getName())
-                        .append(" (").append(product.getBrand().getName()).append(")")
-                        .append("\n    Giá từ: ").append(String.format("%,.0fđ", minPrice))
-                        .append("\n    Danh mục: ").append(product.getCategory().getName())
-                        .append("\n");
-            }
-        }
+        context.append("Khách: Khách vãng lai (chưa đăng nhập)\n");
         
         return context.toString();
     }
