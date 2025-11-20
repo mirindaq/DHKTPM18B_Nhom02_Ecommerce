@@ -4,43 +4,32 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Search, X, Filter } from "lucide-react";
-
 import { Card } from "@/components/ui/card";
-import type { PromotionType } from "@/types/promotion.type";
+import type { VoucherType } from "@/types/voucher.type";
 
-interface PromotionFilterProps {
+interface VoucherFilterProps {
   onSearch: (filters: {
     name?: string;
-    type?: PromotionType;
+    type?: VoucherType;
     active?: boolean;
     startDate?: string;
-    priority?: number;
+    endDate?: string;
   }) => void;
   isLoading?: boolean;
 }
 
-const promotionTypeOptions: { value: PromotionType; label: string }[] = [
-  { value: "ALL", label: "Tất cả sản phẩm" },
-  { value: "PRODUCT", label: "Sản phẩm" },
-  { value: "PRODUCT_VARIANT", label: "Biến thể sản phẩm" },
-  { value: "CATEGORY", label: "Danh mục" },
-  { value: "BRAND", label: "Thương hiệu" },
+const voucherTypeOptions: { value: VoucherType; label: string }[] = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "GROUP", label: "Nhóm khách hàng" },
+  { value: "RANK", label: "Rank" },
 ];
 
-const priorityOptions = [
-  { value: 1, label: "1" },
-  { value: 2, label: "2" },
-  { value: 3, label: "3" },
-  { value: 4, label: "4" },
-  { value: 5, label: "5" },
-];
-
-export default function PromotionFilter({ onSearch, isLoading }: PromotionFilterProps) {
+export default function VoucherFilter({ onSearch, isLoading }: VoucherFilterProps) {
   const [name, setName] = useState("");
-  const [type, setType] = useState<PromotionType | "all">("all");
+  const [type, setType] = useState<VoucherType | "all">("all");
   const [active, setActive] = useState<string>("all");
   const [startDate, setStartDate] = useState("");
-  const [priority, setPriority] = useState<string>("all");
+  const [endDate, setEndDate] = useState("");
 
   const handleSearch = () => {
     const filters: any = {};
@@ -49,7 +38,7 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
     if (type && type !== "all") filters.type = type;
     if (active !== "all") filters.active = active === "true";
     if (startDate) filters.startDate = startDate;
-    if (priority !== "all") filters.priority = parseInt(priority);
+    if (endDate) filters.endDate = endDate;
 
     onSearch(filters);
   };
@@ -59,11 +48,11 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
     setType("all");
     setActive("all");
     setStartDate("");
-    setPriority("all");
+    setEndDate("");
     onSearch({});
   };
 
-  const hasActiveFilters = name || (type !== "all") || (active !== "all") || startDate || (priority !== "all");
+  const hasActiveFilters = name || (type !== "all") || (active !== "all") || startDate || endDate;
 
   return (
     <Card className="p-4">
@@ -76,7 +65,7 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {/* Name */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Tên chương trình</label>
+            <label className="text-sm font-medium text-gray-700">Tên voucher</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -89,16 +78,16 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
             </div>
           </div>
 
-          {/* Type (Loại/Đối tượng) */}
+          {/* Type */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Loại khuyến mãi</label>
-            <Select value={type} onValueChange={(value) => setType(value as PromotionType | "all")}>
+            <label className="text-sm font-medium text-gray-700">Loại voucher</label>
+            <Select value={type} onValueChange={(value) => setType(value as VoucherType | "all")}>
               <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Tất cả" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả loại</SelectItem>
-                {promotionTypeOptions.map((option) => (
+                {voucherTypeOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -109,11 +98,22 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
 
           {/* Start Date */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Thời gian bắt đầu</label>
+            <label className="text-sm font-medium text-gray-700">Ngày bắt đầu</label>
             <DatePicker
               value={startDate}
               onChange={(value) => setStartDate(value)}
               placeholder="Chọn ngày bắt đầu"
+              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* End Date */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Ngày kết thúc</label>
+            <DatePicker
+              value={endDate}
+              onChange={(value) => setEndDate(value)}
+              placeholder="Chọn ngày kết thúc"
               className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
@@ -129,24 +129,6 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value="true">Hoạt động</SelectItem>
                 <SelectItem value="false">Tạm dừng</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Priority */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Độ ưu tiên</label>
-            <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-                <SelectValue placeholder="Tất cả" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                {priorityOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value.toString()}>
-                    {option.label}
-                  </SelectItem>
-                ))}
               </SelectContent>
             </Select>
           </div>
@@ -179,3 +161,4 @@ export default function PromotionFilter({ onSearch, isLoading }: PromotionFilter
     </Card>
   );
 }
+

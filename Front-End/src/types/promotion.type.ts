@@ -49,8 +49,8 @@ export interface PromotionListResponse extends ResponseApiWithPagination<Promoti
 
 export interface PromotionFilter {
   name?: string;
-  promotionType?: PromotionType;
+  type?: PromotionType;
   active?: boolean;
   startDate?: string;
-  endDate?: string;
+  priority?: number;
 }

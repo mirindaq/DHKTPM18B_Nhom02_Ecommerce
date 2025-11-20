@@ -12,6 +12,7 @@ import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.OrderService;
 import iuh.fit.ecommerce.services.PaymentService;
 import iuh.fit.ecommerce.services.PromotionService;
+import iuh.fit.ecommerce.services.RankingService;
 import iuh.fit.ecommerce.specifications.OrderSpecification;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final PromotionService promotionService;
     private final OrderMapper orderMapper;
     private final PaymentService paymentService;
+    private final RankingService rankingService;
 
     @Override
     @Transactional
@@ -375,6 +377,8 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(COMPLETED);
         orderRepository.save(order);
+
+        rankingService.updateCustomerRanking(order);
         
         return orderMapper.toResponse(order);
     }
