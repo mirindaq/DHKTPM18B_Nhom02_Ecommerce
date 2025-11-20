@@ -8,6 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {CustomerMapper.class, OrderDetailMapper.class})
 public interface OrderMapper {
 
-    @Mapping(target = "orderDate", expression = "java(iuh.fit.ecommerce.utils.DateUtils.formatLocalDateTime(order.getOrderDate()))")
+//    @Mapping(target = "orderDate", expression = "java(iuh.fit.ecommerce.utils.DateUtils.formatLocalDateTime(order.getOrderDate()))")
     OrderResponse toResponse(Order order);
 }

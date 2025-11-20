@@ -1,6 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.order;
 
-import iuh.fit.ecommerce.dtos.response.product.ProductVariantResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantOrderResponse;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,5 +14,5 @@ public class OrderDetailResponse {
     private Long quantity;
     private Double discount;
     private Double finalPrice;
-    private ProductVariantResponse productVariant;
+    private ProductVariantOrderResponse productVariant;
 }

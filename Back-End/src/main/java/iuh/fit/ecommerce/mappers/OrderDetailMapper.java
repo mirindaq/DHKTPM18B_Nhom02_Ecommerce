@@ -4,7 +4,7 @@ import iuh.fit.ecommerce.dtos.response.order.OrderDetailResponse;
 import iuh.fit.ecommerce.entities.OrderDetail;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", uses = {ProductVariantMapper.class})
+@Mapper(componentModel = "spring", uses = {ProductVariantOrderMapper.class})
 public interface OrderDetailMapper {
 
     OrderDetailResponse toResponse(OrderDetail orderDetail);
