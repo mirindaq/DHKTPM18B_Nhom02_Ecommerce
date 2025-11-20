@@ -14,7 +14,7 @@ import iuh.fit.ecommerce.services.ChatService;
 import iuh.fit.ecommerce.services.CustomerService;
 import iuh.fit.ecommerce.services.StaffService;
 import iuh.fit.ecommerce.services.UserService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserService userService;
     private final ChatMapper chatMapper;
     private final MessageMapper messageMapper;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtil;
 
     @Override
     @Transactional
