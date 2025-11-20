@@ -52,7 +52,25 @@ spring:
             token-uri: ${GOOGLE_TOKEN_URI}
             user-info-uri: ${GOOGLE_USER_INFO_URI}
 
-
+  ai:
+    google:
+      genai:
+        api-key: ${GEMINI_KEY}
+        chat:
+          options:
+            model: gemini-2.5-flash
+        embedding:
+          text:
+            options:
+              model: text-embedding-004
+          api-key: ${GEMINI_KEY}
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        collection-name: ecomstore
+        use-tls: false
+        initialize-schema: true
 
 payment:
   vnPay:

@@ -107,14 +107,23 @@ export default function CustomerChat() {
     };
   }, [chat]);
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom khi có tin nhắn mới
   useEffect(() => {
     if (scrollRef.current) {
       setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "auto" });
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
   }, [messages]);
+
+  // Scroll xuống dưới cùng ngay khi load xong lần đầu
+  useEffect(() => {
+    if (!loading && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 300);
+    }
+  }, [loading]);
 
   const handleSendMessage = async (content: string, messageType: "TEXT" | "IMAGE" = "TEXT"): Promise<boolean> => {
     if (!content.trim() || !chat || !user) return false;
@@ -169,7 +178,7 @@ export default function CustomerChat() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Chat với chúng tôi
+              Chat hỗ trợ
             </CardTitle>
             <div className="flex items-center gap-2">
               {isConnected ? (

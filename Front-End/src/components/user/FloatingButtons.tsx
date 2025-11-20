@@ -1,23 +1,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, MessageCircle, X } from "lucide-react";
+import { ArrowUp, MessageCircle, X, Bot } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useChat, useUnreadCount } from "@/hooks";
 import { CountBadge } from "@/components/ui/CustomBadge";
 import { cn } from "@/lib/utils";
-import { useRef } from "react";
-import { Loader2 } from "lucide-react";
-import ChatHeader from "./chat/ChatHeader";
-import ChatMessages from "./chat/ChatMessages";
-import ChatInput from "./chat/ChatInput";
+import ChatSupportModal from "./chat/ChatSupportModal";
+import AIChatModal from "./chat/AIChatModal";
 import LoginModal from "./LoginModal";
 
 export default function FloatingButtons() {
   const { user, isCustomer, isAuthenticated } = useUser();
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { count: unreadCount, refetch: refetchUnread } = useUnreadCount(
     isCustomer && user ? user.id : undefined
@@ -90,15 +87,6 @@ export default function FloatingButtons() {
     }
   }, [isChatOpen, chat, markAsRead]);
 
-  // Auto scroll
-  useEffect(() => {
-    if (scrollRef.current) {
-      setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "auto" });
-      }, 100);
-    }
-  }, [messages]);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -118,76 +106,46 @@ export default function FloatingButtons() {
     const newOpenState = !isChatOpen;
     setIsChatOpen(newOpenState);
     
+    // Close AI chat if it's open
+    if (newOpenState && isAIChatOpen) {
+      setIsAIChatOpen(false);
+    }
+    
     if (newOpenState && unreadCount > 0 && chat) {
       markAsRead(chat.id);
       refetchUnread();
     }
   };
 
-  const formatTime = (date: string) => {
-    const messageDate = new Date(date);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const isToday = messageDate.toDateString() === today.toDateString();
-    const isYesterday = messageDate.toDateString() === yesterday.toDateString();
-
-    if (isToday) {
-      return messageDate.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else if (isYesterday) {
-      return "Hôm qua " + messageDate.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else {
-      return messageDate.toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-      }) + " " + messageDate.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+  const handleToggleAIChat = () => {
+    // AI Chat không cần đăng nhập
+    const newOpenState = !isAIChatOpen;
+    setIsAIChatOpen(newOpenState);
+    
+    // Close regular chat if it's open
+    if (newOpenState && isChatOpen) {
+      setIsChatOpen(false);
     }
   };
 
   return (
     <>
-      {/* Chat Window - Only show when authenticated and chat is open */}
-      {isAuthenticated && user && isCustomer && isChatOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[400px] h-[calc(100vh-10rem)] sm:h-[600px] max-h-[600px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 rounded-xl bg-white">
-          <ChatHeader onClose={handleToggleChat} />
+      {/* AI Chat Modal - Không cần đăng nhập */}
+      <AIChatModal isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
 
-          <div className="flex-1 flex flex-col p-0 min-h-0 bg-white overflow-hidden">
-            {loading ? (
-              <div className="flex items-center justify-center flex-1">
-                <div className="text-center p-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Đang tải...</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <ChatMessages
-                  messages={messages}
-                  formatTime={formatTime}
-                  scrollRef={scrollRef}
-                  currentUserName={user?.fullName}
-                />
-
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  isConnected={isConnected}
-                  isSending={sending}
-                  showStaffWarning={!chat?.staffId && messages.length === 0}
-                />
-              </>
-            )}
-          </div>
-        </div>
+      {/* Chat Support Modal */}
+      {isAuthenticated && user && isCustomer && (
+        <ChatSupportModal
+          isOpen={isChatOpen}
+          onClose={handleToggleChat}
+          chat={chat}
+          messages={messages}
+          loading={loading}
+          sending={sending}
+          isConnected={isConnected}
+          currentUserName={user?.fullName}
+          onSendMessage={handleSendMessage}
+        />
       )}
 
       {/* Floating Buttons */}
@@ -203,7 +161,24 @@ export default function FloatingButtons() {
           </Button>
         )}
 
-        {/* Chat Button - Always show */}
+        {/* AI Chat Button */}
+        <Button
+          onClick={handleToggleAIChat}
+          size="lg"
+          className={cn(
+            "w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 relative",
+            "bg-gradient-to-br from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600"
+          )}
+          title="Trợ lý AI"
+        >
+          {isAIChatOpen ? (
+            <X className="w-5 h-5" />
+          ) : (
+            <Bot className="w-5 h-5" />
+          )}
+        </Button>
+
+        {/* Chat Support Button - Always show */}
         <Button
           onClick={handleToggleChat}
           size="lg"
@@ -211,6 +186,7 @@ export default function FloatingButtons() {
             "w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 relative",
             "bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
           )}
+          title="Chat hỗ trợ"
         >
           {isChatOpen ? (
             <X className="w-5 h-5" />
