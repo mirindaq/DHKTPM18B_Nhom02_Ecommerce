@@ -351,6 +351,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .accessToken(accessToken)
                 .refreshToken(refreshTokenStr)
                 .roles(roles)
+                .fullName(customer.getFullName())
                 .email(customer.getEmail())
                 .build();
     }

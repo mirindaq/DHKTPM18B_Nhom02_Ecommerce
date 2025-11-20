@@ -33,7 +33,9 @@ import {
   Newspaper,
   LayoutList,  
   GitMerge,
+  MessageSquare,
 } from "lucide-react"
+import AdminChatListener from "@/components/admin/AdminChatListener"
 
 const navigation = [
   {
@@ -135,6 +137,11 @@ const navigation = [
         icon: LayoutList,
       },
     ]
+  },
+  {
+    title: "Quản lý Chat",
+    icon: MessageSquare,
+    href: "/admin/chats",
   },
   {
     title: "Báo cáo & Thống kê",
@@ -316,6 +323,9 @@ export default function AdminLayout() {
           </main>
         </SidebarInset>
       </div>
+
+      {/* Auto-connect to WebSocket for staff */}
+      <AdminChatListener />
     </SidebarProvider>
   )
 }

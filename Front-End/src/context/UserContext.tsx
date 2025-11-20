@@ -100,20 +100,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setLoading(true);
         const userData = LocalStorageUtil.getUserData();
         const accessToken = LocalStorageUtil.getAccessToken();
-        console.log("UserContext - Loading user:", {
-          userData,
-          hasAccessToken: !!accessToken,
-        });
 
         if (userData && accessToken) {
           setUser(userData);
-          console.log(
-            "UserContext - User loaded successfully:",
-            userData.roles
-          );
         } else {
-          // Clear invalid data
-          console.log("UserContext - Invalid data, clearing...");
           setUser(null);
           AuthStorageUtil.clearAll();
         }

@@ -28,5 +28,6 @@ public interface StaffService {
     StaffResponse updateStaff(StaffUpdateRequest staffUpdateRequest, Long id);
 
     void changeActive(Long id);
+
     Staff getStaffEntityById(Long id);
 }
