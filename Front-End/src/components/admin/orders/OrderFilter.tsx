@@ -113,7 +113,7 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Trạng thái</label>
             <Select value={status} onValueChange={(value) => setStatus(value as OrderStatus | "all")}>
-              <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+              <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 ">
                 <SelectValue placeholder="Tất cả" />
               </SelectTrigger>
               <SelectContent>
