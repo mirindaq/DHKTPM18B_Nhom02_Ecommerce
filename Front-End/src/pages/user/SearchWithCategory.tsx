@@ -76,7 +76,7 @@ export default function SearchWithCategory() {
     return result;
   }, [searchParams]);
   
-  const currentSort = (searchParams.get('sortBy') || 'popular') as 'popular' | 'price_asc' | 'price_desc';
+  const currentSort = (searchParams.get('sortBy') || 'popular') as 'popular' | 'price_asc' | 'price_desc' | 'rating_asc' | 'rating_desc';
 
   const { 
     data: productsData, 
@@ -175,9 +175,10 @@ export default function SearchWithCategory() {
     setSearchParams(params);
   };
   
-  const handleSortChange = (sortBy: 'popular' | 'price_asc' | 'price_desc' | 'promotion_hot') => {
+  const handleSortChange = (sortBy: 'popular' | 'price_asc' | 'price_desc' | 'rating_asc' | 'rating_desc') => {
     const params = new URLSearchParams(searchParams);
     params.set('sortBy', sortBy);
+    params.set('page', '1'); // Reset to page 1 when sorting changes
     setSearchParams(params);
   };
 

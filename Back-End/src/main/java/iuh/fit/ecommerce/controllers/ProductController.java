@@ -115,12 +115,13 @@ public class ProductController {
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ProductResponse>>>> searchProductsWithElasticsearch(
             @RequestParam String query,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int size
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String sortBy
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Search products with Elasticsearch success",
-                productSearchService.searchProducts(query, page, size)
+                productSearchService.searchProducts(query, page, size, sortBy)
         ));
     }
 

@@ -97,6 +97,14 @@ public class ProductSpecification {
                         minPriceDesc.where(cb.equal(variantRootDesc.get("product"), root));
                         query.orderBy(cb.desc(minPriceDesc));
                         break;
+                    case "rating_asc":
+                        // Sort by rating ascending
+                        query.orderBy(cb.asc(root.get("rating")), cb.desc(root.get("id")));
+                        break;
+                    case "rating_desc":
+                        // Sort by rating descending
+                        query.orderBy(cb.desc(root.get("rating")), cb.desc(root.get("id")));
+                        break;
                     default:
                         // Default: sort by id descending (newest first)
                         query.orderBy(cb.desc(root.get("id")));

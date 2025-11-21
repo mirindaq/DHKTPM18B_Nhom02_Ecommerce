@@ -4,10 +4,13 @@ import { Loader2, Search as SearchIcon } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import type { Product } from '@/types/product.type';
 import Breadcrumb from '@/components/user/search/Breadcrumb';
+import SortSection from '@/components/user/search/SortSection';
 import ProductCard from '@/components/user/ProductCard';
 import { useQuery } from '@/hooks/useQuery';
 import { Button } from '@/components/ui/button';
 import { PUBLIC_PATH } from '@/constants/path';
+
+type SortOption = 'popular' | 'price_asc' | 'price_desc' | 'rating_asc' | 'rating_desc';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,6 +18,7 @@ export default function Search() {
   const query = searchParams.get('q') || '';
   const page = parseInt(searchParams.get('page') || '1');
   const size = 12;
+  const sortBy = (searchParams.get('sortBy') || 'popular') as SortOption;
 
   const [searchInput, setSearchInput] = useState(query);
 
@@ -26,9 +30,9 @@ export default function Search() {
     data: productsData, 
     isLoading: productsLoading 
   } = useQuery<{ data: { data: Product[], totalPage: number, totalItem: number } }>(
-    () => productService.searchProductsWithElasticsearch(query, page, size),
+    () => productService.searchProductsWithElasticsearch(query, page, size, sortBy),
     {
-      queryKey: ['search-products-elasticsearch', query, page],
+      queryKey: ['search-products-elasticsearch', query, page.toString(), sortBy],
       enabled: !!query && query.trim().length > 0,
       onError: (err) => {
         console.error('Lỗi khi tải products:', err);
@@ -46,6 +50,10 @@ export default function Search() {
       const params = new URLSearchParams();
       params.set('q', searchInput.trim());
       params.set('page', '1');
+      // Preserve sortBy when searching
+      if (sortBy && sortBy !== 'popular') {
+        params.set('sortBy', sortBy);
+      }
       setSearchParams(params);
     }
   };
@@ -53,6 +61,14 @@ export default function Search() {
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', newPage.toString());
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSortChange = (newSortBy: SortOption) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('sortBy', newSortBy);
+    params.set('page', '1'); // Reset to page 1 when sorting changes
     setSearchParams(params);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -125,20 +141,8 @@ export default function Search() {
         </p>
       </div>
 
-      {/* Sort section - simplified for search */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-semibold text-gray-900">Sắp xếp theo</span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200"
-            >
-              Liên quan
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Sort section */}
+      <SortSection sortBy={sortBy} onSortChange={handleSortChange} />
 
       {/* Products grid */}
       {productsLoading ? (

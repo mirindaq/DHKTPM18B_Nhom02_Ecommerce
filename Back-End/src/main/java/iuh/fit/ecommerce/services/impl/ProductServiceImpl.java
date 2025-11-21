@@ -207,6 +207,12 @@ public class ProductServiceImpl implements ProductService {
             case "price_desc":
                 // Sort by min price descending - will be handled in specification
                 return PageRequest.of(page, size);
+            case "rating_asc":
+                // Sort by rating ascending - will be handled in specification
+                return PageRequest.of(page, size);
+            case "rating_desc":
+                // Sort by rating descending - will be handled in specification
+                return PageRequest.of(page, size);
             case "promotion_hot":
                 // Sort by discount descending - will be handled in specification
                 return PageRequest.of(page, size);

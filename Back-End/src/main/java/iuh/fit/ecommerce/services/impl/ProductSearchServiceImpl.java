@@ -44,11 +44,39 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     public ResponseWithPagination<List<ProductResponse>> searchProducts(
             String query,
             int page,
-            int size
+            int size,
+            String sortBy
     ) {
         try {
             page = Math.max(page - 1, 0);
-            Pageable pageable = PageRequest.of(page, size, Sort.by("rating").descending().and(Sort.by("productId").descending()));
+            
+            // Xử lý sort
+            Sort sort;
+            if (sortBy != null && !sortBy.trim().isEmpty()) {
+                switch (sortBy.toLowerCase()) {
+                    case "price_asc":
+                        sort = Sort.by("minPrice").ascending().and(Sort.by("productId").descending());
+                        break;
+                    case "price_desc":
+                        sort = Sort.by("minPrice").descending().and(Sort.by("productId").descending());
+                        break;
+                    case "rating_asc":
+                        sort = Sort.by("rating").ascending().and(Sort.by("productId").descending());
+                        break;
+                    case "rating_desc":
+                        sort = Sort.by("rating").descending().and(Sort.by("productId").descending());
+                        break;
+                    default:
+                        // Mặc định: rating desc, productId desc
+                        sort = Sort.by("rating").descending().and(Sort.by("productId").descending());
+                        break;
+                }
+            } else {
+                // Mặc định: rating desc, productId desc
+                sort = Sort.by("rating").descending().and(Sort.by("productId").descending());
+            }
+            
+            Pageable pageable = PageRequest.of(page, size, sort);
 
             Criteria criteria = new Criteria("status").is(true);
 

@@ -11,7 +11,8 @@ public interface ProductSearchService {
     ResponseWithPagination<List<ProductResponse>> searchProducts(
             String query,
             int page,
-            int size
+            int size,
+            String sortBy
     );
     
     void indexProduct(Product product);

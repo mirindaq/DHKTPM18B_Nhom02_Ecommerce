@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Star, ArrowUp, ArrowDown } from 'lucide-react';
+import { Star, ArrowUp, ArrowDown, TrendingUp, TrendingDown } from 'lucide-react';
 
-type SortOption = 'popular' | 'price_asc' | 'price_desc';
+type SortOption = 'popular' | 'price_asc' | 'price_desc' | 'rating_asc' | 'rating_desc';
 
 interface SortSectionProps {
   sortBy?: SortOption;
@@ -13,6 +13,8 @@ export default function SortSection({ sortBy = 'popular', onSortChange }: SortSe
     { value: 'popular', label: 'Phổ biến', icon: Star },
     { value: 'price_asc', label: 'Giá Thấp - Cao', icon: ArrowUp },
     { value: 'price_desc', label: 'Giá Cao - Thấp', icon: ArrowDown },
+    { value: 'rating_asc', label: 'Đánh giá Thấp - Cao', icon: TrendingUp },
+    { value: 'rating_desc', label: 'Đánh giá Cao - Thấp', icon: TrendingDown },
   ];
 
   return (
