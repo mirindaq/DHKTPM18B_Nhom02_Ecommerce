@@ -1,9 +1,9 @@
 import axiosClient from '@/configurations/axios.config';
-import type { 
-  OrderCreationRequest, 
-  OrderListResponse, 
+import type {
+  OrderCreationRequest,
+  OrderListResponse,
   OrderApiResponse,
-  OrderSearchParams 
+  OrderSearchParams
 } from '@/types/order.type';
 
 export const orderService = {
@@ -14,7 +14,7 @@ export const orderService = {
 
   getAllOrdersForAdmin: async (params: OrderSearchParams) => {
     const queryParams = new URLSearchParams();
-    
+
     if (params.customerName) queryParams.append('customerName', params.customerName);
     if (params.orderDate) queryParams.append('orderDate', params.orderDate);
     if (params.customerPhone) queryParams.append('customerPhone', params.customerPhone);
@@ -49,6 +49,11 @@ export const orderService = {
 
   completeOrder: async (id: number) => {
     const response = await axiosClient.put<OrderApiResponse>(`/orders/${id}/complete`);
+    return response.data;
+  },
+
+  getOrdersNeedShipper: async (page: number = 1, size: number = 10) => {
+    const response = await axiosClient.get<OrderListResponse>(`/orders/need-shipper?page=${page}&size=${size}`);
     return response.data;
   }
 }

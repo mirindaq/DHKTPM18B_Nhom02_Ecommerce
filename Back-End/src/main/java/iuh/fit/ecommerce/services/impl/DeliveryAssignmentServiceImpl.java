@@ -82,6 +82,9 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
         deliveryAssignment.setDeliveryStatus(DeliveryStatus.ASSIGNED);
         deliveryAssignmentRepository.save(deliveryAssignment);
 
+        // Cập nhật status order thành ASSIGNED_SHIPPER
+        order.setStatus(OrderStatus.ASSIGNED_SHIPPER);
+        orderRepository.save(order);
     }
 
     @Override

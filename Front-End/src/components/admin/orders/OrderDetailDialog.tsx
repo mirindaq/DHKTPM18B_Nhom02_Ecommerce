@@ -10,7 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { OrderResponse, OrderStatus } from "@/types/order.type";
-import { Package, Truck, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
+import {
+  Package,
+  Truck,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
 
 interface OrderDetailDialogProps {
   open: boolean;
@@ -26,23 +33,71 @@ interface OrderDetailDialogProps {
   isCompleting?: boolean;
 }
 
-const statusConfig: Record<OrderStatus, { label: string; icon: any; color: string }> = {
-  PENDING: { label: "Chờ xử lý", icon: Clock, color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-  PENDING_PAYMENT: { label: "Chờ thanh toán", icon: Clock, color: "bg-orange-100 text-orange-800 border-orange-200" },
-  PROCESSING: { label: "Đang xử lý", icon: Package, color: "bg-blue-100 text-blue-800 border-blue-200" },
-  READY_FOR_PICKUP: { label: "Sẵn sàng lấy hàng", icon: Package, color: "bg-indigo-100 text-indigo-800 border-indigo-200" },
-  DELIVERING: { label: "Đang giao hàng", icon: Truck, color: "bg-purple-100 text-purple-800 border-purple-200" },
-  SHIPPED: { label: "Chuẩn bị giao", icon: Truck, color: "bg-purple-100 text-purple-800 border-purple-200" },
-  COMPLETED: { label: "Hoàn thành", icon: CheckCircle, color: "bg-green-100 text-green-800 border-green-200" },
-  FAILED: { label: "Thất bại", icon: XCircle, color: "bg-red-100 text-red-800 border-red-200" },
-  CANCELED: { label: "Đã hủy", icon: AlertCircle, color: "bg-gray-100 text-gray-800 border-gray-200" },
-  PAYMENT_FAILED: { label: "Thanh toán thất bại", icon: XCircle, color: "bg-red-100 text-red-800 border-red-200" }
+const statusConfig: Record<
+  OrderStatus,
+  { label: string; icon: any; color: string }
+> = {
+  PENDING: {
+    label: "Chờ xử lý",
+    icon: Clock,
+    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  },
+  PENDING_PAYMENT: {
+    label: "Chờ thanh toán",
+    icon: Clock,
+    color: "bg-orange-100 text-orange-800 border-orange-200",
+  },
+  PROCESSING: {
+    label: "Đang xử lý",
+    icon: Package,
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+  },
+  READY_FOR_PICKUP: {
+    label: "Sẵn sàng lấy hàng",
+    icon: Package,
+    color: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  },
+  DELIVERING: {
+    label: "Đang giao hàng",
+    icon: Truck,
+    color: "bg-purple-100 text-purple-800 border-purple-200",
+  },
+  SHIPPED: {
+    label: "Chuẩn bị giao",
+    icon: Truck,
+    color: "bg-purple-100 text-purple-800 border-purple-200",
+  },
+  COMPLETED: {
+    label: "Hoàn thành",
+    icon: CheckCircle,
+    color: "bg-green-100 text-green-800 border-green-200",
+  },
+  FAILED: {
+    label: "Thất bại",
+    icon: XCircle,
+    color: "bg-red-100 text-red-800 border-red-200",
+  },
+  CANCELED: {
+    label: "Đã hủy",
+    icon: AlertCircle,
+    color: "bg-gray-100 text-gray-800 border-gray-200",
+  },
+  PAYMENT_FAILED: {
+    label: "Thanh toán thất bại",
+    icon: XCircle,
+    color: "bg-red-100 text-red-800 border-red-200",
+  },
+  ASSIGNED_SHIPPER: {
+    label: "Đã gán shipper",
+    icon: Truck,
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+  },
 };
 
 const paymentMethodLabels: Record<string, string> = {
   CASH_ON_DELIVERY: "Tiền mặt khi nhận hàng",
   VN_PAY: "VNPay",
-  PAY_OS: "PayOS"
+  PAY_OS: "PayOS",
 };
 
 export default function OrderDetailDialog({
@@ -61,24 +116,27 @@ export default function OrderDetailDialog({
   if (!order) return null;
 
   const canConfirm = order.status === "PENDING";
-  const canCancel = order.status === "PENDING" || order.status === "PROCESSING" || order.status === "READY_FOR_PICKUP";
+  const canCancel =
+    order.status === "PENDING" ||
+    order.status === "PROCESSING" ||
+    order.status === "READY_FOR_PICKUP";
   const canProcess = order.status === "PROCESSING";
   const canComplete = order.status === "READY_FOR_PICKUP";
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -109,7 +167,9 @@ export default function OrderDetailDialog({
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600">Ngày đặt hàng</p>
-              <p className="font-semibold text-gray-900">{formatDate(order.orderDate)}</p>
+              <p className="font-semibold text-gray-900">
+                {formatDate(order.orderDate)}
+              </p>
             </div>
           </div>
 
@@ -117,19 +177,29 @@ export default function OrderDetailDialog({
 
           {/* Customer Information */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Thông tin khách hàng</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">
+              Thông tin khách hàng
+            </h4>
             <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
               <div>
                 <p className="text-sm text-gray-600">Tên khách hàng</p>
-                <p className="font-medium text-gray-900">{order.customer?.fullName || 'N/A'}</p>
+                <p className="font-medium text-gray-900">
+                  {order.customer?.fullName || "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Email</p>
-                <p className="font-medium text-gray-900">{order.customer?.email || 'N/A'}</p>
+                <p className="font-medium text-gray-900">
+                  {order.customer?.email || "N/A"}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Số điện thoại khách hàng</p>
-                <p className="font-medium text-gray-900">{order.customer?.phone || 'N/A'}</p>
+                <p className="text-sm text-gray-600">
+                  Số điện thoại khách hàng
+                </p>
+                <p className="font-medium text-gray-900">
+                  {order.customer?.phone || "N/A"}
+                </p>
               </div>
             </div>
           </div>
@@ -138,29 +208,42 @@ export default function OrderDetailDialog({
 
           {/* Delivery Information */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Thông tin giao hàng</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">
+              Thông tin giao hàng
+            </h4>
             <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <Badge variant={order.isPickup ? "default" : "secondary"} className={
-                  order.isPickup
-                    ? "bg-blue-100 text-blue-800 border-blue-200"
-                    : "bg-purple-100 text-purple-800 border-purple-200"
-                }>
+                <Badge
+                  variant={order.isPickup ? "default" : "secondary"}
+                  className={
+                    order.isPickup
+                      ? "bg-blue-100 text-blue-800 border-blue-200"
+                      : "bg-purple-100 text-purple-800 border-purple-200"
+                  }
+                >
                   {order.isPickup ? "Nhận tại quầy" : "Giao hàng tận nơi"}
                 </Badge>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Người nhận</p>
-                <p className="font-medium text-gray-900">{order.receiverName}</p>
+                <p className="font-medium text-gray-900">
+                  {order.receiverName}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Số điện thoại người nhận</p>
-                <p className="font-medium text-gray-900">{order.receiverPhone}</p>
+                <p className="text-sm text-gray-600">
+                  Số điện thoại người nhận
+                </p>
+                <p className="font-medium text-gray-900">
+                  {order.receiverPhone}
+                </p>
               </div>
               {!order.isPickup && (
                 <div>
                   <p className="text-sm text-gray-600">Địa chỉ giao hàng</p>
-                  <p className="font-medium text-gray-900">{order.receiverAddress || 'N/A'}</p>
+                  <p className="font-medium text-gray-900">
+                    {order.receiverAddress || "N/A"}
+                  </p>
                 </div>
               )}
               {order.note && (
@@ -176,17 +259,22 @@ export default function OrderDetailDialog({
 
           {/* Products */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Sản phẩm ({order.orderDetails?.length || 0})</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">
+              Sản phẩm ({order.orderDetails?.length || 0})
+            </h4>
             <div className="space-y-2">
               {order.orderDetails?.map((item) => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
                 >
                   <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
                     <img
-                      src={item.productVariant?.productThumbnail || "/assets/avatar.jpg"}
-                      alt={item.productVariant?.productName || 'Product'}
+                      src={
+                        item.productVariant?.productThumbnail ||
+                        "/assets/avatar.jpg"
+                      }
+                      alt={item.productVariant?.productName || "Product"}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -195,9 +283,11 @@ export default function OrderDetailDialog({
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{item.productVariant?.productName || 'N/A'}</p>
+                    <p className="font-semibold text-gray-900">
+                      {item.productVariant?.productName || "N/A"}
+                    </p>
                     <p className="text-sm text-gray-600">
-                      SKU: {item.productVariant?.sku || 'N/A'}
+                      SKU: {item.productVariant?.sku || "N/A"}
                     </p>
                     <p className="text-sm text-gray-600">
                       Số lượng: {item.quantity}
@@ -209,7 +299,9 @@ export default function OrderDetailDialog({
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">{formatPrice(item.finalPrice)}</p>
+                    <p className="font-semibold text-gray-900">
+                      {formatPrice(item.finalPrice)}
+                    </p>
                     {item.discount > 0 && (
                       <>
                         <p className="text-sm text-gray-500 line-through">
@@ -230,26 +322,37 @@ export default function OrderDetailDialog({
 
           {/* Payment Summary */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Thông tin thanh toán</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">
+              Thông tin thanh toán
+            </h4>
             <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
               <div className="flex justify-between">
                 <span className="text-gray-600">Phương thức thanh toán</span>
                 <span className="font-medium text-gray-900">
-                  {paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
+                  {paymentMethodLabels[order.paymentMethod] ||
+                    order.paymentMethod}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tổng tiền hàng</span>
-                <span className="font-medium text-gray-900">{formatPrice(order.totalPrice)}</span>
+                <span className="font-medium text-gray-900">
+                  {formatPrice(order.totalPrice)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Giảm giá</span>
-                <span className="font-medium text-green-600">-{formatPrice(order.totalDiscount)}</span>
+                <span className="font-medium text-green-600">
+                  -{formatPrice(order.totalDiscount)}
+                </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900">Tổng thanh toán</span>
-                <span className="text-xl font-bold text-blue-600">{formatPrice(order.finalTotalPrice)}</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  Tổng thanh toán
+                </span>
+                <span className="text-xl font-bold text-blue-600">
+                  {formatPrice(order.finalTotalPrice)}
+                </span>
               </div>
             </div>
           </div>
@@ -261,7 +364,9 @@ export default function OrderDetailDialog({
             {canConfirm && onConfirmOrder && (
               <Button
                 onClick={() => onConfirmOrder(order.id)}
-                disabled={isConfirming || isCanceling || isProcessing || isCompleting}
+                disabled={
+                  isConfirming || isCanceling || isProcessing || isCompleting
+                }
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {isConfirming ? (
@@ -276,11 +381,13 @@ export default function OrderDetailDialog({
                 )}
               </Button>
             )}
-            
+
             {canProcess && onProcessOrder && (
               <Button
                 onClick={() => onProcessOrder(order.id)}
-                disabled={isConfirming || isCanceling || isProcessing || isCompleting}
+                disabled={
+                  isConfirming || isCanceling || isProcessing || isCompleting
+                }
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {isProcessing ? (
@@ -308,7 +415,9 @@ export default function OrderDetailDialog({
             {canComplete && onCompleteOrder && (
               <Button
                 onClick={() => onCompleteOrder(order.id)}
-                disabled={isConfirming || isCanceling || isProcessing || isCompleting}
+                disabled={
+                  isConfirming || isCanceling || isProcessing || isCompleting
+                }
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {isCompleting ? (
@@ -323,11 +432,13 @@ export default function OrderDetailDialog({
                 )}
               </Button>
             )}
-            
+
             {canCancel && onCancelOrder && (
               <Button
                 onClick={() => onCancelOrder(order.id)}
-                disabled={isConfirming || isCanceling || isProcessing || isCompleting}
+                disabled={
+                  isConfirming || isCanceling || isProcessing || isCompleting
+                }
                 variant="destructive"
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
@@ -349,4 +460,3 @@ export default function OrderDetailDialog({
     </Dialog>
   );
 }
-

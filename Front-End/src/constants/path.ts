@@ -1,6 +1,8 @@
 // Auth paths
 export const AUTH_PATH = {
   LOGIN_ADMIN: "/admin/login",
+  LOGIN_STAFF: "/staff/login",
+  LOGIN_SHIPPER: "/shipper/login",
   LOGIN_USER: "/login",
   REGISTER_USER: "/register",
   GOOGLE_CALLBACK: "/auth/google/callback",
@@ -40,6 +42,7 @@ export const STAFF_PATH = {
   CUSTOMERS: "/staff/customers",
   ARTICLES: "/staff/articles",
   CHAT: "/staff/chats",
+  ASSIGN_DELIVERY: "/staff/assign-delivery",
 };
 
 // Shipper paths
@@ -53,7 +56,7 @@ export const SHIPPER_PATH = {
 export const PUBLIC_PATH = {
   HOME: "/",
   PRODUCTS: "/products",
-  PRODUCT_DETAIL: "/products/:id", 
+  PRODUCT_DETAIL: "/products/:id",
   CART: "/cart",
   CHECKOUT: "/checkout",
   SEARCH_PAGE: "/search",

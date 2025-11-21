@@ -31,6 +31,7 @@ export type UserProfile = {
   avatar?: string;
   phone?: string;
   rank?: Rank;
+  leader?: boolean; // For staff: indicates if they are a leader
 };
 
 export type ProfileResponse = ResponseApi<UserProfile>;

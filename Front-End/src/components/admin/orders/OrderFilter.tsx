@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, X, Filter } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -28,7 +34,8 @@ const orderStatusOptions: { value: OrderStatus; label: string }[] = [
   { value: "COMPLETED", label: "Hoàn thành" },
   { value: "FAILED", label: "Thất bại" },
   { value: "CANCELED", label: "Đã hủy" },
-  { value: "PAYMENT_FAILED", label: "Thanh toán thất bại" }
+  { value: "PAYMENT_FAILED", label: "Thanh toán thất bại" },
+  { value: "ASSIGNED_SHIPPER", label: "Đã gán shipper" },
 ];
 
 export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
@@ -40,7 +47,7 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
 
   const handleSearch = () => {
     const filters: any = {};
-    
+
     if (customerName.trim()) filters.customerName = customerName.trim();
     if (orderDate) filters.orderDate = orderDate;
     if (customerPhone.trim()) filters.customerPhone = customerPhone.trim();
@@ -59,7 +66,12 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
     onSearch({});
   };
 
-  const hasActiveFilters = customerName || orderDate || customerPhone || (status !== "all") || (isPickup !== "all");
+  const hasActiveFilters =
+    customerName ||
+    orderDate ||
+    customerPhone ||
+    status !== "all" ||
+    isPickup !== "all";
 
   return (
     <Card className="p-4">
@@ -72,7 +84,9 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {/* Customer Name */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Tên người mua</label>
+            <label className="text-sm font-medium text-gray-700">
+              Tên người mua
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -87,7 +101,9 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
 
           {/* Order Date */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Ngày đặt hàng</label>
+            <label className="text-sm font-medium text-gray-700">
+              Ngày đặt hàng
+            </label>
             <Input
               type="date"
               value={orderDate}
@@ -99,7 +115,9 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
 
           {/* Customer Phone */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Số điện thoại</label>
+            <label className="text-sm font-medium text-gray-700">
+              Số điện thoại
+            </label>
             <Input
               placeholder="Nhập SĐT..."
               value={customerPhone}
@@ -111,8 +129,13 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
 
           {/* Status */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Trạng thái</label>
-            <Select value={status} onValueChange={(value) => setStatus(value as OrderStatus | "all")}>
+            <label className="text-sm font-medium text-gray-700">
+              Trạng thái
+            </label>
+            <Select
+              value={status}
+              onValueChange={(value) => setStatus(value as OrderStatus | "all")}
+            >
               <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 ">
                 <SelectValue placeholder="Tất cả" />
               </SelectTrigger>
@@ -129,7 +152,9 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
 
           {/* Is Pickup */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Loại nhận hàng</label>
+            <label className="text-sm font-medium text-gray-700">
+              Loại nhận hàng
+            </label>
             <Select value={isPickup} onValueChange={setIsPickup}>
               <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Tất cả" />
@@ -153,7 +178,7 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
             <Search className="h-4 w-4 mr-2" />
             Tìm kiếm
           </Button>
-          
+
           {hasActiveFilters && (
             <Button
               onClick={handleReset}
@@ -170,4 +195,3 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
     </Card>
   );
 }
-
