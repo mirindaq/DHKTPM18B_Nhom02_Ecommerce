@@ -213,9 +213,6 @@ public class ProductServiceImpl implements ProductService {
             case "rating_desc":
                 // Sort by rating descending - will be handled in specification
                 return PageRequest.of(page, size);
-            case "promotion_hot":
-                // Sort by discount descending - will be handled in specification
-                return PageRequest.of(page, size);
             default:
                 return PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
         }
