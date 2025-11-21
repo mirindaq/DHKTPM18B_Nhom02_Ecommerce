@@ -22,8 +22,6 @@ export type Product = {
 
 export type CreateProductRequest = {
   name: string;
-  stock: number;
-  discount: number;
   description: string;
   thumbnail: string;
   status?: boolean;
@@ -33,6 +31,7 @@ export type CreateProductRequest = {
   productImages: string[];
   attributes?: ProductAttributeRequest[];
   variants?: ProductVariantRequest[];
+  filterValueIds?: number[];
 };
 
 export type ProductAttributeRequest = {
@@ -43,7 +42,6 @@ export type ProductAttributeRequest = {
 export type ProductVariantRequest = {
   price: number;
   oldPrice?: number;
-  sku: string;
   stock: number;
   variantValueIds: number[];
 };

@@ -214,17 +214,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String generateAuthUrl(String loginType) {
+    public String generateAuthUrl(String loginType, String redirectUri) {
         if ("google".equalsIgnoreCase(loginType)) {
             OAuth2ClientProperties.Registration registration = oAuth2ClientProperties.getRegistration().get(loginType);
             OAuth2ClientProperties.Provider provider = oAuth2ClientProperties.getProvider().get(loginType);
+
+            // Use redirect_uri from request if provided (for mobile), otherwise use from config (for web)
+            String finalRedirectUri = (redirectUri != null && !redirectUri.isEmpty()) 
+                    ? redirectUri 
+                    : registration.getRedirectUri();
 
             String scope = "openid profile email";
             String responseType = "code";
 
             return UriComponentsBuilder.fromHttpUrl(provider.getAuthorizationUri())
                     .queryParam("client_id", registration.getClientId())
-                    .queryParam("redirect_uri", registration.getRedirectUri())
+                    .queryParam("redirect_uri", finalRedirectUri)
                     .queryParam("response_type", responseType)
                     .queryParam("scope", scope)
                     .build()
@@ -234,16 +239,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public LoginResponse socialLoginCallback(String loginType, String code) throws IOException {
+    public LoginResponse socialLoginCallback(String loginType, String code, String redirectUri) throws IOException {
         String accessToken;
         if ("google".equalsIgnoreCase(loginType)) {
+            // Use redirect_uri from request if provided (for mobile), otherwise use from config (for web)
+            String finalRedirectUri = (redirectUri != null && !redirectUri.isEmpty()) 
+                    ? redirectUri 
+                    : this.redirectUri;
+            
             accessToken = new GoogleAuthorizationCodeTokenRequest(
                     new NetHttpTransport(),
                     new JacksonFactory(),
                     clientId,
                     clientSecret,
                     code,
-                    redirectUri).execute().getAccessToken();
+                    finalRedirectUri).execute().getAccessToken();
         } else {
             throw new IllegalArgumentException("Unsupported login type: " + loginType);
         }

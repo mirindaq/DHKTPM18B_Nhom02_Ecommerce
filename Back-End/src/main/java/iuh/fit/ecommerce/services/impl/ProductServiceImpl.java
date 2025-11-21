@@ -15,6 +15,7 @@ import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.*;
+import iuh.fit.ecommerce.services.ProductSearchService;
 import iuh.fit.ecommerce.services.VectorStoreService;
 import iuh.fit.ecommerce.utils.StringUtils;
 import jakarta.transaction.Transactional;
@@ -42,7 +43,10 @@ public class ProductServiceImpl implements ProductService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductVariantValueRepository productVariantValueRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final ProductFilterValueRepository productFilterValueRepository;
+    private final FilterValueRepository filterValueRepository;
     private final VectorStoreService vectorStoreService;
+    private final ProductSearchService productSearchService;
 
     @Override
     @Transactional
@@ -60,6 +64,15 @@ public class ProductServiceImpl implements ProductService {
         saveAttributes(productAddRequest.getAttributes(), product);
 
         saveVariants(productAddRequest.getVariants(), product);
+
+        saveFilterValues(productAddRequest.getFilterValueIds(), product);
+        
+        // Reload product with all relationships before indexing
+        Product savedProduct = productRepository.findById(product.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found after creation"));
+        
+        // Index product to Elasticsearch
+        productSearchService.indexProduct(savedProduct);
 
     }
 
@@ -146,32 +159,63 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ResponseWithPagination<List<ProductResponse>> searchProductForUser(String categorySlug, int page, int size, Map<String, String> filters) {
         page = Math.max(page - 1, 0);
-        Pageable pageable = PageRequest.of(page, size);
         
         List<String> brandSlugs = parseCommaSeparatedParam(filters.get("brands"));
         Boolean inStock = parseBooleanParam(filters.get("inStock"));
         Double priceMin = parseDoubleParam(filters.get("priceMin"));
         Double priceMax = parseDoubleParam(filters.get("priceMax"));
+        String sortBy = filters.get("sortBy");
         
-        Map<String, List<String>> variantFilters = new java.util.HashMap<>();
-        if (filters != null) {
-            for (Map.Entry<String, String> entry : filters.entrySet()) {
-                String key = entry.getKey();
-                if (!key.equals("brands") && !key.equals("inStock") && 
-                    !key.equals("priceMin") && !key.equals("priceMax")) {
-                    variantFilters.put(key, parseCommaSeparatedParam(entry.getValue()));
-                }
+        // Parse filter value IDs from params
+        List<Long> filterValueIds = null;
+        String filterValuesParam = filters.get("filterValues");
+        if (filterValuesParam != null && !filterValuesParam.trim().isEmpty()) {
+            try {
+                filterValueIds = java.util.Arrays.stream(filterValuesParam.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::parseLong)
+                    .collect(java.util.stream.Collectors.toList());
+            } catch (NumberFormatException e) {
+                // Invalid format, ignore
             }
         }
         
+        // Create Pageable with sorting
+        Pageable pageable = createPageableWithSort(page, size, sortBy);
+        
         Page<Product> productPage = productRepository.findAll(
             iuh.fit.ecommerce.specifications.ProductSpecification.filterProducts(
-                categorySlug, brandSlugs, inStock, priceMin, priceMax, variantFilters
+                categorySlug, brandSlugs, inStock, priceMin, priceMax, filterValueIds, sortBy
             ),
             pageable
         );
         
         return ResponseWithPagination.fromPage(productPage, productMapper::toResponse);
+    }
+    
+    private Pageable createPageableWithSort(int page, int size, String sortBy) {
+        if (sortBy == null || sortBy.isEmpty() || "popular".equals(sortBy)) {
+            // Default: sort by id (newest first)
+            return PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        }
+        
+        switch (sortBy) {
+            case "price_asc":
+                // Sort by min price ascending - will be handled in specification
+                return PageRequest.of(page, size);
+            case "price_desc":
+                // Sort by min price descending - will be handled in specification
+                return PageRequest.of(page, size);
+            case "rating_asc":
+                // Sort by rating ascending - will be handled in specification
+                return PageRequest.of(page, size);
+            case "rating_desc":
+                // Sort by rating descending - will be handled in specification
+                return PageRequest.of(page, size);
+            default:
+                return PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        }
     }
     
     private List<String> parseCommaSeparatedParam(String param) {
@@ -272,6 +316,22 @@ public class ProductServiceImpl implements ProductService {
                 .map(String::valueOf)
                 .collect(Collectors.joining("-"));
         return spu + "-" + idsPart;
+    }
+
+    private void saveFilterValues(List<Long> filterValueIds, Product product) {
+        if (filterValueIds == null || filterValueIds.isEmpty()) {
+            return;
+        }
+
+        List<FilterValue> filterValues = filterValueRepository.findAllById(filterValueIds);
+        
+        for (FilterValue filterValue : filterValues) {
+            ProductFilterValue productFilterValue = ProductFilterValue.builder()
+                    .product(product)
+                    .filterValue(filterValue)
+                    .build();
+            productFilterValueRepository.save(productFilterValue);
+        }
     }
 
 }

@@ -8,6 +8,7 @@ import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductVariantDescriptionResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductVariantPromotionResponse;
 import iuh.fit.ecommerce.services.ProductService;
+import iuh.fit.ecommerce.services.ProductSearchService;
 import iuh.fit.ecommerce.services.ProductVariantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class ProductController {
     private final ProductService productService;
     private final ProductVariantService productVariantService;
+    private final ProductSearchService productSearchService;
 
     @PostMapping("")
     public ResponseEntity<ResponseSuccess<?>> createProduct(@Valid @RequestBody ProductAddRequest productAddRequest) {
@@ -100,11 +102,26 @@ public class ProductController {
     ){
         allParams.remove("page");
         allParams.remove("size");
+        // sortBy will be kept in allParams
         
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Search products in category success",
                 productService.searchProductForUser(categorySlug, page, size, allParams)
+        ));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ProductResponse>>>> searchProductsWithElasticsearch(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String sortBy
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Search products with Elasticsearch success",
+                productSearchService.searchProducts(query, page, size, sortBy)
         ));
     }
 

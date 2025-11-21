@@ -322,6 +322,8 @@ public class OrderServiceImpl implements OrderService {
         // Hoàn lại stock cho các sản phẩm
         restoreProductStock(order.getOrderDetails());
 
+        restoreVoucher(order);
+
         order.setStatus(CANCELED);
         orderRepository.save(order);
         
@@ -335,6 +337,11 @@ public class OrderServiceImpl implements OrderService {
             variant.setStock(newStock);
             productVariantRepository.save(variant);
         });
+    }
+
+    private void restoreVoucher(Order order) {
+        if ( voucherUsageHistoryRepository.existsByOrder(order))
+            voucherUsageHistoryRepository.deleteByOrder(order);
     }
 
     @Override

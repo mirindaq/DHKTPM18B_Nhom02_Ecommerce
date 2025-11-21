@@ -12,10 +12,22 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate()
-  const firstVariant = product.variants?.[0]
-  const currentPrice = firstVariant?.price || 0
-  const oldPrice = firstVariant?.oldPrice || 0
-  const discountPercent = firstVariant?.discount || 0
+  
+  // Tìm variant có giá thấp nhất
+  const lowestPriceVariant = product.variants?.reduce((lowest, variant) => {
+    if (!lowest) return variant
+    const lowestPrice = lowest.oldPrice > 0 
+      ? lowest.oldPrice * (1 - (lowest.discount || 0) / 100)
+      : lowest.price
+    const variantPrice = variant.oldPrice > 0
+      ? variant.oldPrice * (1 - (variant.discount || 0) / 100)
+      : variant.price
+    return variantPrice < lowestPrice ? variant : lowest
+  }, product.variants?.[0])
+  
+  const currentPrice = lowestPriceVariant?.price || 0
+  const oldPrice = lowestPriceVariant?.oldPrice || 0
+  const discountPercent = lowestPriceVariant?.discount || 0
 
   const finalPrice = oldPrice > 0 ? oldPrice * (1 - discountPercent / 100) : currentPrice
 

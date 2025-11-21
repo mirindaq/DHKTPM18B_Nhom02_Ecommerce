@@ -60,5 +60,20 @@ export const productService = {
       `/products/search/${categorySlug}?${params.toString()}`
     )
     return response.data
+  },
+
+  searchProductsWithElasticsearch: async (query: string, page: number = 1, size: number = 12, sortBy?: string) => {
+    const params = new URLSearchParams({
+      query: query,
+      page: page.toString(),
+      size: size.toString()
+    })
+    if (sortBy) {
+      params.set('sortBy', sortBy)
+    }
+    const response = await axiosClient.get<ProductListResponse>(
+      `/products/search?${params.toString()}`
+    )
+    return response.data
   }
 }

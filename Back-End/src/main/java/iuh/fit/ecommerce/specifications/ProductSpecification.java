@@ -6,7 +6,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ProductSpecification {
 
@@ -16,7 +15,8 @@ public class ProductSpecification {
             Boolean inStock,
             Double priceMin,
             Double priceMax,
-            Map<String, List<String>> variantFilters
+            List<Long> filterValueIds,
+            String sortBy
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -32,7 +32,13 @@ public class ProductSpecification {
             }
 
             if (inStock != null && inStock) {
-                predicates.add(cb.greaterThan(root.get("stock"), 0));
+                // Check if total stock of all variants > 0
+                assert query != null;
+                Subquery<Long> stockSubquery = query.subquery(Long.class);
+                Root<ProductVariant> variantRootStock = stockSubquery.from(ProductVariant.class);
+                stockSubquery.select(cb.sum(variantRootStock.get("stock")));
+                stockSubquery.where(cb.equal(variantRootStock.get("product"), root));
+                predicates.add(cb.greaterThan(stockSubquery, 0L));
             }
 
             if (priceMin != null || priceMax != null) {
@@ -51,36 +57,64 @@ public class ProductSpecification {
                 }
             }
 
-            if (variantFilters != null && !variantFilters.isEmpty()) {
-                for (Map.Entry<String, List<String>> entry : variantFilters.entrySet()) {
-                    String variantSlug = entry.getKey();
-                    List<String> valuesSlugs = entry.getValue();
+            if (filterValueIds != null && !filterValueIds.isEmpty()) {
+                assert query != null;
+                Subquery<Long> filterSubquery = query.subquery(Long.class);
+                Root<Product> subRoot = filterSubquery.from(Product.class);
+                Join<Product, ProductFilterValue> pfvJoin = subRoot.join("productFilterValues", JoinType.INNER);
+                Join<ProductFilterValue, FilterValue> fvJoin = pfvJoin.join("filterValue", JoinType.INNER);
 
-                    if (valuesSlugs == null || valuesSlugs.isEmpty()) continue;
+                filterSubquery.select(subRoot.get("id"));
+                filterSubquery.where(
+                        cb.and(
+                                cb.equal(subRoot.get("id"), root.get("id")),
+                                fvJoin.get("id").in(filterValueIds)
+                        )
+                );
 
-                    assert query != null;
-                    Subquery<Long> variantSubquery = query.subquery(Long.class);
-                    Root<Product> subRoot = variantSubquery.from(Product.class);
-                    Join<Product, ProductVariant> pvJoin = subRoot.join("productVariants", JoinType.INNER);
-                    Join<ProductVariant, ProductVariantValue> pvvJoin = pvJoin.join("productVariantValues", JoinType.INNER);
-                    Join<ProductVariantValue, VariantValue> vvJoin = pvvJoin.join("variantValue", JoinType.INNER);
-                    Join<VariantValue, Variant> vJoin = vvJoin.join("variant", JoinType.INNER);
-
-                    variantSubquery.select(subRoot.get("id"));
-                    variantSubquery.where(
-                            cb.and(
-                                    cb.equal(subRoot.get("id"), root.get("id")),
-                                    cb.equal(vJoin.get("slug"), variantSlug),
-                                    vvJoin.get("slug").in(valuesSlugs)
-                            )
-                    );
-
-                    predicates.add(cb.exists(variantSubquery));
-                }
+                predicates.add(cb.exists(filterSubquery));
             }
 
             assert query != null;
-            query.  distinct(true);
+            query.distinct(true);
+            
+            // Add sorting based on sortBy parameter
+            if (sortBy != null && !sortBy.isEmpty()) {
+                switch (sortBy) {
+                    case "price_asc":
+                        // Sort by minimum price ascending
+                        Subquery<Double> minPriceAsc = query.subquery(Double.class);
+                        Root<ProductVariant> variantRootAsc = minPriceAsc.from(ProductVariant.class);
+                        minPriceAsc.select(cb.min(variantRootAsc.get("price")));
+                        minPriceAsc.where(cb.equal(variantRootAsc.get("product"), root));
+                        query.orderBy(cb.asc(minPriceAsc));
+                        break;
+                    case "price_desc":
+                        // Sort by minimum price descending
+                        Subquery<Double> minPriceDesc = query.subquery(Double.class);
+                        Root<ProductVariant> variantRootDesc = minPriceDesc.from(ProductVariant.class);
+                        minPriceDesc.select(cb.min(variantRootDesc.get("price")));
+                        minPriceDesc.where(cb.equal(variantRootDesc.get("product"), root));
+                        query.orderBy(cb.desc(minPriceDesc));
+                        break;
+                    case "rating_asc":
+                        // Sort by rating ascending
+                        query.orderBy(cb.asc(root.get("rating")), cb.desc(root.get("id")));
+                        break;
+                    case "rating_desc":
+                        // Sort by rating descending
+                        query.orderBy(cb.desc(root.get("rating")), cb.desc(root.get("id")));
+                        break;
+                    default:
+                        // Default: sort by id descending (newest first)
+                        query.orderBy(cb.desc(root.get("id")));
+                        break;
+                }
+            } else {
+                // Default: sort by id descending
+                query.orderBy(cb.desc(root.get("id")));
+            }
+            
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

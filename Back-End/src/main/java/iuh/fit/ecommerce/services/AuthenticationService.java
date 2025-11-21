@@ -17,9 +17,9 @@ public interface AuthenticationService {
 
     void logout(HttpServletRequest request);
 
-    String generateAuthUrl(String loginType);
+    String generateAuthUrl(String loginType, String redirectUri);
 
-    LoginResponse socialLoginCallback(String loginType, String code) throws IOException;
+    LoginResponse socialLoginCallback(String loginType, String code, String redirectUri) throws IOException;
 
     LoginResponse userLogin(LoginRequest loginRequest);
 

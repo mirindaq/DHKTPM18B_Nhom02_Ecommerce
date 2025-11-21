@@ -1,84 +1,39 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router';
-import { Loader2 } from 'lucide-react';
-import { categoryBrandService } from '@/services/categoryBrand.service';
-import { variantService } from '@/services/variant.service';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router';
+import { Loader2, Search as SearchIcon } from 'lucide-react';
 import { productService } from '@/services/product.service';
-import type { Brand } from '@/types/brand.type';
-import type { Variant } from '@/types/variant.type';
 import type { Product } from '@/types/product.type';
 import Breadcrumb from '@/components/user/search/Breadcrumb';
-import PromotionalBanners from '@/components/user/search/PromotionalBanners';
-import BrandSelection from '@/components/user/search/BrandSelection';
-import FilterSection from '@/components/user/search/FilterSection';
+import SortSection from '@/components/user/search/SortSection';
 import ProductCard from '@/components/user/ProductCard';
 import { useQuery } from '@/hooks/useQuery';
+import { Button } from '@/components/ui/button';
+import { PUBLIC_PATH } from '@/constants/path';
 
-interface SearchFilters {
-  brands?: number[];
-  inStock?: boolean;
-  priceMin?: number;
-  priceMax?: number;
-  variants?: { [variantId: number]: number[] };
-}
+type SortOption = 'popular' | 'price_asc' | 'price_desc' | 'rating_asc' | 'rating_desc';
 
 export default function Search() {
-  const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [categoryName, setCategoryName] = useState<string>('');
+  const navigate = useNavigate();
+  const query = searchParams.get('q') || '';
+  const page = parseInt(searchParams.get('page') || '1');
+  const size = 12;
+  const sortBy = (searchParams.get('sortBy') || 'popular') as SortOption;
 
-  // Load brands using useQuery hook
-  const { 
-    data: brandsData, 
-    isLoading: brandsLoading 
-  } = useQuery<{ data: Brand[] }>(
-    () => categoryBrandService.getBrandsByCategorySlug(slug!),
-    {
-      queryKey: ['brands', slug || ''],
-      enabled: !!slug,
-      onError: (err) => {
-        console.error('Lỗi khi tải brands:', err);
-      }
-    }
-  );
+  const [searchInput, setSearchInput] = useState(query);
 
-  // Load variants using useQuery hook
-  const { 
-    data: variantsData, 
-    isLoading: variantsLoading 
-  } = useQuery<{ data: Variant[] }>(
-    () => variantService.getVariantsByCategorySlug(slug!),
-    {
-      queryKey: ['variants', slug || ''],
-      enabled: !!slug,
-      onError: (err) => {
-        console.error('Lỗi khi tải variants:', err);
-      }
-    }
-  );
-
-  const brands = brandsData?.data || [];
-  const variants = variantsData?.data || [];
-  const loading = brandsLoading || variantsLoading;
-
-  const searchFilters = useMemo(() => {
-    const result: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      if (key !== 'page' && key !== 'size') {
-        result[key] = value;
-      }
-    });
-    return result;
-  }, [searchParams]);
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   const { 
     data: productsData, 
-    isLoading: productsLoading
+    isLoading: productsLoading 
   } = useQuery<{ data: { data: Product[], totalPage: number, totalItem: number } }>(
-    () => productService.searchProducts(slug!, 1, 12, searchFilters),
+    () => productService.searchProductsWithElasticsearch(query, page, size, sortBy),
     {
-      queryKey: ['search-products', slug || '', searchParams.toString()],
-      enabled: !!slug,
+      queryKey: ['search-products-elasticsearch', query, page.toString(), sortBy],
+      enabled: !!query && query.trim().length > 0,
       onError: (err) => {
         console.error('Lỗi khi tải products:', err);
       }
@@ -86,164 +41,190 @@ export default function Search() {
   );
 
   const products = productsData?.data?.data || [];
+  const totalItem = productsData?.data?.totalItem || 0;
+  const totalPage = productsData?.data?.totalPage || 0;
 
-  useEffect(() => {
-    if (slug) {
-      const name = slug
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      setCategoryName(name);
-    }
-  }, [slug]);
-
-  const parsedFiltersFromUrl = useMemo(() => {
-    const parsedFilters: SearchFilters = {};
-    
-    const brandsParam = searchParams.get('brands');
-    if (brandsParam && brands.length > 0) {
-      const brandSlugs = brandsParam.split(',');
-      parsedFilters.brands = brands
-        .filter(b => brandSlugs.includes(b.slug))
-        .map(b => b.id);
-    }
-    
-    const inStockParam = searchParams.get('inStock');
-    if (inStockParam === 'true') {
-      parsedFilters.inStock = true;
-    }
-    
-    const priceMinParam = searchParams.get('priceMin');
-    const priceMaxParam = searchParams.get('priceMax');
-    if (priceMinParam) parsedFilters.priceMin = Number(priceMinParam);
-    if (priceMaxParam) parsedFilters.priceMax = Number(priceMaxParam);
-    
-    const variantsObj: { [variantId: number]: number[] } = {};
-    variants.forEach((variant) => {
-      const paramValue = searchParams.get(variant.slug);
-      if (paramValue && variant.variantValues) {
-        const valueSlugs = paramValue.split(',');
-        const valueIds = variant.variantValues
-          .filter(vv => valueSlugs.includes(vv.slug))
-          .map(vv => vv.id);
-        if (valueIds.length > 0) {
-          variantsObj[variant.id] = valueIds;
-        }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      const params = new URLSearchParams();
+      params.set('q', searchInput.trim());
+      params.set('page', '1');
+      // Preserve sortBy when searching
+      if (sortBy && sortBy !== 'popular') {
+        params.set('sortBy', sortBy);
       }
-    });
-    if (Object.keys(variantsObj).length > 0) {
-      parsedFilters.variants = variantsObj;
+      setSearchParams(params);
     }
-    
-    return parsedFilters;
-  }, [searchParams, brands, variants]);
-
-  const handleFilterChange = (newFilters: SearchFilters) => {
-    const params = new URLSearchParams();
-    
-    if (newFilters.brands && newFilters.brands.length > 0) {
-      const brandSlugs = brands
-        .filter(b => newFilters.brands?.includes(b.id))
-        .map(b => b.slug);
-      if (brandSlugs.length > 0) {
-        params.set('brands', brandSlugs.join(','));
-      }
-    }
-    
-    if (newFilters.inStock) {
-      params.set('inStock', 'true');
-    }
-    
-    if (newFilters.priceMin !== undefined) {
-      params.set('priceMin', newFilters.priceMin.toString());
-    }
-    if (newFilters.priceMax !== undefined) {
-      params.set('priceMax', newFilters.priceMax.toString());
-    }
-    
-    if (newFilters.variants) {
-      Object.entries(newFilters.variants).forEach(([variantId, valueIds]) => {
-        const variant = variants.find(v => v.id === Number(variantId));
-        if (variant && valueIds.length > 0 && variant.variantValues) {
-          const valueSlugs = variant.variantValues
-            .filter(vv => valueIds.includes(vv.id))
-            .map(vv => vv.slug);
-          if (valueSlugs.length > 0) {
-            params.set(variant.slug, valueSlugs.join(','));
-          }
-        }
-      });
-    }
-    
-    setSearchParams(params);
   };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', newPage.toString());
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSortChange = (newSortBy: SortOption) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('sortBy', newSortBy);
+    params.set('page', '1'); // Reset to page 1 when sorting changes
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (!query || query.trim().length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <Breadcrumb
+          items={[
+            { label: 'Kết quả tìm kiếm' },
+          ]}
+        />
+        <div className="text-center py-12">
+          <SearchIcon size={64} className="mx-auto text-gray-400 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Tìm kiếm sản phẩm
+          </h2>
+          <p className="text-gray-500 mb-6">
+            Nhập từ khóa để tìm kiếm sản phẩm bạn muốn
+          </p>
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Nhập từ khóa tìm kiếm..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+              />
+              <Button type="submit" className="bg-red-600 hover:bg-red-700">
+                Tìm kiếm
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <Breadcrumb
         items={[
-          { label: 'Điện thoại', href: '/products' },
-          { label: categoryName || 'Danh mục' },
+          { label: 'Kết quả tìm kiếm cho', href: undefined },
+          { label: `'${query}'` },
         ]}
       />
 
-      <PromotionalBanners />
+      {/* Search bar */}
+      <div className="mb-6">
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Nhập từ khóa tìm kiếm..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+          />
+          <Button type="submit" className="bg-red-600 hover:bg-red-700">
+            <SearchIcon size={20} className="mr-2" />
+            Tìm kiếm
+          </Button>
+        </form>
+      </div>
 
-      <BrandSelection 
-        brands={brands} 
-        loading={loading}
-        selectedBrands={parsedFiltersFromUrl.brands || []}
-        onBrandChange={(brandIds) => {
-          handleFilterChange({
-            ...parsedFiltersFromUrl,
-            brands: brandIds,
-          });
-        }}
-      />
+      {/* Results count */}
+      <div className="mb-6">
+        <p className="text-gray-600">
+          Tìm thấy <span className="font-semibold text-gray-900">{totalItem.toLocaleString()}</span> sản phẩm cho từ khóa <span className="font-semibold text-gray-900">'{query}'</span>
+        </p>
+      </div>
 
-      {loading ? (
+      {/* Sort section */}
+      <SortSection sortBy={sortBy} onSortChange={handleSortChange} />
+
+      {/* Products grid */}
+      {productsLoading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-red-600" />
         </div>
-      ) : (
-        <FilterSection 
-          variants={variants} 
-          loading={loading}
-          filters={parsedFiltersFromUrl}
-          onFilterChange={handleFilterChange}
-        />
-      )}
-
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Kết quả tìm kiếm
-            {products.length > 0 && (
-              <span className="text-gray-500 text-lg ml-2">
-                ({products.length} sản phẩm)
-              </span>
-            )}
-          </h2>
+      ) : products.length === 0 ? (
+        <div className="text-center py-12">
+          <SearchIcon size={64} className="mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500 text-lg mb-2">
+            Không tìm thấy sản phẩm nào cho từ khóa <span className="font-semibold">'{query}'</span>
+          </p>
+          <p className="text-gray-400 text-sm mb-6">
+            Hãy thử tìm kiếm với từ khóa khác
+          </p>
+          <Button 
+            onClick={() => {
+              setSearchInput('');
+              navigate(PUBLIC_PATH.HOME);
+            }}
+            variant="outline"
+          >
+            Về trang chủ
+          </Button>
         </div>
-
-        {productsLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-red-600" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              Không tìm thấy sản phẩm nào phù hợp với bộ lọc của bạn
-            </p>
-          </div>
-        ) : (
+      ) : (
+        <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        )}
-      </div>
+
+          {/* Pagination */}
+          {totalPage > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page <= 1}
+              >
+                Trước
+              </Button>
+              
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPage) }, (_, i) => {
+                  let pageNum;
+                  if (totalPage <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPage - 2) {
+                    pageNum = totalPage - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={page === pageNum ? "default" : "outline"}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={page === pageNum ? "bg-red-600 hover:bg-red-700" : ""}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= totalPage}
+              >
+                Sau
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
+

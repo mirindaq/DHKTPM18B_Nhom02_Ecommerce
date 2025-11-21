@@ -516,6 +516,24 @@ export default function ProductDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Product Description */}
+            {product.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    Mô tả sản phẩm
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className="article-content"
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Right Column - Purchase Options */}

@@ -4,6 +4,11 @@ package iuh.fit.ecommerce.configurations;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.enums.WorkStatus;
 import iuh.fit.ecommerce.repositories.*;
+import iuh.fit.ecommerce.repositories.ProductVariantRepository;
+import iuh.fit.ecommerce.repositories.RankingRepository;
+import iuh.fit.ecommerce.repositories.RoleRepository;
+import iuh.fit.ecommerce.repositories.StaffRepository;
+import iuh.fit.ecommerce.services.ProductSearchService;
 import iuh.fit.ecommerce.services.VectorStoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +33,14 @@ public class InitApp {
     private final ProductVariantRepository productVariantRepository;
     private final VectorStoreService vectorStoreService;
     private final CustomerRepository customerRepository;
+    private final ProductSearchService productSearchService;
 
 
     @Bean
     @Transactional
     ApplicationRunner initApplication(StaffRepository staffRepository){
         return args -> {
+            productSearchService.reindexAllProducts();
             List<Map<String, String>> roles = List.of(
                     Map.of( "ADMIN","Quản trị viên"),
                     Map.of( "STAFF", "Nhân viên"),

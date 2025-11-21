@@ -35,8 +35,9 @@ import {
   LayoutList,
   GitMerge,
   MessageSquare,
-} from "lucide-react";
-import AdminChatListener from "@/components/admin/AdminChatListener";
+  Filter,
+} from "lucide-react"
+import AdminChatListener from "@/components/admin/AdminChatListener"
 
 const navigation = [
   {
@@ -74,7 +75,12 @@ const navigation = [
         href: "/admin/category-brand-assignment",
         icon: GitMerge,
       },
-    ],
+      {
+        title: "Tiêu chí lọc",
+        href: "/admin/filter-criterias",
+        icon: Filter,
+      },
+    ]
   },
   {
     title: "Quản lý đơn hàng",

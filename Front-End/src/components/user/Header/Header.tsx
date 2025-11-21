@@ -104,14 +104,30 @@ export default function Header() {
 
         {/* Thanh tìm kiếm */}
         <div className="flex-1 max-w-xl">
-          <div className="flex items-center bg-white rounded-lg px-3 py-2 text-gray-700">
+          <form 
+            className="flex items-center bg-white rounded-lg px-3 py-2 text-gray-700"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const query = formData.get('search') as string;
+              if (query && query.trim()) {
+                navigate(`${PUBLIC_PATH.HOME}search?q=${encodeURIComponent(query.trim())}`);
+              }
+            }}
+          >
             <Search size={20} className="text-gray-400" />
             <input
               type="text"
+              name="search"
               placeholder="Bạn muốn mua gì hôm nay?"
               className="flex-1 bg-transparent outline-none ml-2 text-sm placeholder-gray-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.form?.requestSubmit();
+                }
+              }}
             />
-          </div>
+          </form>
         </div>
 
         {/* Giỏ hàng */}

@@ -135,33 +135,6 @@ export default function ProductPageWrapper({
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate("/admin/products")}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Quay lại</span>
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">
-            {title}
-          </h1>
-          <p className="text-base text-gray-600">
-            {mode === "edit" && product ? (
-              <>
-                {description}: <span className="font-medium">{product.name}</span>
-              </>
-            ) : (
-              description
-            )}
-          </p>
-        </div>
-      </div>
-
       {/* Form */}
       <div>
         <ProductForm

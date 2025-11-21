@@ -17,6 +17,11 @@ spring:
         dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT}
         enable_lazy_load_no_trans: ${SPRING_JPA_PROPERTIES_HIBERNATE_ENABLE_LAZY_LOAD_NO_TRANS}
 
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    connection-timeout: 5s
+    socket-timeout: 60s
+
   mail:
     host: ${SPRING_MAIL_HOST}
     username: ${SPRING_MAIL_USERNAME}
