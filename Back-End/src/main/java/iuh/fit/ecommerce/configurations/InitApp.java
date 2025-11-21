@@ -1,14 +1,18 @@
 package iuh.fit.ecommerce.configurations;
 
 
+import iuh.fit.ecommerce.entities.ProductVariant;
 import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.entities.Role;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.entities.UserRole;
 import iuh.fit.ecommerce.enums.WorkStatus;
+import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.repositories.RoleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
+import iuh.fit.ecommerce.services.ProductSearchService;
+import iuh.fit.ecommerce.services.VectorStoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -29,12 +33,16 @@ public class InitApp {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RankingRepository rankingRepository;
+    private final ProductVariantRepository productVariantRepository;
+    private final VectorStoreService vectorStoreService;
+    private final ProductSearchService productSearchService;
 
 
     @Bean
     @Transactional
     ApplicationRunner initApplication(StaffRepository staffRepository){
         return args -> {
+            productSearchService.reindexAllProducts();
             List<Map<String, String>> roles = List.of(
                     Map.of( "ADMIN","Quản trị viên"),
                     Map.of( "STAFF", "Nhân viên"),
@@ -106,7 +114,53 @@ public class InitApp {
                 }
             }
 
-
+            // Index toàn bộ product variants vào Qdrant
+//            indexAllProductVariants();
         };
     }
+
+    /**
+     * Index toàn bộ product variants hiện có trong database vào Qdrant vector store
+     */
+//    private void indexAllProductVariants() {
+//        try {
+//            log.info("Starting to index all product variants to Qdrant...");
+//
+//            List<ProductVariant> allVariants = productVariantRepository.findAll();
+//
+//            if (allVariants.isEmpty()) {
+//                log.info("No product variants found in database. Skipping indexing.");
+//                return;
+//            }
+//
+//            int total = allVariants.size();
+//            int successCount = 0;
+//            int errorCount = 0;
+//
+//            log.info("Found {} product variants to index", total);
+//
+//            for (ProductVariant variant : allVariants) {
+//                try {
+//                    // Index variant vào Qdrant
+//                    vectorStoreService.indexProductVariant(variant);
+//                    successCount++;
+//
+//                    // Log progress mỗi 100 variants
+//                    if (successCount % 100 == 0) {
+//                        log.info("Indexed {}/{} product variants...", successCount, total);
+//                    }
+//                } catch (Exception e) {
+//                    errorCount++;
+//                    log.error("Failed to index product variant ID: {} - Error: {}",
+//                            variant.getId(), e.getMessage());
+//                }
+//            }
+//
+//            log.info("Completed indexing product variants. Success: {}, Failed: {}, Total: {}",
+//                    successCount, errorCount, total);
+//
+//        } catch (Exception e) {
+//            log.error("Error during product variant indexing: {}", e.getMessage(), e);
+//        }
+//    }
 }

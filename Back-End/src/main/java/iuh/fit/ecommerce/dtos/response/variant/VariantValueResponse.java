@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class VariantValueResponse {
     private Long id;
+    private String slug;
     private String value;
     private boolean status;
     private Long variantId;

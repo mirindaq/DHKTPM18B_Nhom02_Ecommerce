@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.entities;
 
+import iuh.fit.ecommerce.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 import iuh.fit.ecommerce.enums.OrderStatus;
@@ -37,11 +38,14 @@ public class Order extends BaseEntity {
     private OrderStatus status;
 
     @Column
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    @Column
     private String note;
 
     @Column
     private Boolean isPickup;
-
 
     // Tổng tiền gốc của đơn (chưa giảm)
     @Column(name = "total_price", nullable = false)
@@ -56,7 +60,7 @@ public class Order extends BaseEntity {
     private Double finalTotalPrice;
 
     @ManyToOne( fetch = FetchType.EAGER )
-    private User user;
+    private Customer customer;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderDetail> orderDetails;

@@ -16,14 +16,6 @@ public class ProductAddRequest {
     @NotBlank(message = "SPU không được để trống")
     private String spu;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
-    private Integer stock;
-
-    @DecimalMin(value = "0.0", inclusive = true, message = "Giảm giá không được nhỏ hơn 0")
-    @DecimalMax(value = "1.0", inclusive = true, message = "Giảm giá không được lớn hơn 1 (100%)")
-    private Double discount;
-
     @NotBlank(message = "Mô tả không được để trống")
     private String description;
 
@@ -44,4 +36,6 @@ public class ProductAddRequest {
     private List<ProductAttributeRequest> attributes;
 
     private List<ProductVariantRequest> variants;
+
+    private List<Long> filterValueIds;
 }

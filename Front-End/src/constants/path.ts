@@ -28,6 +28,9 @@ export const ADMIN_PATH = {
   ARTICLES: "/admin/articles",
   ARTICLE_ADD: "/admin/articles/add",
   ARTICLE_CATEGORIES: "/admin/article-categories",
+  CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
+  FILTER_CRITERIAS: "/admin/filter-criterias",
+  CHAT: "/admin/chats",
 };
 
 // Staff paths
@@ -37,6 +40,7 @@ export const STAFF_PATH = {
   ORDERS: "/staff/orders",
   CUSTOMERS: "/staff/customers",
   ARTICLES: "/staff/articles",
+  CHAT: "/staff/chats",
 };
 
 // Shipper paths
@@ -61,6 +65,7 @@ export const PUBLIC_PATH = {
   TERMS_AND_CONDITIONS: "/terms",
   DELIVERY_POLICY: "/delivery-policy",
   EXCLUSIVE: "/exclusive",
+  CHAT: "/chat",
 };
 
 // User account paths

@@ -5,31 +5,31 @@ import type {
   UpdateVoucherRequest,
   VoucherResponse,
   VoucherListResponse,
-  VoucherAvailableResponse,
-  Voucher
+  Voucher,
+  VoucherAvailableApiResponse
 } from '@/types/voucher.type';
 
 export const voucherService = {
   getVouchers: async (
-    page: number = 1, 
-    limit: number = 10, 
-    name?: string, 
-    type?: string, 
-    active?: boolean, 
-    startDate?: string, 
+    page: number = 1,
+    limit: number = 10,
+    name?: string,
+    type?: string,
+    active?: boolean,
+    startDate?: string,
     endDate?: string
   ) => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
-    
+
     if (name) params.append('name', name);
     if (type) params.append('type', type);
     if (active !== undefined) params.append('active', active.toString());
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-    
+
     const response = await axiosClient.get<VoucherListResponse>(`/vouchers?${params.toString()}`);
     return response.data;
   },
@@ -58,7 +58,7 @@ export const voucherService = {
   },
 
   getAvailableVouchers: async () => {
-    const response = await axiosClient.get<VoucherAvailableResponse[]>('/vouchers/available');
-    return response.data;
+    const response = await axiosClient.get<VoucherAvailableApiResponse>('/vouchers/available');
+    return response.data.data;
   }
 };

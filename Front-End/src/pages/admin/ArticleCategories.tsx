@@ -68,6 +68,20 @@ export default function ArticleCategories() {
     }
   );
 
+  const deleteMutation = useMutation(
+    (id: number) => articleCategoryService.deleteCategory(id),
+    {
+      onSuccess: () => {
+        toast.success("Xóa danh mục thành công");
+        refetchCategories();
+      },
+      onError: (err) => {
+        console.error("Delete article category error:", err);
+        toast.error("Không thể xóa danh mục. Có thể danh mục đang được sử dụng.");
+      },
+    }
+  );
+
   const handleOpenAdd = () => {
     setEditingCategory(null);
     setIsDialogOpen(true);
@@ -86,9 +100,10 @@ export default function ArticleCategories() {
     }
   };
 
-  const handleDelete = async (_id: number) => {
-    // TODO: Implement delete API when available
-    toast.error("Chức năng xóa chưa được hỗ trợ");
+  const handleDelete = async (id: number) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const handlePageChange = (page: number) => setCurrentPage(page);

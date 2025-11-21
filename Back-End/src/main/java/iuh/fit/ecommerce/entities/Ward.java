@@ -15,10 +15,23 @@ import lombok.Setter;
 public class Ward {
 
     @Id
-    private String code;
+    private Integer id;
+
     private String name;
 
-    @ManyToOne
+    private String slug;
+
+    private String type;
+
+    @Column(name = "name_with_type")
+    private String nameWithType;
+
+    private String path;
+
+    @Column(name = "path_with_type")
+    private String pathWithType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "province_id")
     private Province province;
 }

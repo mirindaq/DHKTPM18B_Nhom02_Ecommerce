@@ -220,3 +220,69 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Article Content Styles */
+@layer components {
+  /* Scrollbar hide utility */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Article content typography */
+  .article-content {
+    @apply text-[1.0625rem] leading-[1.8] text-gray-700;
+  }
+  
+  .article-content h2 {
+    @apply text-[1.75rem] font-bold text-gray-900 mt-8 mb-4 leading-tight;
+  }
+  
+  .article-content h3 {
+    @apply text-2xl font-bold text-gray-900 mt-7 mb-3.5;
+  }
+  
+  .article-content p {
+    @apply mb-5;
+  }
+  
+  .article-content img {
+    @apply w-full h-auto rounded-sm my-6;
+  }
+  
+  .article-content blockquote {
+    @apply border-l-4 border-red-600 pl-5 my-6 italic text-gray-600 bg-gray-50 p-5 rounded-lg;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    @apply ml-7 mb-5;
+  }
+
+  .article-content li {
+    @apply mb-2.5;
+  }
+
+  .article-content a {
+    @apply text-red-600 underline hover:text-red-700;
+  }
+
+  .article-content strong {
+    @apply font-bold text-gray-900;
+  }
+
+  .article-content code {
+    @apply bg-gray-100 px-1.5 py-0.5 rounded text-[0.875em] font-mono;
+  }
+
+  .article-content pre {
+    @apply bg-gray-800 text-gray-50 p-4 rounded-lg overflow-x-auto my-6;
+  }
+
+  .article-content pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+}

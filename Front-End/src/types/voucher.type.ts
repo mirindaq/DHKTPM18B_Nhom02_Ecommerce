@@ -84,3 +84,5 @@ export type VoucherAvailableResponse = {
   discount: number;
   voucherType: VoucherType;
 };
+
+export type VoucherAvailableApiResponse = ResponseApi<VoucherAvailableResponse[]>;

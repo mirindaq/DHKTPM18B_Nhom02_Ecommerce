@@ -23,7 +23,7 @@ public class VoucherUsageHistory extends BaseEntity{
     private Voucher voucher;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id")
-    private Customer customer;
+    @JoinColumn(name = "order_id")
+    private Order order;
 
 }

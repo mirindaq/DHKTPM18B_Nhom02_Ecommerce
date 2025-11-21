@@ -9,10 +9,11 @@ import { promotionService } from "@/services/promotion.service";
 import type {
   PromotionSummary,
   PromotionListResponse,
+  PromotionFilter,
 } from "@/types/promotion.type";
 import PromotionTable from "@/components/admin/promotion/PromotionTable";
 import PromotionDetailDialog from "@/components/admin/promotion/PromotionDetailDialog";
-import PromotionFilter from "@/components/admin/promotion/PromotionFilter";
+import PromotionFilterComponent from "@/components/admin/promotion/PromotionFilter";
 import { ADMIN_PATH } from "@/constants/path";
 
 export default function Promotions() {
@@ -21,17 +22,26 @@ export default function Promotions() {
   const [viewingPromotion, setViewingPromotion] = useState<PromotionSummary | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(7);
+  const [pageSize] = useState(10);
 
   // state filter
-  const [filters, setFilters] = useState<any>({});
+  const [searchParams, setSearchParams] = useState<PromotionFilter>({});
 
   // useQuery dựa trên filters
   const { data: promotionsData, isLoading: isLoadingPromotions, refetch: refetchPromotions } =
     useQuery<PromotionListResponse>(
-      () => promotionService.getPromotions({ page: currentPage, size: pageSize, ...filters }),
+      () => promotionService.getPromotions({ 
+        page: currentPage, 
+        size: pageSize, 
+        ...searchParams 
+      }),
       {
-        queryKey: ["promotions", currentPage.toString(), pageSize.toString(), JSON.stringify(filters)],
+        queryKey: [
+          "promotions", 
+          currentPage.toString(), 
+          pageSize.toString(), 
+          JSON.stringify(searchParams)
+        ],
       }
     );
 
@@ -68,29 +78,98 @@ export default function Promotions() {
   };
 
   // callback filter
-  const handleSearch = (newFilters: any) => {
-    setCurrentPage(1); // reset về trang 1
-    setFilters(newFilters); // gửi nguyên payload lên API
+  const handleSearch = (filters: PromotionFilter) => {
+    setSearchParams(filters);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const getActivePromotionsCount = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return promotions.filter((promotion) => {
+      if (!promotion.active) return false;
+      
+      const startDate = new Date(promotion.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(promotion.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return today >= startDate && today <= endDate;
+    }).length;
+  };
+
+  const getInactivePromotionsCount = () => {
+    return promotions.filter((promotion) => !promotion.active).length;
+  };
+
+  const getExpiredPromotionsCount = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return promotions.filter((promotion) => {
+      if (!promotion.active) return false;
+      
+      const endDate = new Date(promotion.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return today > endDate;
+    }).length;
   };
 
   return (
-    <div className="space-y-3 p-2">
+    <div className="space-y-6 p-2">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Quản lý chương trình khuyến mãi</h1>
-          <p className="text-lg text-gray-600">Quản lý và theo dõi các chương trình khuyến mãi.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Quản lý chương trình khuyến mãi
+          </h1>
+          <p className="text-lg text-gray-600">
+            Quản lý và theo dõi các chương trình khuyến mãi trong hệ thống
+          </p>
         </div>
         <Button
-          className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          size="lg"
           onClick={() => navigate(ADMIN_PATH.PROMOTION_ADD)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <Plus className="mr-2 h-4 w-4" /> Thêm chương trình khuyến mãi
+          <Plus className="mr-2 h-4 w-4" />
+          Thêm chương trình khuyến mãi
         </Button>
       </div>
 
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-600 font-medium">Tổng chương trình</p>
+          <p className="text-2xl font-bold text-blue-700">
+            {pagination?.totalItem || 0}
+          </p>
+        </div>
+        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+          <p className="text-sm text-green-600 font-medium">Đang hoạt động</p>
+          <p className="text-2xl font-bold text-green-700">
+            {getActivePromotionsCount()}
+          </p>
+        </div>
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+          <p className="text-sm text-red-600 font-medium">Hết hạn</p>
+          <p className="text-2xl font-bold text-red-700">
+            {getExpiredPromotionsCount()}
+          </p>
+        </div>
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-600 font-medium">Tạm dừng</p>
+          <p className="text-2xl font-bold text-gray-700">
+            {getInactivePromotionsCount()}
+          </p>
+        </div>
+      </div>
+
       {/* Filter */}
-      <PromotionFilter onSearch={handleSearch} />
+      <PromotionFilterComponent onSearch={handleSearch} isLoading={isLoadingPromotions} />
 
       {/* Table */}
       <PromotionTable
@@ -105,12 +184,18 @@ export default function Promotions() {
           setIsDetailDialogOpen(true);
         }}
         onToggleStatus={handleToggleStatus}
+        currentPage={currentPage}
+        pageSize={pageSize}
       />
 
       {/* Pagination */}
       {pagination && pagination.totalPage > 1 && (
         <div className="flex justify-center">
-          <Pagination currentPage={currentPage} totalPages={pagination.totalPage} onPageChange={handlePageChange} />
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={pagination.totalPage} 
+            onPageChange={handlePageChange} 
+          />
         </div>
       )}
 

@@ -8,6 +8,7 @@ export type Cart = {
 };
 
 export type CartDetailResponse = {
+  id: number;
   productVariantId: number;
   productName: string;
   productImage: string;

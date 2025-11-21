@@ -4,6 +4,8 @@ import type {
   ProductListResponse,
   ProductResponse,
   ProductVariantDescriptionResponse,
+  ProductVariantPromotionRequest,
+  ProductVariantPromotionResponseApi,
 } from '@/types/product.type'
 
 export const productService = {
@@ -40,6 +42,38 @@ export const productService = {
   },
   getSkusForPromotion: async (productId: number) => {
     const response = await axiosClient.get<ProductVariantDescriptionResponse>(`/products/${productId}/skus`)
+    return response.data
+  },
+
+  getProductsVariantPromotions: async (request: ProductVariantPromotionRequest) => {
+    const response = await axiosClient.post<ProductVariantPromotionResponseApi>('/products/variants/promotions', request)
+    return response.data
+  },
+
+  searchProducts: async (categorySlug: string, page: number = 1, size: number = 8, filters: Record<string, string> = {}) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+      ...filters
+    })
+    const response = await axiosClient.get<ProductListResponse>(
+      `/products/search/${categorySlug}?${params.toString()}`
+    )
+    return response.data
+  },
+
+  searchProductsWithElasticsearch: async (query: string, page: number = 1, size: number = 12, sortBy?: string) => {
+    const params = new URLSearchParams({
+      query: query,
+      page: page.toString(),
+      size: size.toString()
+    })
+    if (sortBy) {
+      params.set('sortBy', sortBy)
+    }
+    const response = await axiosClient.get<ProductListResponse>(
+      `/products/search?${params.toString()}`
+    )
     return response.data
   }
 }

@@ -59,10 +59,6 @@ export default function ProductTable({
     }).format(price);
   };
 
-  const formatDiscount = (discount: number) => {
-    return `${(discount * 100).toFixed(0)}%`;
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between py-4">
@@ -101,9 +97,7 @@ export default function ProductTable({
               <TableHead className="font-semibold text-gray-700">Hình ảnh</TableHead>
               <TableHead className="font-semibold text-gray-700">Tên sản phẩm</TableHead>
               <TableHead className="font-semibold text-gray-700">SPU</TableHead>
-              <TableHead className="font-semibold text-gray-700">Giá</TableHead>
-              <TableHead className="font-semibold text-gray-700">Giảm giá</TableHead>
-              <TableHead className="font-semibold text-gray-700">Tồn kho</TableHead>
+              <TableHead className="font-semibold text-gray-700">Giá thấp nhất</TableHead>
               <TableHead className="font-semibold text-gray-700">Trạng thái</TableHead>
               <TableHead className="font-semibold text-gray-700">Thao tác</TableHead>
             </TableRow>
@@ -111,7 +105,7 @@ export default function ProductTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
@@ -120,7 +114,7 @@ export default function ProductTable({
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-24 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-24 text-gray-500">
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                       <Package className="h-8 w-8 text-gray-400" />
@@ -172,32 +166,10 @@ export default function ProductTable({
                           <p className="font-medium text-green-600">
                             {formatPrice(product.variants[0].price)}
                           </p>
-                          {product.variants[0].oldPrice && (
-                            <p className="text-xs text-gray-500 line-through">
-                              {formatPrice(product.variants[0].oldPrice)}
-                            </p>
-                          )}
                         </>
                       ) : (
                         <p className="text-gray-500 text-sm">Chưa có giá</p>
                       )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {product.discount > 0 ? (
-                      <Badge variant="destructive" className="text-xs">
-                        -{formatDiscount(product.discount)}
-                      </Badge>
-                    ) : (
-                      <span className="text-gray-400 text-sm">Không</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Package className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm font-medium">
-                        {product.stock}
-                      </span>
                     </div>
                   </TableCell>
                   <TableCell>

@@ -32,7 +32,11 @@ import {
   ChevronRight,
   Newspaper,
   LayoutList,  
+  GitMerge,
+  MessageSquare,
+  Filter,
 } from "lucide-react"
+import AdminChatListener from "@/components/admin/AdminChatListener"
 
 const navigation = [
   {
@@ -64,6 +68,16 @@ const navigation = [
         title: "Thương hiệu",
         href: "/admin/brands",
         icon: Award,
+      },
+      {
+        title: "Liên kết thương hiệu",
+        href: "/admin/category-brand-assignment",
+        icon: GitMerge,
+      },
+      {
+        title: "Tiêu chí lọc",
+        href: "/admin/filter-criterias",
+        icon: Filter,
       },
     ]
   },
@@ -129,6 +143,11 @@ const navigation = [
         icon: LayoutList,
       },
     ]
+  },
+  {
+    title: "Quản lý Chat",
+    icon: MessageSquare,
+    href: "/admin/chats",
   },
   {
     title: "Báo cáo & Thống kê",
@@ -310,6 +329,9 @@ export default function AdminLayout() {
           </main>
         </SidebarInset>
       </div>
+
+      {/* Auto-connect to WebSocket for staff */}
+      <AdminChatListener />
     </SidebarProvider>
   )
 }

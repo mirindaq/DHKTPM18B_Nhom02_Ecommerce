@@ -18,6 +18,7 @@ public class CategoryResponse {
     private Boolean status;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
+    private String slug;
     private List<AttributeResponse> attributes;
 
 }

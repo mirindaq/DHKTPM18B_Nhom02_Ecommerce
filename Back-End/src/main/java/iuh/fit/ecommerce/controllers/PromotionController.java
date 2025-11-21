@@ -52,12 +52,12 @@ public class PromotionController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate
+            @RequestParam(required = false) Integer priority
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Promotions success",
-                promotionService.getAllPromotions(page, limit, name, type, active, startDate, endDate)
+                promotionService.getAllPromotions(page, limit, name, type, active, startDate, priority)
         ));
     }
 

@@ -10,17 +10,15 @@ import iuh.fit.ecommerce.repositories.CartRepository;
 import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.services.CartService;
 import iuh.fit.ecommerce.services.PromotionService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final PromotionService promotionService;
@@ -71,7 +69,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void clearCart(Long userId) {
-        Cart cart = cartRepository.findByUser_Id(userId)
+        Cart cart = cartRepository.findByCustomer_Id(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user"));
 
         cart.getCartDetails().clear();
@@ -103,11 +101,11 @@ public class CartServiceImpl implements CartService {
     }
 
     private Cart findOrCreateCartForCurrentUser() {
-        User user = securityUtil.getCurrentUser();
-        return cartRepository.findByUser_Id(user.getId())
+        Customer customer = securityUtils.getCurrentCustomer();
+        return cartRepository.findByCustomer_Id(customer.getId())
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
-                    newCart.setUser(user);
+                    newCart.setCustomer(customer);
                     newCart.setTotalItems(0L);
                     return cartRepository.save(newCart);
                 });
@@ -133,7 +131,7 @@ public class CartServiceImpl implements CartService {
                 .productVariant(productVariant)
                 .quantity((long) quantity)
                 .price(productVariant.getPrice())
-                .discount(promotion.getDiscount())
+                .discount(promotion != null ? promotion.getDiscount() : 0.0)
                 .build();
         cart.getCartDetails().add(cartDetail);
     }
@@ -144,6 +142,5 @@ public class CartServiceImpl implements CartService {
                 .sum();
         cart.setTotalItems(totalItems);
     }
-
 
 }

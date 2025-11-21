@@ -48,12 +48,12 @@ export default function UserRegister() {
       if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
         const { data } = event.data
         if (data) {
-          const { accessToken, refreshToken, email, roles } = data
+          const { accessToken, refreshToken, email, roles, fullName } = data
 
           const userProfile: UserProfile = {
             id: email,
             email: email,
-            name: email.split('@')[0],
+            fullName: fullName,
             roles: roles,
           }
 

@@ -1,3 +1,4 @@
+import type { Rank } from "@/types/ranking.type";
 import type { ResponseApi } from "./responseApi.type";
 
 export type LoginRequest = {
@@ -18,17 +19,18 @@ export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
   email: string;
+  fullName: string;
   roles: string[];
 };
 
 export type UserProfile = {
-  id: string;
+  id: number;
   email: string;
-  name: string;
+  fullName: string;
   roles: string[];
   avatar?: string;
   phone?: string;
-  address?: string;
+  rank?: Rank;
 };
 
 export type ProfileResponse = ResponseApi<UserProfile>;

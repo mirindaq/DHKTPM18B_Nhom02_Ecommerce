@@ -29,5 +29,14 @@ export const categoryService = {
 
   changeStatusCategory: async (id: number) => {
     await axiosClient.put(`/categories/change-status/${id}`);
+  },
+  getAllCategoriesSimple: async () => {
+    const response = await axiosClient.get<CategoryListResponse>('/categories/all'); 
+    return response.data;
+  },
+
+  getCategoryBySlug: async (slug: string) => {
+    const response = await axiosClient.get<CategoryResponse>(`/categories/slug/${slug}`);
+    return response.data;
   }
 };
