@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WishListResponse {
+    private Long id;
     private Long productVariantId;
     private String productName;
     private String productImage;

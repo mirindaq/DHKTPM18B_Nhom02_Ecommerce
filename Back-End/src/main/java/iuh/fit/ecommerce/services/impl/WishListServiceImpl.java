@@ -11,7 +11,7 @@ import iuh.fit.ecommerce.mappers.WishListMapper;
 import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.repositories.WishListRepository;
 import iuh.fit.ecommerce.services.WishListService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WishListServiceImpl implements WishListService {
 
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtil;
     private final WishListRepository wishListRepository;
     private final ProductVariantRepository productVariantRepository;
     private final WishListMapper wishListMapper;
