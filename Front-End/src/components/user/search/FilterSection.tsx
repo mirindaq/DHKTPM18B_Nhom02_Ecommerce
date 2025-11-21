@@ -5,14 +5,8 @@ import {
   Truck,
   DollarSign,
   ChevronDown,
-  Package,
-  Cpu,
-  Monitor,
-  Camera,
-  RefreshCw,
-  Sparkles,
 } from 'lucide-react';
-import type { Variant } from '@/types/variant.type';
+import type { FilterCriteria } from '@/types/filterCriteria.type';
 import { useState, useEffect, useRef } from 'react';
 
 interface SearchFilters {
@@ -20,18 +14,18 @@ interface SearchFilters {
   inStock?: boolean;
   priceMin?: number;
   priceMax?: number;
-  variants?: { [variantId: number]: number[] };
+  filterValues?: number[];
 }
 
 interface FilterSectionProps {
-  variants: Variant[];
+  filterCriterias: FilterCriteria[];
   loading?: boolean;
   filters?: SearchFilters;
   onFilterChange?: (filters: SearchFilters) => void;
 }
 
 export default function FilterSection({ 
-  variants, 
+  filterCriterias, 
   loading,
   filters: externalFilters,
   onFilterChange 
@@ -45,7 +39,7 @@ export default function FilterSection({
   const [priceRange, setPriceRange] = useState<[number, number]>([50000, 10000000]);
 
   const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({});
-  const [selectedVariantValues, setSelectedVariantValues] = useState<{ [variantId: number]: number[] }>({});
+  const [selectedFilterValues, setSelectedFilterValues] = useState<number[]>([]);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
@@ -59,8 +53,8 @@ export default function FilterSection({
           externalFilters.priceMax || 10000000
         ]);
       }
-      if (externalFilters.variants) {
-        setSelectedVariantValues(externalFilters.variants);
+      if (externalFilters.filterValues) {
+        setSelectedFilterValues(externalFilters.filterValues);
       }
     }
   }, [externalFilters]);
@@ -109,29 +103,6 @@ export default function FilterSection({
     { key: 'priceView', label: 'Xem theo giá', icon: DollarSign },
   ];
 
-  const getIconForVariant = (variantName: string) => {
-    const name = variantName.toLowerCase();
-    if (name.includes('bộ nhớ') || name.includes('dung lượng') || name.includes('storage') || name.includes('memory')) {
-      return Package;
-    }
-    if (name.includes('ram')) {
-      return Cpu;
-    }
-    if (name.includes('màn hình') || name.includes('screen') || name.includes('display') || name.includes('kích thước')) {
-      return Monitor;
-    }
-    if (name.includes('camera')) {
-      return Camera;
-    }
-    if (name.includes('tần số') || name.includes('refresh') || name.includes('hz')) {
-      return RefreshCw;
-    }
-    if (name.includes('tính năng') || name.includes('special') || name.includes('đặc biệt')) {
-      return Sparkles;
-    }
-    return Monitor; // Default icon
-  };
-
   if (loading) {
     return (
       <div className="mb-8">
@@ -144,6 +115,26 @@ export default function FilterSection({
       </div>
     );
   }
+
+  const handleFilterValueToggle = (filterValueId: number) => {
+    setSelectedFilterValues(prev => {
+      if (prev.includes(filterValueId)) {
+        return prev.filter(id => id !== filterValueId);
+      } else {
+        return [...prev, filterValueId];
+      }
+    });
+  };
+
+  const handleApplyFilterCriteria = (criteriaId: number) => {
+    if (onFilterChange) {
+      onFilterChange({
+        ...externalFilters,
+        filterValues: selectedFilterValues,
+      });
+    }
+    toggleDropdown(`criteria-${criteriaId}`);
+  };
 
   return (
     <div className="mb-8">
@@ -240,55 +231,46 @@ export default function FilterSection({
           );
         })}
 
-        {variants.slice(0, 3).map((variant) => {
-          const Icon = getIconForVariant(variant.name);
-          const isOpen = openDropdowns[`variant-${variant.id}`];
-          const values = variant.variantValues || [];
+        {filterCriterias.slice(0, 3).map((criteria) => {
+          const isOpen = openDropdowns[`criteria-${criteria.id}`];
+          const values = criteria.filterValues || [];
 
           return (
             <div
-              key={variant.id}
+              key={criteria.id}
               className="relative"
               ref={(el) => {
-                dropdownRefs.current[`variant-${variant.id}`] = el;
+                dropdownRefs.current[`criteria-${criteria.id}`] = el;
               }}
             >
               <Button
                 variant="outline"
-                onClick={() => toggleDropdown(`variant-${variant.id}`)}
+                onClick={() => toggleDropdown(`criteria-${criteria.id}`)}
                 className={
-                  openDropdowns[`variant-${variant.id}`] || (selectedVariantValues[variant.id] && selectedVariantValues[variant.id].length > 0)
+                  openDropdowns[`criteria-${criteria.id}`] || 
+                  (values.some(v => selectedFilterValues.includes(v.id)))
                     ? 'border-red-600 text-red-600 hover:border-red-700'
                     : 'border-gray-300 hover:border-red-600 hover:text-red-600'
                 }
               >
-                <Icon size={16} className="mr-2" />
-                {variant.name}
+                {criteria.name}
                 <ChevronDown size={16} className="ml-2" />
               </Button>
               {isOpen && values.length > 0 && (
                 <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-20 min-w-[500px] max-w-[600px]">
                   <div className="p-4">
-                    <div className="grid grid-cols-4 gap-2 mb-4 max-h-[300px] overflow-y-auto">
+                    <div className="flex flex-wrap gap-2 mb-4 max-h-[300px] overflow-y-auto">
                       {values.map((value) => {
-                        const isSelected = selectedVariantValues[variant.id]?.includes(value.id);
+                        const isSelected = selectedFilterValues.includes(value.id);
                         return (
                           <button
                             key={value.id}
-                            className={`px-3 py-2 text-sm rounded-lg border transition-colors text-center whitespace-nowrap ${
+                            className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
                               isSelected
                                 ? 'border-red-600 bg-red-50 text-red-600'
                                 : 'border-gray-200 hover:border-red-600 hover:bg-red-50 hover:text-red-600'
                             }`}
-                            onClick={() => {
-                              setSelectedVariantValues((prev) => {
-                                const current = prev[variant.id] || [];
-                                const newValues = isSelected
-                                  ? current.filter((id) => id !== value.id)
-                                  : [...current, value.id];
-                                return { ...prev, [variant.id]: newValues };
-                              });
-                            }}
+                            onClick={() => handleFilterValueToggle(value.id)}
                           >
                             {value.value}
                           </button>
@@ -299,7 +281,7 @@ export default function FilterSection({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleDropdown(`variant-${variant.id}`)}
+                        onClick={() => toggleDropdown(`criteria-${criteria.id}`)}
                         className="bg-white hover:bg-gray-50"
                       >
                         Đóng
@@ -307,15 +289,7 @@ export default function FilterSection({
                       <Button
                         variant="default"
                         size="sm"
-                        onClick={() => {
-                          toggleDropdown(`variant-${variant.id}`);
-                          if (onFilterChange) {
-                            onFilterChange({
-                              ...externalFilters,
-                              variants: selectedVariantValues,
-                            });
-                          }
-                        }}
+                        onClick={() => handleApplyFilterCriteria(criteria.id)}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
                         Xem kết quả
@@ -330,55 +304,46 @@ export default function FilterSection({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        {variants.slice(3).map((variant) => {
-          const Icon = getIconForVariant(variant.name);
-          const isOpen = openDropdowns[`variant-${variant.id}`];
-          const values = variant.variantValues || [];
+        {filterCriterias.slice(3).map((criteria) => {
+          const isOpen = openDropdowns[`criteria-${criteria.id}`];
+          const values = criteria.filterValues || [];
 
           return (
             <div
-              key={variant.id}
+              key={criteria.id}
               className="relative"
               ref={(el) => {
-                dropdownRefs.current[`variant-${variant.id}`] = el;
+                dropdownRefs.current[`criteria-${criteria.id}`] = el;
               }}
             >
               <Button
                 variant="outline"
-                onClick={() => toggleDropdown(`variant-${variant.id}`)}
+                onClick={() => toggleDropdown(`criteria-${criteria.id}`)}
                 className={
-                  openDropdowns[`variant-${variant.id}`] || (selectedVariantValues[variant.id] && selectedVariantValues[variant.id].length > 0)
+                  openDropdowns[`criteria-${criteria.id}`] || 
+                  (values.some(v => selectedFilterValues.includes(v.id)))
                     ? 'border-red-600 text-red-600 hover:border-red-700'
                     : 'border-gray-300 hover:border-red-600 hover:text-red-600'
                 }
               >
-                <Icon size={16} className="mr-2" />
-                {variant.name}
+                {criteria.name}
                 <ChevronDown size={16} className="ml-2" />
               </Button>
               {isOpen && values.length > 0 && (
                 <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-20 min-w-[500px] max-w-[600px]">
                   <div className="p-4">
-                    <div className="grid grid-cols-4 gap-2 mb-4 max-h-[300px] overflow-y-auto">
+                    <div className="flex flex-wrap gap-2 mb-4 max-h-[300px] overflow-y-auto">
                       {values.map((value) => {
-                        const isSelected = selectedVariantValues[variant.id]?.includes(value.id);
+                        const isSelected = selectedFilterValues.includes(value.id);
                         return (
                           <button
                             key={value.id}
-                            className={`px-3 py-2 text-sm rounded-lg border transition-colors text-center whitespace-nowrap ${
+                            className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
                               isSelected
                                 ? 'border-red-600 bg-red-50 text-red-600'
                                 : 'border-gray-200 hover:border-red-600 hover:bg-red-50 hover:text-red-600'
                             }`}
-                            onClick={() => {
-                              setSelectedVariantValues((prev) => {
-                                const current = prev[variant.id] || [];
-                                const newValues = isSelected
-                                  ? current.filter((id) => id !== value.id)
-                                  : [...current, value.id];
-                                return { ...prev, [variant.id]: newValues };
-                              });
-                            }}
+                            onClick={() => handleFilterValueToggle(value.id)}
                           >
                             {value.value}
                           </button>
@@ -389,7 +354,7 @@ export default function FilterSection({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleDropdown(`variant-${variant.id}`)}
+                        onClick={() => toggleDropdown(`criteria-${criteria.id}`)}
                         className="bg-white hover:bg-gray-50"
                       >
                         Đóng
@@ -397,15 +362,7 @@ export default function FilterSection({
                       <Button
                         variant="default"
                         size="sm"
-                        onClick={() => {
-                          toggleDropdown(`variant-${variant.id}`);
-                          if (onFilterChange) {
-                            onFilterChange({
-                              ...externalFilters,
-                              variants: selectedVariantValues,
-                            });
-                          }
-                        }}
+                        onClick={() => handleApplyFilterCriteria(criteria.id)}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
                         Xem kết quả
@@ -422,4 +379,3 @@ export default function FilterSection({
     </div>
   );
 }
-

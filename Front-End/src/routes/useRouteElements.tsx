@@ -47,6 +47,7 @@ import StaffDashboard from "@/pages/staff/StaffDashboard";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
 import ShipperOrders from "@/pages/shipper/ShipperOrders";
 import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
+import FilterCriterias from "@/pages/admin/FilterCriterias";
 import Checkout from "@/pages/user/Checkout"
 import PaymentStatus from "@/pages/user/PaymentStatus"
 import AddPromotion from "@/pages/admin/AddPromotion"
@@ -222,6 +223,7 @@ const useRouteElements = () => {
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
         { path: "category-brand-assignment", element: <CategoryBrandAssignmentPage />},
+        { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
       ],
     },

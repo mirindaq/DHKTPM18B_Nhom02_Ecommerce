@@ -16,9 +16,6 @@ public class ProductVariantRequest {
     @DecimalMin(value = "0.0", message = "Giá cũ phải lớn hơn hoặc bằng 0")
     private Double oldPrice;
 
-    @NotBlank(message = "SKU không được để trống")
-    private String sku;
-
     @NotNull(message = "Số lượng tồn kho không được để trống")
     @Min(value = 0, message = "Số lượng tồn kho phải >= 0")
     private Integer stock;

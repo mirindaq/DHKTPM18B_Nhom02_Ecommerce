@@ -2,15 +2,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { Loader2 } from 'lucide-react';
 import { categoryBrandService } from '@/services/categoryBrand.service';
-import { variantService } from '@/services/variant.service';
 import { productService } from '@/services/product.service';
+import { filterCriteriaService } from '@/services/filterCriteria.service';
 import type { Brand } from '@/types/brand.type';
-import type { Variant } from '@/types/variant.type';
 import type { Product } from '@/types/product.type';
+import type { FilterCriteria } from '@/types/filterCriteria.type';
 import Breadcrumb from '@/components/user/search/Breadcrumb';
 import PromotionalBanners from '@/components/user/search/PromotionalBanners';
 import BrandSelection from '@/components/user/search/BrandSelection';
 import FilterSection from '@/components/user/search/FilterSection';
+import SortSection from '@/components/user/search/SortSection';
 import ProductCard from '@/components/user/ProductCard';
 import { useQuery } from '@/hooks/useQuery';
 
@@ -19,7 +20,7 @@ interface SearchFilters {
   inStock?: boolean;
   priceMin?: number;
   priceMax?: number;
-  variants?: { [variantId: number]: number[] };
+  filterValues?: number[];
 }
 
 export default function Search() {
@@ -42,24 +43,24 @@ export default function Search() {
     }
   );
 
-  // Load variants using useQuery hook
+  // Load filter criteria using useQuery hook
   const { 
-    data: variantsData, 
-    isLoading: variantsLoading 
-  } = useQuery<{ data: Variant[] }>(
-    () => variantService.getVariantsByCategorySlug(slug!),
+    data: filterCriteriaData, 
+    isLoading: filterCriteriaLoading 
+  } = useQuery<{ data: FilterCriteria[] }>(
+    () => filterCriteriaService.getFilterCriteriaByCategorySlug(slug!),
     {
-      queryKey: ['variants', slug || ''],
+      queryKey: ['filter-criteria', slug || ''],
       enabled: !!slug,
       onError: (err) => {
-        console.error('Lỗi khi tải variants:', err);
+        console.error('Lỗi khi tải filter criteria:', err);
       }
     }
   );
 
   const brands = brandsData?.data || [];
-  const variants = variantsData?.data || [];
-  const loading = brandsLoading || variantsLoading;
+  const filterCriterias = filterCriteriaData?.data || [];
+  const loading = brandsLoading || filterCriteriaLoading;
 
   const searchFilters = useMemo(() => {
     const result: Record<string, string> = {};
@@ -68,8 +69,14 @@ export default function Search() {
         result[key] = value;
       }
     });
+    // Add sortBy if not present, default to 'popular'
+    if (!result.sortBy) {
+      result.sortBy = 'popular';
+    }
     return result;
   }, [searchParams]);
+  
+  const currentSort = (searchParams.get('sortBy') || 'popular') as 'popular' | 'price_asc' | 'price_desc';
 
   const { 
     data: productsData, 
@@ -118,25 +125,19 @@ export default function Search() {
     if (priceMinParam) parsedFilters.priceMin = Number(priceMinParam);
     if (priceMaxParam) parsedFilters.priceMax = Number(priceMaxParam);
     
-    const variantsObj: { [variantId: number]: number[] } = {};
-    variants.forEach((variant) => {
-      const paramValue = searchParams.get(variant.slug);
-      if (paramValue && variant.variantValues) {
-        const valueSlugs = paramValue.split(',');
-        const valueIds = variant.variantValues
-          .filter(vv => valueSlugs.includes(vv.slug))
-          .map(vv => vv.id);
-        if (valueIds.length > 0) {
-          variantsObj[variant.id] = valueIds;
-        }
+    // Parse filter values
+    const filterValuesParam = searchParams.get('filterValues');
+    if (filterValuesParam) {
+      const filterValueIds = filterValuesParam.split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (filterValueIds.length > 0) {
+        parsedFilters.filterValues = filterValueIds;
       }
-    });
-    if (Object.keys(variantsObj).length > 0) {
-      parsedFilters.variants = variantsObj;
     }
     
     return parsedFilters;
-  }, [searchParams, brands, variants]);
+  }, [searchParams, brands]);
 
   const handleFilterChange = (newFilters: SearchFilters) => {
     const params = new URLSearchParams();
@@ -161,20 +162,22 @@ export default function Search() {
       params.set('priceMax', newFilters.priceMax.toString());
     }
     
-    if (newFilters.variants) {
-      Object.entries(newFilters.variants).forEach(([variantId, valueIds]) => {
-        const variant = variants.find(v => v.id === Number(variantId));
-        if (variant && valueIds.length > 0 && variant.variantValues) {
-          const valueSlugs = variant.variantValues
-            .filter(vv => valueIds.includes(vv.id))
-            .map(vv => vv.slug);
-          if (valueSlugs.length > 0) {
-            params.set(variant.slug, valueSlugs.join(','));
-          }
-        }
-      });
+    if (newFilters.filterValues && newFilters.filterValues.length > 0) {
+      params.set('filterValues', newFilters.filterValues.join(','));
     }
     
+    // Preserve sortBy
+    const sortBy = searchParams.get('sortBy') || 'popular';
+    if (sortBy) {
+      params.set('sortBy', sortBy);
+    }
+    
+    setSearchParams(params);
+  };
+  
+  const handleSortChange = (sortBy: 'popular' | 'price_asc' | 'price_desc' | 'promotion_hot') => {
+    const params = new URLSearchParams(searchParams);
+    params.set('sortBy', sortBy);
     setSearchParams(params);
   };
 
@@ -207,7 +210,7 @@ export default function Search() {
         </div>
       ) : (
         <FilterSection 
-          variants={variants} 
+          filterCriterias={filterCriterias} 
           loading={loading}
           filters={parsedFiltersFromUrl}
           onFilterChange={handleFilterChange}
@@ -225,6 +228,8 @@ export default function Search() {
             )}
           </h2>
         </div>
+        
+        <SortSection sortBy={currentSort} onSortChange={handleSortChange} />
 
         {productsLoading ? (
           <div className="flex justify-center items-center py-12">

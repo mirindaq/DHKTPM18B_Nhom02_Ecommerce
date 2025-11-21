@@ -100,6 +100,7 @@ public class ProductController {
     ){
         allParams.remove("page");
         allParams.remove("size");
+        // sortBy will be kept in allParams
         
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,

@@ -37,7 +37,7 @@ public class VariantController {
     }
 
     @GetMapping("/category/id/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<List<VariantResponse>>> getVariantsByCategory(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
