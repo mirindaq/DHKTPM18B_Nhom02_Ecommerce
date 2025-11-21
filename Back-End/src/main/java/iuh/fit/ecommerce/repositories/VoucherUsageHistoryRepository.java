@@ -15,5 +15,10 @@ public interface VoucherUsageHistoryRepository extends JpaRepository<VoucherUsag
     boolean existsByVoucherAndOrder_Customer(Voucher voucher, Customer customer);
     @Modifying
     void deleteByVoucherAndOrder(Voucher voucher, Order order);
+
+    @Modifying
+    void deleteByOrder(Order order);
     List<VoucherUsageHistory> findAllByOrder_Customer(Customer customer);
+
+    boolean existsByOrder(Order order);
 }
