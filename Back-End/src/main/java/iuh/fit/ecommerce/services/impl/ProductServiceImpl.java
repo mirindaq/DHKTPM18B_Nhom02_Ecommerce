@@ -15,6 +15,7 @@ import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.*;
+import iuh.fit.ecommerce.services.ProductSearchService;
 import iuh.fit.ecommerce.services.VectorStoreService;
 import iuh.fit.ecommerce.utils.StringUtils;
 import jakarta.transaction.Transactional;
@@ -45,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductFilterValueRepository productFilterValueRepository;
     private final FilterValueRepository filterValueRepository;
     private final VectorStoreService vectorStoreService;
+    private final ProductSearchService productSearchService;
 
     @Override
     @Transactional
@@ -64,6 +66,13 @@ public class ProductServiceImpl implements ProductService {
         saveVariants(productAddRequest.getVariants(), product);
 
         saveFilterValues(productAddRequest.getFilterValueIds(), product);
+        
+        // Reload product with all relationships before indexing
+        Product savedProduct = productRepository.findById(product.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found after creation"));
+        
+        // Index product to Elasticsearch
+        productSearchService.indexProduct(savedProduct);
 
     }
 

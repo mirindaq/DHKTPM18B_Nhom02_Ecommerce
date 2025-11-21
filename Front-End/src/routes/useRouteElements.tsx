@@ -37,6 +37,7 @@ import ArticleHomePage from "@/components/user/ArticleHomePage"
 import ArticleDetailPage from "@/components/user/ArticleDetailPage"
 import ArticleCategoryPage from "@/components/user/ArticleCategoryPage"
 import ArticleSearch from "@/pages/user/ArticleSearch"
+import SearchWithCategory from "@/pages/user/SearchWithCategory"
 import Search from "@/pages/user/Search"
 
 import AdminLayout from "@/layouts/AdminLayout";
@@ -73,7 +74,8 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <Home /> },
         { path: "product/:slug", element: <ProductDetail /> },
-        { path: "search/:slug", element: <Search /> },
+        { path: "search/:slug", element: <SearchWithCategory /> },
+        { path: "search", element: <Search /> },
         {
           path: "cart",
           element: (

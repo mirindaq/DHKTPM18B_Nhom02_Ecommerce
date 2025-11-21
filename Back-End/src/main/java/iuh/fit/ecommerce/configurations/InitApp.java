@@ -11,6 +11,7 @@ import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.repositories.RoleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
+import iuh.fit.ecommerce.services.ProductSearchService;
 import iuh.fit.ecommerce.services.VectorStoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +35,14 @@ public class InitApp {
     private final RankingRepository rankingRepository;
     private final ProductVariantRepository productVariantRepository;
     private final VectorStoreService vectorStoreService;
+    private final ProductSearchService productSearchService;
 
 
     @Bean
     @Transactional
     ApplicationRunner initApplication(StaffRepository staffRepository){
         return args -> {
+            productSearchService.reindexAllProducts();
             List<Map<String, String>> roles = List.of(
                     Map.of( "ADMIN","Quản trị viên"),
                     Map.of( "STAFF", "Nhân viên"),
@@ -113,7 +116,6 @@ public class InitApp {
 
             // Index toàn bộ product variants vào Qdrant
 //            indexAllProductVariants();
-
         };
     }
 
