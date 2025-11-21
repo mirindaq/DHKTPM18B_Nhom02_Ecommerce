@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -94,6 +95,19 @@ public class OrderController {
                 OK,
                 "Complete order success",
                 orderService.completeOrder(id)
+        ));
+    }
+
+    @GetMapping("/need-shipper")
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<OrderResponse>>>> getOrdersNeedShipper(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get orders need shipper success",
+                orderService.getOrdersNeedShipper(page, size)
         ));
     }
 }

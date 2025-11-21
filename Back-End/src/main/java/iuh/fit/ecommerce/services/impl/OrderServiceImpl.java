@@ -385,8 +385,23 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(COMPLETED);
         orderRepository.save(order);
 
+
         rankingService.updateCustomerRanking(order);
         
         return orderMapper.toResponse(order);
     }
+
+    @Override
+    public ResponseWithPagination<List<OrderResponse>> getOrdersNeedShipper(int page, int size) {
+        page = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<Order> orderPage = orderRepository.findAll(
+                OrderSpecification.filterOrders(null, null, null, SHIPPED, false),
+                pageable
+        );
+
+        return ResponseWithPagination.fromPage(orderPage, orderMapper::toResponse);
+    }
 }
+

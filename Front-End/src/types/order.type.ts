@@ -3,16 +3,17 @@ import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type"
 
 export type PaymentMethod = "CASH_ON_DELIVERY" | "VN_PAY" | "PAY_OS";
 
-export type OrderStatus = 
-  | "PENDING" 
-  | "PENDING_PAYMENT" 
-  | "PROCESSING" 
-  | "READY_FOR_PICKUP" 
-  | "DELIVERING" 
-  | "SHIPPED" 
-  | "FAILED" 
-  | "CANCELED" 
-  | "COMPLETED" 
+export type OrderStatus =
+  | "PENDING"
+  | "PENDING_PAYMENT"
+  | "PROCESSING"
+  | "READY_FOR_PICKUP"
+  | "SHIPPED"
+  | "ASSIGNED_SHIPPER"
+  | "DELIVERING"
+  | "FAILED"
+  | "CANCELED"
+  | "COMPLETED"
   | "PAYMENT_FAILED";
 
 export interface OrderCreationRequest {

@@ -33,4 +33,6 @@ public interface OrderService {
     OrderResponse processOrder(Long orderId);
 
     OrderResponse completeOrder(Long orderId);
+
+    ResponseWithPagination<List<OrderResponse>> getOrdersNeedShipper(int page, int size);
 }

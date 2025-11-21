@@ -4,6 +4,7 @@ import iuh.fit.ecommerce.dtos.response.rank.RankResponse;
 import iuh.fit.ecommerce.dtos.response.user.UserProfileResponse;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Ranking;
+import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.entities.User;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
@@ -29,6 +30,7 @@ public interface UserMapper {
 
     @AfterMapping
     default void assignRankAfterMapping(User user, @MappingTarget UserProfileResponse response){
+        // Assign rank for Customer
         if(user instanceof Customer customer){
             if(customer.getRanking() != null){
                 Ranking rank = customer.getRanking();
@@ -41,6 +43,10 @@ public interface UserMapper {
                 rankResponse.setDiscountRate(rank.getDiscountRate());
                 response.setRank(rankResponse);
             }
+        }
+        
+        if(user instanceof Staff staff){
+            response.setLeader(staff.getLeader());
         }
     }
 }
