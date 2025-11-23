@@ -4,18 +4,15 @@ import iuh.fit.ecommerce.dtos.request.order.OrderCreationRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.order.OrderResponse;
-import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.enums.OrderStatus;
 import iuh.fit.ecommerce.services.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,7 +28,7 @@ public class OrderController {
 
     @PostMapping(value = "")
     public ResponseEntity<ResponseSuccess<Object>> customerCreateOrder(@Valid @RequestBody OrderCreationRequest orderCreationRequest,
-                                                                       HttpServletRequest request){
+                                                                       HttpServletRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Create Customer success",
@@ -48,9 +45,12 @@ public class OrderController {
             @RequestParam(required = false) String endDate
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
-                org.springframework.http.HttpStatus.OK,
+                OK,
                 "Get my orders success",
                 orderService.getMyOrders(page, size, status, startDate, endDate)
+        ));
+    }
+
     @GetMapping("/admin")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<OrderResponse>>>> getAllOrdersForAdmin(
             @RequestParam(required = false) String customerName,

@@ -13,7 +13,6 @@ import iuh.fit.ecommerce.services.OrderService;
 import iuh.fit.ecommerce.services.PaymentService;
 import iuh.fit.ecommerce.services.PromotionService;
 import iuh.fit.ecommerce.utils.DateUtils;
-import iuh.fit.ecommerce.utils.SecurityUtil;
 import iuh.fit.ecommerce.services.RankingService;
 import iuh.fit.ecommerce.specifications.OrderSpecification;
 import iuh.fit.ecommerce.utils.SecurityUtils;
@@ -69,6 +68,7 @@ public class OrderServiceImpl implements OrderService {
         double voucherDiscountAmount = applyVoucherIfValid(voucher, customer, totalPrice, totalDiscount);
 
         double finalTotalPrice = totalPrice - (totalDiscount + voucherDiscountAmount);
+
         prepareOrderSummary(order, orderDetails, totalPrice, totalDiscount + voucherDiscountAmount, finalTotalPrice, orderCreationRequest);
 
         orderRepository.save(order);
@@ -81,12 +81,12 @@ public class OrderServiceImpl implements OrderService {
     public ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, String status, String startDate, String endDate) {
         page = Math.max(page - 1, 0);
         Pageable pageable = PageRequest.of(page, size);
-        Customer customer = securityUtil.getCurrentCustomer();
+        Customer customer = securityUtils.getCurrentCustomer();
 
         OrderStatus orderStatus = null;
         if (status != null && !status.isBlank()) {
             try {
-                orderStatus = OrderStatus.valueOf(status.toUpperCase());
+                orderStatus = OrderStatus.valueOf(status.trim().toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new InvalidParamException("Invalid status: " + status);
             }
@@ -102,9 +102,10 @@ public class OrderServiceImpl implements OrderService {
             endDt = DateUtils.convertStringToLocalDate(endDate).plusDays(1).atStartOfDay();
         }
 
-
         Page<Order> ordersPage = orderRepository.findMyOrders(customer, orderStatus, start, endDt, pageable);
         return ResponseWithPagination.fromPage(ordersPage, orderMapper::toResponse);
+    }
+
     public Order findById(Long id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id = " + id));
@@ -177,6 +178,7 @@ public class OrderServiceImpl implements OrderService {
                     .finalPrice(finalPrice)
                     .build());
         }
+
         return details;
     }
 
@@ -205,8 +207,10 @@ public class OrderServiceImpl implements OrderService {
 
     private double applyVoucherIfValid(Voucher voucher, Customer customer, double totalPrice, double totalDiscount) {
         if (voucher == null) return 0.0;
+
         double baseAmount = totalPrice - totalDiscount;
         validateVoucher(voucher, customer, baseAmount);
+
         double discountAmount = baseAmount * (voucher.getDiscount() / 100.0);
         if (voucher.getMaxDiscountAmount() != null && discountAmount > voucher.getMaxDiscountAmount()) {
             discountAmount = voucher.getMaxDiscountAmount();
@@ -220,21 +224,25 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(totalPrice);
         order.setTotalDiscount(totalDiscount);
         order.setFinalTotalPrice(finalPrice);
+
         order.setStatus(CASH_ON_DELIVERY.equals(request.getPaymentMethod()) ? PENDING : PENDING_PAYMENT);
     }
 
     private void handleVoucherUsage(Voucher voucher, Order order, double discountAmount) {
         if (voucher == null) return;
+
         VoucherUsageHistory history = VoucherUsageHistory.builder()
                 .voucher(voucher)
                 .order(order)
                 .discountAmount(discountAmount)
                 .build();
+
         voucherUsageHistoryRepository.save(history);
     }
 
     private Object processPayment(OrderCreationRequest orderCreationRequest, HttpServletRequest request,
                                   Voucher voucher, Order order, Cart cart, List<Long> cartItemIds) {
+
         switch (orderCreationRequest.getPaymentMethod()) {
             case CASH_ON_DELIVERY -> {
                 clearCart(cart, cartItemIds);
@@ -248,7 +256,6 @@ public class OrderServiceImpl implements OrderService {
             case PAY_OS -> {
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
                 return "";
-//                return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds);
             }
             default -> throw new InvalidParamException("Unsupported payment method");
         }
@@ -322,14 +329,13 @@ public class OrderServiceImpl implements OrderService {
 
         if (!PENDING.equals(order.getStatus())) {
             throw new InvalidParamException(
-                    String.format("Cannot confirm order with status: %s",
-                            order.getStatus())
+                    String.format("Cannot confirm order with status: %s", order.getStatus())
             );
         }
 
         order.setStatus(PROCESSING);
         orderRepository.save(order);
-        
+
         return orderMapper.toResponse(order);
     }
 
@@ -337,25 +343,21 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse cancelOrder(Long orderId) {
         Order order = findById(orderId);
-        
-        // Kiểm tra trạng thái đơn hàng phải là PENDING, PROCESSING hoặc READY_FOR_PICKUP
-        if (!PENDING.equals(order.getStatus()) 
+
+        if (!PENDING.equals(order.getStatus())
                 && !PROCESSING.equals(order.getStatus())
                 && !READY_FOR_PICKUP.equals(order.getStatus())) {
             throw new InvalidParamException(
-                    String.format("Cannot cancel order with status: %s", 
-                            order.getStatus())
+                    String.format("Cannot cancel order with status: %s", order.getStatus())
             );
         }
-        
-        // Hoàn lại stock cho các sản phẩm
-        restoreProductStock(order.getOrderDetails());
 
+        restoreProductStock(order.getOrderDetails());
         restoreVoucher(order);
 
         order.setStatus(CANCELED);
         orderRepository.save(order);
-        
+
         return orderMapper.toResponse(order);
     }
 
@@ -369,33 +371,27 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void restoreVoucher(Order order) {
-        if ( voucherUsageHistoryRepository.existsByOrder(order))
+        if (voucherUsageHistoryRepository.existsByOrder(order)) {
             voucherUsageHistoryRepository.deleteByOrder(order);
+        }
     }
 
     @Override
     @Transactional
     public OrderResponse processOrder(Long orderId) {
         Order order = findById(orderId);
-        
-        // Kiểm tra trạng thái đơn hàng phải là PROCESSING
+
         if (!PROCESSING.equals(order.getStatus())) {
             throw new InvalidParamException(
-                    String.format("Cannot process order with status: %s", 
-                            order.getStatus())
+                    String.format("Cannot process order with status: %s", order.getStatus())
             );
         }
 
-        OrderStatus newStatus;
-        if (Boolean.TRUE.equals(order.getIsPickup())) {
-            newStatus = READY_FOR_PICKUP;
-        } else {
-            newStatus = SHIPPED;
-        }
-        
+        OrderStatus newStatus = Boolean.TRUE.equals(order.getIsPickup()) ? READY_FOR_PICKUP : SHIPPED;
+
         order.setStatus(newStatus);
         orderRepository.save(order);
-        
+
         return orderMapper.toResponse(order);
     }
 
@@ -406,17 +402,15 @@ public class OrderServiceImpl implements OrderService {
 
         if (!READY_FOR_PICKUP.equals(order.getStatus())) {
             throw new InvalidParamException(
-                    String.format("Cannot complete order with status: %s", 
-                            order.getStatus())
+                    String.format("Cannot complete order with status: %s", order.getStatus())
             );
         }
 
         order.setStatus(COMPLETED);
         orderRepository.save(order);
 
-
         rankingService.updateCustomerRanking(order);
-        
+
         return orderMapper.toResponse(order);
     }
 
@@ -424,7 +418,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseWithPagination<List<OrderResponse>> getOrdersNeedShipper(int page, int size) {
         page = Math.max(page - 1, 0);
         Pageable pageable = PageRequest.of(page, size);
-        
+
         Page<Order> orderPage = orderRepository.findAll(
                 OrderSpecification.filterOrders(null, null, null, SHIPPED, false),
                 pageable
@@ -433,4 +427,3 @@ public class OrderServiceImpl implements OrderService {
         return ResponseWithPagination.fromPage(orderPage, orderMapper::toResponse);
     }
 }
-

@@ -11,15 +11,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
+    
     @Query("""
         SELECT o FROM Order o
         WHERE o.customer = :customer
             AND (:status IS NULL OR o.status = :status)
             AND (:startDate IS NULL OR o.orderDate >= :startDate)
             AND (:endDate IS NULL OR o.orderDate < :endDate)
-            ORDER BY o.orderDate DESC
+        ORDER BY o.orderDate DESC
     """)
     Page<Order> findMyOrders(
             @Param("customer") Customer customer,
@@ -29,8 +31,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             Pageable pageable
     );
 
-import java.util.List;
-
-public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
+    // Find orders by customerId with pagination
     List<Order> findByCustomerId(Long customerId, Pageable pageable);
 }
