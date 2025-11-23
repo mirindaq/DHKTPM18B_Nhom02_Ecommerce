@@ -82,4 +82,13 @@ public class StaffController {
                 null
         ));
     }
+    
+    @GetMapping("/active")
+    public ResponseEntity<ResponseSuccess<List<StaffResponse>>> getAllActiveStaffs() {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get active staffs success",
+                staffService.getAllActiveStaffs()
+        ));
+    }
 }

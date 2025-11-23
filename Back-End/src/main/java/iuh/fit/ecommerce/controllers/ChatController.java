@@ -1,6 +1,8 @@
 package iuh.fit.ecommerce.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import iuh.fit.ecommerce.dtos.request.chat.BulkTransferChatRequest;
+import iuh.fit.ecommerce.dtos.request.chat.BulkUnassignChatRequest;
 import iuh.fit.ecommerce.dtos.request.chat.ChatRequest;
 import iuh.fit.ecommerce.dtos.request.chat.MessageRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
@@ -97,15 +99,54 @@ public class ChatController {
     }
     
     @PutMapping("/{chatId}/assign/{staffId}")
-    public ResponseEntity<ResponseSuccess<ChatResponse>> assignStaffToChat(
+    public ResponseEntity<ResponseSuccess<Void>> assignStaffToChat(
             @PathVariable Long chatId,
             @PathVariable Long staffId
     ) {
-        ChatResponse chatResponse = chatService.assignStaffToChat(chatId, staffId);
+        chatService.assignStaffToChat(chatId, staffId);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Staff assigned to chat successfully",
-                chatResponse
+                null
+        ));
+    }
+    
+    @PutMapping("/{chatId}/unassign")
+    public ResponseEntity<ResponseSuccess<Void>> unassignStaffFromChat(
+            @PathVariable Long chatId
+    ) {
+        chatService.unassignStaffFromChat(chatId);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Staff unassigned from chat successfully",
+                null
+        ));
+    }
+    
+    @PutMapping("/bulk-transfer")
+    public ResponseEntity<ResponseSuccess<Void>> bulkTransferChats(
+            @Valid @RequestBody BulkTransferChatRequest request
+    ) {
+        chatService.bulkTransferChats(
+                request.getChatIds(), 
+                request.getStaffId()
+        );
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Chats transferred successfully",
+                null
+        ));
+    }
+    
+    @PutMapping("/bulk-unassign")
+    public ResponseEntity<ResponseSuccess<Void>> bulkUnassignChats(
+            @Valid @RequestBody BulkUnassignChatRequest request
+    ) {
+        chatService.bulkUnassignChats(request.getChatIds());
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Chats returned to pool successfully",
+                null
         ));
     }
     

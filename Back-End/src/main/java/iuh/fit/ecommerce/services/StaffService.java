@@ -30,4 +30,6 @@ public interface StaffService {
     void changeActive(Long id);
 
     Staff getStaffEntityById(Long id);
+    
+    List<StaffResponse> getAllActiveStaffs();
 }

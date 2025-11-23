@@ -23,6 +23,12 @@ public interface ChatService {
     
     ChatResponse assignStaffToChat(Long chatId, Long staffId);
     
+    ChatResponse unassignStaffFromChat(Long chatId);
+    
+    List<ChatResponse> bulkTransferChats(List<Long> chatIds, Long staffId);
+    
+    List<ChatResponse> bulkUnassignChats(List<Long> chatIds);
+    
     MessageResponse sendMessage(MessageRequest messageRequest);
     
     List<MessageResponse> getMessagesByChatId(Long chatId);

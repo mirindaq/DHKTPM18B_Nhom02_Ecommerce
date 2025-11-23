@@ -1,12 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/context/UserContext";
-import { useChat, useChats } from "@/hooks";
+import { useChat, useChats, useQuery, useMutation } from "@/hooks";
 import { webSocketService } from "@/services/websocket.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   MessageSquare, 
   Loader2, 
@@ -14,13 +24,21 @@ import {
   UserCheck,
   Clock,
   Search,
-  MessageCircleMore
+  MessageCircleMore,
+  X,
+  ArrowRightLeft,
+  CheckSquare,
+  Square
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Chat } from "@/types/chat.type";
+import type { Staff } from "@/types/staff.type";
 import { cn } from "@/lib/utils";
 import { CustomBadge, CountBadge, StatusBadge } from "@/components/ui/CustomBadge";
 import ChatInput from "@/components/user/chat/ChatInput";
+import { chatService } from "@/services/chat.service";
+import { staffService } from "@/services/staff.service";
+import TransferChatModal from "@/components/admin/chat/TransferChatModal";
 
 export default function ChatManagement() {
   const { user } = useUser();
@@ -28,11 +46,180 @@ export default function ChatManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "unassigned" | "mine">("all");
   const [isConnected, setIsConnected] = useState(false);
+  const [selectedChatIds, setSelectedChatIds] = useState<Set<number>>(new Set());
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferStaffId, setTransferStaffId] = useState<number | undefined>();
+  const [isBulkTransfer, setIsBulkTransfer] = useState(false);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+  const [showBulkUnassignDialog, setShowBulkUnassignDialog] = useState(false);
+  const [unassignChatId, setUnassignChatId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedChatRef = useRef<Chat | null>(null);
   const hasSubscribedRef = useRef(false);
 
   const { chats, setChats, loading: chatsLoading, refetch: refetchChats } = useChats();
+
+  // Fetch active staffs
+  const {
+    data: staffsData,
+  } = useQuery<Staff[]>(
+    () => staffService.getAllActiveStaffs(),
+    {
+      queryKey: ["activeStaffs"],
+      onError: (error) => {
+        console.error("Error fetching staffs:", error);
+        toast.error("Không thể tải danh sách nhân viên");
+      },
+    }
+  );
+
+  const staffs = staffsData || [];
+
+  // Transfer chat mutation
+  const transferChatMutation = useMutation(
+    ({ chatId, staffId }: { chatId: number; staffId: number }) =>
+      chatService.assignStaffToChat(chatId, staffId),
+    {
+      onSuccess: async () => {
+        // Load lại danh sách chat để cập nhật thông tin
+        const updatedChats = await refetchChats();
+        
+        // Cập nhật selectedChat nếu đang chọn chat đó
+        if (selectedChat && transferStaffId) {
+          const targetStaff = staffs.find(s => s.id === transferStaffId);
+          const updatedChat = updatedChats?.find(c => c.id === selectedChat.id);
+          if (updatedChat) {
+            setSelectedChat({
+              ...updatedChat,
+              staffId: transferStaffId,
+              staffName: targetStaff?.fullName,
+            });
+          }
+        }
+        
+        toast.success("Đã chuyển chat thành công");
+        setIsTransferModalOpen(false);
+        setTransferStaffId(undefined);
+      },
+      onError: (error) => {
+        console.error("Error transferring chat:", error);
+        toast.error("Không thể chuyển chat");
+      },
+    }
+  );
+
+  // Bulk transfer mutation
+  const bulkTransferMutation = useMutation(
+    ({ chatIds, staffId }: { chatIds: number[]; staffId: number }) =>
+      chatService.bulkTransferChats(chatIds, staffId),
+    {
+      onSuccess: async () => {
+        // Load lại danh sách chat để cập nhật thông tin
+        await refetchChats();
+        
+        toast.success(`Đã chuyển ${selectedChatIds.size} chat thành công`);
+        setSelectedChatIds(new Set());
+        setIsTransferModalOpen(false);
+        setTransferStaffId(undefined);
+        setIsBulkTransfer(false);
+      },
+      onError: (error) => {
+        console.error("Error bulk transferring chats:", error);
+        toast.error("Không thể chuyển chat");
+      },
+    }
+  );
+
+  // Unassign chat mutation
+  const unassignChatMutation = useMutation(
+    (chatId: number) => chatService.unassignStaffFromChat(chatId),
+    {
+      onSuccess: async () => {
+        // Load lại danh sách chat để cập nhật thông tin
+        const updatedChats = await refetchChats();
+        
+        // Cập nhật selectedChat nếu đang chọn chat đó
+        if (selectedChat?.id === unassignChatId) {
+          const updatedChat = updatedChats?.find(c => c.id === unassignChatId);
+          if (updatedChat) {
+            setSelectedChat({
+              ...updatedChat,
+              staffId: undefined,
+              staffName: undefined,
+            });
+          } else {
+            // Nếu không tìm thấy, cập nhật state hiện tại
+            setSelectedChat(prev => prev ? { 
+              ...prev, 
+              staffId: undefined, 
+              staffName: undefined 
+            } : null);
+          }
+        }
+        
+        const customerName = selectedChat?.customerName || "khách hàng";
+        toast.success("Đã trả chat về pool thành công. Staff khác có thể nhận chat này.", {
+          description: `Chat với ${customerName} đã được trả về pool`,
+          duration: 3000,
+        });
+        
+        setShowUnassignDialog(false);
+        setUnassignChatId(null);
+      },
+      onError: (error) => {
+        console.error("Error unassigning chat:", error);
+        toast.error("Không thể trả chat về pool", {
+          description: "Vui lòng thử lại sau",
+        });
+      },
+    }
+  );
+
+  // Bulk unassign mutation
+  const bulkUnassignMutation = useMutation(
+    (chatIds: number[]) => chatService.bulkUnassignChats(chatIds),
+    {
+      onSuccess: async () => {
+        const chatCount = selectedChatIds.size;
+        
+        // Load lại danh sách chat để cập nhật thông tin
+        const updatedChats = await refetchChats();
+        
+        // Cập nhật selectedChat nếu đang chọn chat đó
+        if (selectedChat && selectedChatIds.has(selectedChat.id)) {
+          const updatedChat = updatedChats?.find(c => c.id === selectedChat.id);
+          if (updatedChat) {
+            setSelectedChat({
+              ...updatedChat,
+              staffId: undefined,
+              staffName: undefined,
+            });
+          } else {
+            // Nếu không tìm thấy, cập nhật state hiện tại
+            setSelectedChat(prev => prev ? { 
+              ...prev, 
+              staffId: undefined, 
+              staffName: undefined 
+            } : null);
+          }
+        }
+        
+        toast.success(`Đã trả ${chatCount} chat về pool thành công`, {
+          description: "Staff khác có thể nhận các chat này",
+          duration: 3000,
+        });
+        
+        setSelectedChatIds(new Set());
+        setShowBulkUnassignDialog(false);
+      },
+      onError: (error) => {
+        console.error("Error bulk unassigning chats:", error);
+        toast.error("Không thể trả chat về pool", {
+          description: "Vui lòng thử lại sau",
+        });
+      },
+    }
+  );
 
   const {
     messages,
@@ -119,11 +306,13 @@ export default function ChatManagement() {
           
           const updated = prevChats.map((chat) => {
             if (chat.id === message.chatId) {
-              const newUnreadCount = isCurrentlyViewing || !isFromCustomer
-                ? 0
+              // Chỉ tăng unread count nếu chat thuộc về staff hiện tại
+              const isMyChat = chat.staffId === user?.id;
+              const newUnreadCount = !isMyChat || isCurrentlyViewing || !isFromCustomer
+                ? (isMyChat ? (chat.unreadCount || 0) : 0)
                 : (chat.unreadCount || 0) + 1;
               
-              console.log('Updating chat:', { id: chat.id, newUnreadCount, newMessage: message.content });
+              console.log('Updating chat:', { id: chat.id, newUnreadCount, newMessage: message.content, isMyChat });
               
               return {
                 ...chat,
@@ -155,13 +344,17 @@ export default function ChatManagement() {
   const handleSelectChat = async (chat: Chat) => {
     setSelectedChat(chat);
     await loadChat(chat.id);
-    await markAsRead(chat.id);
     
-    setChats((prevChats) =>
-      prevChats.map((c) =>
-        c.id === chat.id ? { ...c, unreadCount: 0 } : c
-      )
-    );
+    // Chỉ mark as read nếu chat thuộc về staff hiện tại
+    if (chat.staffId === user?.id) {
+      await markAsRead(chat.id);
+      
+      setChats((prevChats) =>
+        prevChats.map((c) =>
+          c.id === chat.id ? { ...c, unreadCount: 0 } : c
+        )
+      );
+    }
 
     connect(chat.id);
   };
@@ -177,6 +370,73 @@ export default function ChatManagement() {
       if (selectedChat?.id === chatId) {
         setSelectedChat(prev => prev ? { ...prev, staffId: user.id, staffName: user.fullName } : null);
       }
+    }
+  };
+
+  const handleOpenTransferModal = (isBulk: boolean = false) => {
+    setIsBulkTransfer(isBulk);
+    setIsTransferModalOpen(true);
+    setTransferStaffId(undefined);
+  };
+
+  const handleTransferChat = () => {
+    if (!transferStaffId) return;
+
+    if (isBulkTransfer && selectedChatIds.size > 0) {
+      bulkTransferMutation.mutate({
+        chatIds: Array.from(selectedChatIds),
+        staffId: transferStaffId,
+      });
+    } else if (selectedChat) {
+      transferChatMutation.mutate({
+        chatId: selectedChat.id,
+        staffId: transferStaffId,
+      });
+    }
+  };
+
+  const handleToggleChatSelection = (chatId: number) => {
+    setSelectedChatIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(chatId)) {
+        newSet.delete(chatId);
+      } else {
+        newSet.add(chatId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllChats = () => {
+    const myChats = filteredChats.filter(
+      (chat) => chat.staffId === user?.id
+    );
+    if (selectedChatIds.size === myChats.length) {
+      setSelectedChatIds(new Set());
+    } else {
+      setSelectedChatIds(new Set(myChats.map((chat) => chat.id)));
+    }
+  };
+
+  const handleUnassignChat = (chatId: number) => {
+    setUnassignChatId(chatId);
+    setShowUnassignDialog(true);
+  };
+
+  const handleConfirmUnassign = () => {
+    if (unassignChatId) {
+      unassignChatMutation.mutate(unassignChatId);
+    }
+  };
+
+  const handleBulkUnassignChats = () => {
+    if (selectedChatIds.size === 0) return;
+    setShowBulkUnassignDialog(true);
+  };
+
+  const handleConfirmBulkUnassign = () => {
+    if (selectedChatIds.size > 0) {
+      bulkUnassignMutation.mutate(Array.from(selectedChatIds));
     }
   };
 
@@ -228,7 +488,7 @@ export default function ChatManagement() {
     total: chats.length,
     unassigned: chats.filter(c => !c.staffId).length,
     mine: chats.filter(c => c.staffId === user?.id).length,
-    unread: chats.filter(c => c.unreadCount > 0).length,
+    unread: chats.filter(c => c.unreadCount > 0 && c.staffId === user?.id).length,
   };
 
   if (chatsLoading) {
@@ -255,6 +515,30 @@ export default function ChatManagement() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {selectedChatIds.size > 0 && (
+            <>
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => handleOpenTransferModal(true)}
+                className="h-8"
+                disabled={bulkTransferMutation.isLoading || bulkUnassignMutation.isLoading}
+              >
+                <ArrowRightLeft className="h-3 w-3 mr-1.5" />
+                Chuyển nhanh ({selectedChatIds.size})
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkUnassignChats}
+                className="h-8"
+                disabled={bulkTransferMutation.isLoading || bulkUnassignMutation.isLoading}
+              >
+                <X className="h-3 w-3 mr-1.5" />
+                Trả về pool ({selectedChatIds.size})
+              </Button>
+            </>
+          )}
           <StatusBadge status={isConnected ? "online" : "offline"} size="md" />
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1.5">
@@ -285,7 +569,7 @@ export default function ChatManagement() {
       {/* Chat Interface */}
       <div className="grid grid-cols-12 gap-4">
         {/* Chat List */}
-        <Card className="col-span-4 flex flex-col h-[calc(100vh-180px)]">
+        <Card className="col-span-4 flex flex-col h-[calc(100vh-180px)] !py-0">
           <CardHeader className="border-b p-3 space-y-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
@@ -335,6 +619,28 @@ export default function ChatManagement() {
                 Của tôi ({stats.mine})
               </Button>
             </div>
+
+            {/* Select All for My Chats */}
+            {filterType === "mine" && stats.mine > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAllChats}
+                className="w-full h-8 text-xs"
+              >
+                {selectedChatIds.size === filteredChats.filter(c => c.staffId === user?.id).length ? (
+                  <>
+                    <CheckSquare className="h-3 w-3 mr-1.5" />
+                    Bỏ chọn tất cả
+                  </>
+                ) : (
+                  <>
+                    <Square className="h-3 w-3 mr-1.5" />
+                    Chọn tất cả ({filteredChats.filter(c => c.staffId === user?.id).length})
+                  </>
+                )}
+              </Button>
+            )}
           </CardHeader>
           
           <CardContent className="flex-1 p-0 overflow-hidden">
@@ -349,85 +655,112 @@ export default function ChatManagement() {
                 </div>
               ) : (
                 <div>
-                  {filteredChats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      onClick={() => handleSelectChat(chat)}
-                      className={cn(
-                        "p-3 cursor-pointer hover:bg-muted/50 transition-all border-b border-border/50 last:border-0",
-                        selectedChat?.id === chat.id && "bg-primary/5 border-l-4 border-l-primary pl-2.5"
-                      )}
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <div className="relative flex-shrink-0">
-                          <Avatar className="h-10 w-10 ring-2 ring-background">
-                            <AvatarFallback className={cn(
-                              "text-xs font-bold",
-                              chat.unreadCount > 0 
-                                ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground" 
-                                : "bg-muted text-muted-foreground"
-                            )}>
-                              {chat.customerName.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          {chat.unreadCount > 0 && (
-                            <div className="absolute -top-0.5 -right-0.5">
-                              <CountBadge count={chat.unreadCount} size="sm" />
-                            </div>
+                  {filteredChats.map((chat) => {
+                    const isSelected = selectedChatIds.has(chat.id);
+                    const isMyChat = chat.staffId === user?.id;
+                    
+                    return (
+                      <div
+                        key={chat.id}
+                        className={cn(
+                          "p-3 cursor-pointer hover:bg-muted/50 transition-all border-b border-border/50 last:border-0",
+                          selectedChat?.id === chat.id && "bg-primary/5 border-l-4 border-l-primary pl-2.5"
+                        )}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          {/* Checkbox for bulk selection */}
+                          {isMyChat && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleChatSelection(chat.id);
+                              }}
+                              className="mt-1 flex-shrink-0"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="h-4 w-4 text-primary" />
+                              ) : (
+                                <Square className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </button>
                           )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-1.5 mb-1">
-                            <h3 className={cn(
-                              "text-sm font-medium truncate",
-                              chat.unreadCount > 0 && "font-bold text-foreground"
-                            )}>
-                              {chat.customerName}
-                            </h3>
-                            {chat.lastMessage && (
-                              <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                                {formatTime(chat.lastMessage.createdAt)}
-                              </span>
-                            )}
-                          </div>
+                          {!isMyChat && <div className="w-4 flex-shrink-0" />}
                           
-                          <p className={cn(
-                            "text-xs truncate mb-2 leading-relaxed",
-                            chat.unreadCount > 0 
-                              ? "text-foreground font-medium" 
-                              : "text-muted-foreground"
-                          )}>
-                            {chat.lastMessage?.messageType === "IMAGE" 
-                              ? "📷 Hình ảnh" 
-                              : chat.lastMessage?.content || "Chưa có tin nhắn"}
-                          </p>
-                          
-                          <div className="flex items-center gap-2">
-                            {chat.staffId ? (
-                              <CustomBadge variant="success" size="sm">
-                                <UserCheck className="h-2.5 w-2.5" />
-                                {chat.staffId === user?.id ? "Bạn" : chat.staffName}
-                              </CustomBadge>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 text-[10px] px-2 border-orange-200 text-orange-700 hover:bg-orange-50"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAssignToMe(chat.id);
-                                }}
-                              >
-                                <Clock className="h-2.5 w-2.5 mr-1" />
-                                Nhận chat
-                              </Button>
-                            )}
+                          <div
+                            onClick={() => handleSelectChat(chat)}
+                            className="flex items-start gap-2.5 flex-1"
+                          >
+                            <div className="relative flex-shrink-0">
+                              <Avatar className="h-10 w-10 ring-2 ring-background">
+                                <AvatarFallback className={cn(
+                                  "text-xs font-bold",
+                                  chat.unreadCount > 0 && chat.staffId === user?.id
+                                    ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground" 
+                                    : "bg-muted text-muted-foreground"
+                                )}>
+                                  {chat.customerName.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              {chat.unreadCount > 0 && chat.staffId === user?.id && (
+                                <div className="absolute -top-0.5 -right-0.5">
+                                  <CountBadge count={chat.unreadCount} size="sm" />
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-1.5 mb-1">
+                                <h3 className={cn(
+                                  "text-sm font-medium truncate",
+                                  chat.unreadCount > 0 && chat.staffId === user?.id && "font-bold text-foreground"
+                                )}>
+                                  {chat.customerName}
+                                </h3>
+                                {chat.lastMessage && (
+                                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                                    {formatTime(chat.lastMessage.createdAt)}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <p className={cn(
+                                "text-xs truncate mb-2 leading-relaxed",
+                                chat.unreadCount > 0 && chat.staffId === user?.id
+                                  ? "text-foreground font-medium" 
+                                  : "text-muted-foreground"
+                              )}>
+                                {chat.lastMessage?.messageType === "IMAGE" 
+                                  ? "📷 Hình ảnh" 
+                                  : chat.lastMessage?.content || "Chưa có tin nhắn"}
+                              </p>
+                              
+                              <div className="flex items-center gap-2">
+                                {chat.staffId ? (
+                                  <CustomBadge variant="success" size="sm">
+                                    <UserCheck className="h-2.5 w-2.5" />
+                                    {chat.staffId === user?.id ? "Bạn" : chat.staffName}
+                                  </CustomBadge>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 text-[10px] px-2 border-orange-200 text-orange-700 hover:bg-orange-50"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAssignToMe(chat.id);
+                                    }}
+                                  >
+                                    <Clock className="h-2.5 w-2.5 mr-1" />
+                                    Nhận chat
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </ScrollArea>
@@ -435,7 +768,7 @@ export default function ChatManagement() {
         </Card>
 
         {/* Chat Window */}
-        <Card className="col-span-8 flex flex-col h-[calc(100vh-180px)]">
+        <Card className="col-span-8 flex flex-col h-[calc(100vh-180px)] !py-0">
           {selectedChat ? (
             <>
               <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-primary/10 p-3">
@@ -456,21 +789,50 @@ export default function ChatManagement() {
                     </div>
                   </div>
                   
-                  {selectedChat.staffId ? (
-                    <CustomBadge variant="success" size="sm">
-                      <UserCheck className="h-3 w-3" />
-                      {selectedChat.staffId === user?.id ? "Bạn đang xử lý" : selectedChat.staffName}
-                    </CustomBadge>
-                  ) : (
-                    <Button
-                      size="sm"
-                      className="h-7"
-                      onClick={() => handleAssignToMe(selectedChat.id)}
-                    >
-                      <Clock className="h-3 w-3 mr-1.5" />
-                      Nhận chat
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {selectedChat.staffId ? (
+                      <>
+                        <CustomBadge variant="success" size="sm">
+                          <UserCheck className="h-3 w-3" />
+                          {selectedChat.staffId === user?.id ? "Bạn đang xử lý" : selectedChat.staffName}
+                        </CustomBadge>
+                        {selectedChat.staffId === user?.id && (
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7"
+                              onClick={() => handleOpenTransferModal(false)}
+                              disabled={transferChatMutation.isLoading || bulkTransferMutation.isLoading || bulkUnassignMutation.isLoading}
+                            >
+                              <ArrowRightLeft className="h-3 w-3 mr-1.5" />
+                              Chuyển chat
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 border-orange-200 text-orange-700 hover:bg-orange-50 hover:text-orange-800"
+                              onClick={() => handleUnassignChat(selectedChat.id)}
+                              title="Trả chat về pool (unassigned)"
+                              disabled={unassignChatMutation.isLoading || bulkUnassignMutation.isLoading}
+                            >
+                              <X className="h-3 w-3 mr-1.5" />
+                              Trả về pool
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="h-7"
+                        onClick={() => handleAssignToMe(selectedChat.id)}
+                      >
+                        <Clock className="h-3 w-3 mr-1.5" />
+                        Nhận chat
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
 
@@ -612,6 +974,87 @@ export default function ChatManagement() {
           )}
         </Card>
       </div>
+
+      {/* Transfer Chat Modal */}
+      <TransferChatModal
+        open={isTransferModalOpen}
+        onOpenChange={setIsTransferModalOpen}
+        staffs={staffs.filter(s => s.id !== user?.id)}
+        selectedStaffId={transferStaffId}
+        onSelectStaff={setTransferStaffId}
+        onConfirm={handleTransferChat}
+        isLoading={transferChatMutation.isLoading || bulkTransferMutation.isLoading}
+        isBulkTransfer={isBulkTransfer}
+        chatCount={selectedChatIds.size}
+      />
+
+      {/* Unassign Chat Confirmation Dialog */}
+      <AlertDialog open={showUnassignDialog} onOpenChange={setShowUnassignDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận trả chat về pool</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn trả chat này về pool không? Chat sẽ được trả về trạng thái chưa được gán và staff khác có thể nhận chat này.
+              {selectedChat && (
+                <div className="mt-2 p-2 bg-muted rounded text-sm">
+                  <strong>Chat với:</strong> {selectedChat.customerName}
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={unassignChatMutation.isLoading}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmUnassign}
+              disabled={unassignChatMutation.isLoading}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {unassignChatMutation.isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Xác nhận trả về pool"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Unassign Chat Confirmation Dialog */}
+      <AlertDialog open={showBulkUnassignDialog} onOpenChange={setShowBulkUnassignDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận trả {selectedChatIds.size} chat về pool</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn trả <strong>{selectedChatIds.size} chat</strong> về pool không? 
+              Tất cả các chat này sẽ được trả về trạng thái chưa được gán và staff khác có thể nhận các chat này.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkUnassignMutation.isLoading}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmBulkUnassign}
+              disabled={bulkUnassignMutation.isLoading}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {bulkUnassignMutation.isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                `Xác nhận trả ${selectedChatIds.size} chat về pool`
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

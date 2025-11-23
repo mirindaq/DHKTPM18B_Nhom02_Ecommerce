@@ -41,7 +41,27 @@ export const chatService = {
   },
 
   assignStaffToChat: async (chatId: number, staffId: number) => {
-    const response = await axiosClient.put<ChatResponse>(`/chats/${chatId}/assign/${staffId}`);
+    const response = await axiosClient.put<ResponseApi<void>>(`/chats/${chatId}/assign/${staffId}`);
+    return response.data;
+  },
+
+  unassignStaffFromChat: async (chatId: number) => {
+    const response = await axiosClient.put<ResponseApi<void>>(`/chats/${chatId}/unassign`);
+    return response.data;
+  },
+
+  bulkTransferChats: async (chatIds: number[], staffId: number) => {
+    const response = await axiosClient.put<ResponseApi<void>>('/chats/bulk-transfer', {
+      chatIds,
+      staffId,
+    });
+    return response.data;
+  },
+
+  bulkUnassignChats: async (chatIds: number[]) => {
+    const response = await axiosClient.put<ResponseApi<void>>('/chats/bulk-unassign', {
+      chatIds,
+    });
     return response.data;
   },
 

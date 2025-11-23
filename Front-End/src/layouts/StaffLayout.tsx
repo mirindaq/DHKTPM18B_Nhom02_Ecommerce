@@ -17,8 +17,9 @@ import {
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Truck, Settings, LogOut, Store } from "lucide-react";
+import { ShoppingCart, Truck, Settings, LogOut, Store, MessageSquare } from "lucide-react";
 import { STAFF_PATH } from "@/constants/path";
+import AdminChatListener from "@/components/admin/AdminChatListener";
 
 export default function StaffLayout() {
   const location = useLocation();
@@ -50,6 +51,11 @@ export default function StaffLayout() {
       title: "Đơn hàng",
       icon: ShoppingCart,
       href: STAFF_PATH.ORDERS,
+    },
+    {
+      title: "Quản lý Chat",
+      icon: MessageSquare,
+      href: STAFF_PATH.CHAT,
     },
     // Only show "Gán shipper" if user is a leader
     ...(isLeader
@@ -164,6 +170,9 @@ export default function StaffLayout() {
           </main>
         </SidebarInset>
       </div>
+
+      {/* Auto-connect to WebSocket for staff */}
+      <AdminChatListener />
     </SidebarProvider>
   );
 }
