@@ -62,7 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final int TIME_OUT = 15;
 
     @Override
-    public String createPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds, HttpServletRequest request) {
+    public String createPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds, HttpServletRequest request, String platform) {
         long amount = order.getFinalTotalPrice().longValue() * 100L;
         Map<String, String> vnpParamsMap = getVNPayConfig();
 
@@ -70,7 +70,7 @@ public class PaymentServiceImpl implements PaymentService {
         String cartItemIdsParam = cartItemIds.stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
-        vnpParamsMap.put("vnp_ReturnUrl", this.vnp_ReturnUrl  + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&cartItemIds=" + cartItemIdsParam);
+        vnpParamsMap.put("vnp_ReturnUrl", this.vnp_ReturnUrl  + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&cartItemIds=" + cartItemIdsParam + "&platform=" + (platform != null ? platform : "web"));
         vnpParamsMap.put("vnp_Amount", String.valueOf(amount));
         vnpParamsMap.put("vnp_IpAddr",getIpAddress(request));
 
@@ -108,18 +108,33 @@ public class PaymentServiceImpl implements PaymentService {
         List<Long> cartItemIds = Arrays.stream(request.getParameter("cartItemIds").split(","))
                 .map(Long::parseLong)
                 .toList();
+        String platform = request.getParameter("platform");
 
-        String redirectUrl = String.format(
-                "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
-                domainFrontend,
-                request.getParameter("vnp_ResponseCode"),
-                request.getParameter("orderId"),
-                request.getParameter("vnp_TransactionNo"),
-                request.getParameter("vnp_TxnRef"),
-                request.getParameter("vnp_Amount"),
-                request.getParameter("vnp_BankCode"),
-                request.getParameter("vnp_PayDate")
-        );
+        String redirectUrl;
+        if ("mobile".equals(platform)) {
+            redirectUrl = String.format(
+                    "ecom-store://payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                    request.getParameter("vnp_ResponseCode"),
+                    request.getParameter("orderId"),
+                    request.getParameter("vnp_TransactionNo"),
+                    request.getParameter("vnp_TxnRef"),
+                    request.getParameter("vnp_Amount"),
+                    request.getParameter("vnp_BankCode"),
+                    request.getParameter("vnp_PayDate")
+            );
+        } else {
+            redirectUrl = String.format(
+                    "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                    domainFrontend,
+                    request.getParameter("vnp_ResponseCode"),
+                    request.getParameter("orderId"),
+                    request.getParameter("vnp_TransactionNo"),
+                    request.getParameter("vnp_TxnRef"),
+                    request.getParameter("vnp_Amount"),
+                    request.getParameter("vnp_BankCode"),
+                    request.getParameter("vnp_PayDate")
+            );
+        }
 
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
@@ -141,7 +156,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public String createPayOsPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds) {
+    public String createPayOsPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds, String platform) {
         long amount = order.getFinalTotalPrice().longValue();
         
         String orderCode = String.valueOf(System.currentTimeMillis());
@@ -158,8 +173,8 @@ public class PaymentServiceImpl implements PaymentService {
         String cartItemIdsParam = cartItemIds.stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
-        String returnUrl = payOsReturnUrl + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&cartItemIds=" + cartItemIdsParam + "&orderCode=" + orderCode;
-        String cancelUrl = payOsCancelUrl + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&orderCode=" + orderCode;
+        String returnUrl = payOsReturnUrl + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&cartItemIds=" + cartItemIdsParam + "&orderCode=" + orderCode + "&platform=" + (platform != null ? platform : "web");
+        String cancelUrl = payOsCancelUrl + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&orderCode=" + orderCode + "&platform=" + (platform != null ? platform : "web");
         
         CreatePaymentLinkRequest paymentRequest = CreatePaymentLinkRequest.builder()
                 .orderCode(Long.parseLong(orderCode))
@@ -185,6 +200,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(Long::parseLong)
                 .toList();
         String orderCode = request.getParameter("orderCode");
+        String platform = request.getParameter("platform");
         
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
@@ -200,27 +216,42 @@ public class PaymentServiceImpl implements PaymentService {
                 String payDate = formatter.format(new Date());
 
                 paymentInfo.getTransactions();
-                String redirectUrl = String.format(
-                        "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
-                        domainFrontend,
-                        "00",
-                        orderId,
-                        !paymentInfo.getTransactions().isEmpty()
-                            ? paymentInfo.getTransactions().get(0).getReference() : orderCode,
-                        orderCode,
-                        order.getFinalTotalPrice().longValue(),
-                        "PAYOS",
-                        payDate
-                );
+                String redirectUrl;
+                if ("mobile".equals(platform)) {
+                    redirectUrl = String.format(
+                            "ecom-store://payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                            "00",
+                            orderId,
+                            !paymentInfo.getTransactions().isEmpty()
+                                ? paymentInfo.getTransactions().get(0).getReference() : orderCode,
+                            orderCode,
+                            order.getFinalTotalPrice().longValue(),
+                            "PAYOS",
+                            payDate
+                    );
+                } else {
+                    redirectUrl = String.format(
+                            "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                            domainFrontend,
+                            "00",
+                            orderId,
+                            !paymentInfo.getTransactions().isEmpty()
+                                ? paymentInfo.getTransactions().get(0).getReference() : orderCode,
+                            orderCode,
+                            order.getFinalTotalPrice().longValue(),
+                            "PAYOS",
+                            payDate
+                    );
+                }
                 response.sendRedirect(redirectUrl);
             } else {
                 handlePaymentFailure(order, voucherId);
-                String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "01");
+                String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "01", platform);
                 response.sendRedirect(redirectUrl);
             }
         } catch (Exception e) {
             handlePaymentFailure(order, voucherId);
-            String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "99");
+            String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "99", platform);
             response.sendRedirect(redirectUrl);
         }
     }
@@ -230,13 +261,14 @@ public class PaymentServiceImpl implements PaymentService {
         Long orderId = Long.parseLong(request.getParameter("orderId"));
         long voucherId = Long.parseLong(request.getParameter("voucherId"));
         String orderCode = request.getParameter("orderCode");
+        String platform = request.getParameter("platform");
         
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
         
         handlePaymentFailure(order, voucherId);
         
-        String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "24");
+        String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "24", platform);
         response.sendRedirect(redirectUrl);
     }
 
@@ -251,21 +283,34 @@ public class PaymentServiceImpl implements PaymentService {
         orderRepository.save(order);
     }
 
-    private String buildFailureUrl(Long orderId, String orderCode, Long amount, String responseCode) {
+    private String buildFailureUrl(Long orderId, String orderCode, Long amount, String responseCode, String platform) {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String payDate = formatter.format(new Date());
         
-        return String.format(
-                "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
-                domainFrontend,
-                responseCode,
-                orderId,
-                orderCode,
-                orderCode,
-                amount,
-                "PAYOS",
-                payDate
-        );
+        if ("mobile".equals(platform)) {
+            return String.format(
+                    "ecom-store://payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                    responseCode,
+                    orderId,
+                    orderCode,
+                    orderCode,
+                    amount,
+                    "PAYOS",
+                    payDate
+            );
+        } else {
+            return String.format(
+                    "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                    domainFrontend,
+                    responseCode,
+                    orderId,
+                    orderCode,
+                    orderCode,
+                    amount,
+                    "PAYOS",
+                    payDate
+            );
+        }
     }
 
     private void clearCart(Cart cart, List<Long> cartItemIds) {

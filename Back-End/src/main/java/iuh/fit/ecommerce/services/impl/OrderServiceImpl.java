@@ -206,6 +206,7 @@ public class OrderServiceImpl implements OrderService {
 
     private Object processPayment(OrderCreationRequest orderCreationRequest, HttpServletRequest request,
                                   Voucher voucher, Order order, Cart cart, List<Long> cartItemIds) {
+        String platform = orderCreationRequest.getPlatform();
         switch (orderCreationRequest.getPaymentMethod()) {
             case CASH_ON_DELIVERY -> {
                 clearCart(cart, cartItemIds);
@@ -214,12 +215,11 @@ public class OrderServiceImpl implements OrderService {
             }
             case VN_PAY -> {
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
-                return paymentService.createPaymentUrl(voucher, order, cartItemIds, request);
+                return paymentService.createPaymentUrl(voucher, order, cartItemIds, request, platform);
             }
             case PAY_OS -> {
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
-                return "";
-//                return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds);
+                return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds, platform);
             }
             default -> throw new InvalidParamException("Unsupported payment method");
         }
