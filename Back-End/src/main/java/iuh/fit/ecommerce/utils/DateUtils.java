@@ -9,9 +9,9 @@ import java.time.format.DateTimeParseException;
 
 public class DateUtils {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    // Format LocalDate to String
     public static String formatDate(LocalDate date) {
         if (date == null) {
             return "";
@@ -19,6 +19,7 @@ public class DateUtils {
         return date.format(DATE_FORMATTER);
     }
 
+    // Convert String to LocalDate
     public static LocalDate convertStringToLocalDate(String dateStr) {
         if (dateStr == null || dateStr.isBlank()) {
             throw new InvalidParamException("Date string cannot be null or blank");
@@ -30,6 +31,7 @@ public class DateUtils {
         }
     }
 
+    // Format LocalDateTime to String
     public static String formatLocalDateTime(LocalDateTime dateTime) {
         if (dateTime == null) {
             return "";
@@ -37,6 +39,7 @@ public class DateUtils {
         return dateTime.format(DATE_TIME_FORMATTER);
     }
 
+    // Convert String to LocalDateTime
     public static LocalDateTime convertStringToLocalDateTime(String dateTimeStr) {
         if (dateTimeStr == null || dateTimeStr.isBlank()) {
             throw new InvalidParamException("DateTime string cannot be null or blank");
