@@ -57,6 +57,8 @@ import EditPromotion from "@/pages/admin/EditPromotion"
 import Address from "@/pages/user/Address"
 import CustomerChat from "@/pages/user/CustomerChat"
 import ChatManagement from "@/pages/admin/ChatManagement"
+import StaffLogin from "@/pages/auth/StaffLogin"
+import ShipperLogin from "@/pages/auth/ShipperLogin"
 
 
 const useRouteElements = () => {

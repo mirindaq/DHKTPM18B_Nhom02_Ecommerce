@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { useUser } from "@/context/UserContext";
 import { AUTH_PATH } from "@/constants/path";
+import AuthStorageUtil from "@/utils/authStorage.util";
 import {
   Sidebar,
   SidebarContent,
@@ -39,11 +40,15 @@ export default function ShipperLayout() {
 
   const handleLogout = async () => {
     try {
+      // Lấy login path trước khi logout (vì logout sẽ clear user data)
+      const loginPath = AuthStorageUtil.getLoginPath();
       await logout();
-      navigate(AUTH_PATH.LOGIN_SHIPPER);
+      // Dùng window.location.href để đảm bảo redirect ngay lập tức
+      window.location.href = loginPath;
     } catch (error) {
       console.error("Logout error:", error);
-      navigate(AUTH_PATH.LOGIN_SHIPPER);
+      // Fallback về shipper login nếu có lỗi
+      window.location.href = AUTH_PATH.LOGIN_SHIPPER;
     }
   };
 
