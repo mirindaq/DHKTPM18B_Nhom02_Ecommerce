@@ -143,6 +143,32 @@ class AuthStorageUtil {
   static isAuthenticated(): boolean {
     return this.hasTokens() && this.hasUserData();
   }
+
+  /**
+   * Lấy login path dựa trên role của user
+   */
+  static getLoginPathByRole(role?: string): string {
+    const normalizedRole = role?.toUpperCase() || 'CUSTOMER';
+    
+    if (normalizedRole === 'ADMIN') {
+      return '/admin/login';
+    } else if (normalizedRole === 'STAFF') {
+      return '/staff/login';
+    } else if (normalizedRole === 'SHIPPER') {
+      return '/shipper/login';
+    }
+    
+    return '/login';
+  }
+
+  /**
+   * Lấy login path từ user data hiện tại
+   */
+  static getLoginPath(): string {
+    const userData = this.getUserData();
+    const role = userData?.roles?.[0];
+    return this.getLoginPathByRole(role);
+  }
 }
 
 export default AuthStorageUtil;

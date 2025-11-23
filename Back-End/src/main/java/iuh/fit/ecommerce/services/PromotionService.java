@@ -19,7 +19,8 @@ public interface PromotionService {
             int page, int limit,
             String name, String type,
             Boolean active,
-            LocalDate startDate, LocalDate endDate
+            LocalDate startDate,
+            Integer priority
     );
     PromotionResponse updatePromotion(Long id, PromotionUpdateRequest request);
     void deletePromotion(Long id);

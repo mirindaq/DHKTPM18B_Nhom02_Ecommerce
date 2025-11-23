@@ -34,13 +34,15 @@ export default function ArticleFilter({ onSearch }: { onSearch: (filters: any) =
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSearch({
+        const searchFilters = {
             title: filters.title || null,
             status: filters.status === "all" ? null : filters.status === "true",
             categoryId:
                 filters.categoryId === "all" ? null : Number(filters.categoryId),
             createdDate: filters.createdDate || null
-        });
+        };
+        console.log("🔍 Searching with filters:", searchFilters);
+        onSearch(searchFilters);
     };
 
     const handleClearFilters = () => {
@@ -67,9 +69,15 @@ export default function ArticleFilter({ onSearch }: { onSearch: (filters: any) =
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                                 id="filterTitle"
-                                placeholder="Nhập tiêu đề bài viết..."
+                                placeholder="Nhập tiêu đề bài viết và nhấn Enter..."
                                 value={filters.title}
                                 onChange={(e) => handleChange("title", e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSubmit(e as any);
+                                    }
+                                }}
                                 className="pl-9"
                             />
                         </div>

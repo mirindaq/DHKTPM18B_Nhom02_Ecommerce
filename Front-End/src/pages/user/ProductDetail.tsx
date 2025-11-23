@@ -12,14 +12,13 @@ import {
   Settings,
   ChevronRight,
   Shield,
-  Headphones,
-  ArrowUp,
   Zap,
   Truck,
   RotateCcw,
   Check,
   GitCompareArrows,
   Send,
+  Loader2,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
@@ -33,18 +32,19 @@ import QuestionItem from "@/components/user/QuestionItem";
 import QuestionPagination from "@/components/user/QuestionPagination";
 import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
+import { useWishlist } from "@/hooks/useWishlist";
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
+  const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist();
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantResponse | null>(null);
   // Dynamic state for attributes and variants
   const [attributes, setAttributes] = useState<any[]>([]);
   const [availableVariants, setAvailableVariants] = useState<{ [key: string]: string[] }>({});
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [questionContent, setQuestionContent] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,15 +135,6 @@ export default function ProductDetail() {
 
     }
   }, [product?.id]);
-
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -314,10 +305,6 @@ export default function ProductDetail() {
     });
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   // Handle variant selection
   const handleVariantSelection = (variantName: string, value: string) => {
     setSelectedVariants(prev => ({
@@ -325,6 +312,23 @@ export default function ProductDetail() {
       [variantName]: value
     }));
   };
+
+  // Handle wishlist toggle
+  const handleWishlistToggle = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (product?.id) {
+      toggleWishlist(product.id);
+    }
+  };
+
+  // Get current product ID for wishlist check
+  const productId = product?.id || 0;
+  const inWishlist = productId > 0 ? isInWishlist(productId) : false;
+  const isLoadingWishlist = isAdding || isRemoving;
 
   if (loading) {
     return (
@@ -417,10 +421,25 @@ export default function ProductDetail() {
             {/* Product Title */}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
             <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-              <div className="flex items-center space-x-1">
-                <Heart className="w-4 h-4 text-gray-400" />
+              <button
+                onClick={handleWishlistToggle}
+                disabled={isLoadingWishlist || productId === 0}
+                className={`flex items-center space-x-1 transition-colors hover:text-red-500 ${
+                  inWishlist ? "text-red-500" : "text-gray-500"
+                } ${isLoadingWishlist ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+              >
+                {isLoadingWishlist ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Heart
+                    className={`w-4 h-4 ${
+                      inWishlist ? "fill-red-500 text-red-500" : ""
+                    }`}
+                  />
+                )}
                 <span>Yêu thích</span>
-              </div>
+              </button>
               <div className="flex items-center space-x-1">
                 <GitCompareArrows className="w-4 h-4 text-gray-400" />
                 <span>So sánh</span>
@@ -532,6 +551,24 @@ export default function ProductDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Product Description */}
+            {product.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    Mô tả sản phẩm
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className="article-content"
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Right Column - Purchase Options */}
@@ -832,25 +869,6 @@ export default function ProductDetail() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Floating Buttons */}
-      {showScrollTop && (
-        <div className="fixed bottom-6 right-6 space-y-3 space-x-3 z-50">
-          <Button
-            onClick={scrollToTop}
-            size="lg"
-            className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-          >
-            <ArrowUp className="w-6 h-6" />
-          </Button>
-          <Button
-            size="lg"
-            className="w-14 h-14 rounded-full bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-          >
-            <Headphones className="w-6 h-6" />
-          </Button>
-        </div>
-      )}
 
       {/* Login Modal */}
       <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />

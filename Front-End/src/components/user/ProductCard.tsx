@@ -1,10 +1,14 @@
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Star } from "lucide-react"
+import { Heart, Star, Loader2 } from "lucide-react"
 import { useNavigate } from "react-router"
 import { PUBLIC_PATH } from "@/constants/path"
 import type { Product } from "@/types/product.type"
+import { useWishlist } from "@/hooks/useWishlist"
+import { useUser } from "@/context/UserContext"
+import LoginModal from "@/components/user/LoginModal"
 
 interface ProductCardProps {
   product: Product
@@ -12,15 +16,47 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate()
-  const firstVariant = product.variants?.[0]
-  const currentPrice = firstVariant?.price || 0
-  const oldPrice = firstVariant?.oldPrice || 0
-  const discountPercent = firstVariant?.discount || 0
+  const { isAuthenticated } = useUser()
+  const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist()
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  
+  // Tìm variant có giá thấp nhất
+  const lowestPriceVariant = product.variants?.reduce((lowest, variant) => {
+    if (!lowest) return variant
+    const lowestPrice = lowest.oldPrice > 0 
+      ? lowest.oldPrice * (1 - (lowest.discount || 0) / 100)
+      : lowest.price
+    const variantPrice = variant.oldPrice > 0
+      ? variant.oldPrice * (1 - (variant.discount || 0) / 100)
+      : variant.price
+    return variantPrice < lowestPrice ? variant : lowest
+  }, product.variants?.[0])
+  
+  const currentPrice = lowestPriceVariant?.price || 0
+  const oldPrice = lowestPriceVariant?.oldPrice || 0
+  const discountPercent = lowestPriceVariant?.discount || 0
 
   const finalPrice = oldPrice > 0 ? oldPrice * (1 - discountPercent / 100) : currentPrice
 
+  const productId = product.id || 0
+  const inWishlist = productId > 0 ? isInWishlist(productId) : false
+  const isLoading = isAdding || isRemoving
+
   const handleProductClick = () => {
     navigate(`${PUBLIC_PATH.HOME}product/${product.slug}`)
+  }
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Ngăn chặn sự kiện click lan ra Card
+    
+    if (!isAuthenticated) {
+      setShowLoginModal(true)
+      return
+    }
+
+    if (productId > 0) {
+      toggleWishlist(productId)
+    }
   }
 
   // Format giá tiền
@@ -102,13 +138,31 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 p-2"
+            onClick={handleWishlistClick}
+            disabled={isLoading || productId === 0}
+            className={`p-2 transition-colors ${
+              inWishlist
+                ? "text-red-500 hover:text-red-600 hover:bg-red-50"
+                : "text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+            }`}
+            title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
           >
-            <Heart className="w-4 h-4 mr-1" />
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Heart
+                className={`w-4 h-4 mr-1 ${
+                  inWishlist ? "fill-red-500 text-red-500" : ""
+                }`}
+              />
+            )}
             <span className="text-sm">Yêu thích</span>
           </Button>
         </div>
       </CardContent>
+      
+      {/* Login Modal */}
+      <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
     </Card>
   )
 }

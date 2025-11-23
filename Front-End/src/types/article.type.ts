@@ -23,6 +23,12 @@ export type CreateArticleRequest = {
 };
 
 
+
+
 export type ArticleResponse = ResponseApi<Article>;
 
 export type ArticleListResponse = ResponseApiWithPagination<Article[]>;
+
+
+
+

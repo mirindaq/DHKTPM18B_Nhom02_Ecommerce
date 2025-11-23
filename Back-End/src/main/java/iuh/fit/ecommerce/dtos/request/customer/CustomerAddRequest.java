@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.request.customer;
 
+import iuh.fit.ecommerce.dtos.request.address.AddressRequest;
 import iuh.fit.ecommerce.entities.Cart;
 import iuh.fit.ecommerce.entities.UserRole;
 import jakarta.validation.constraints.Email;
@@ -33,13 +34,14 @@ public class CustomerAddRequest {
     private String email;
 
     private String avatar;
+//    private Double totalSpending;
 
-    private String address;
+    private AddressRequest address;
 
     private LocalDate dateOfBirth;
 
-    private LocalDate registerDate;
+    private List<AddressRequest> addresses;
 
-    private List<UserRole> userRole;
-    private Cart cart;
+    private Long rankingId;
+
 }

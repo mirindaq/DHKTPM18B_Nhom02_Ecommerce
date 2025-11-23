@@ -13,25 +13,21 @@ import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-
-//    @Query("SELECT c FROM Customer c WHERE " +
-//            "(:name IS NULL OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-//            "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
-//            "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-//            "(:status IS NULL OR c.active = :status) AND "+
-//            "(:startDate IS NULL OR c.createdAt >= :startDate) AND " +
-//            "(:endDate IS NULL OR c.registerDate <= :endDate)")
-        @Query("SELECT c FROM Customer c WHERE " +
+    @Query("SELECT c FROM Customer c WHERE " +
             "(:name IS NULL OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:phone IS NULL OR c.phone LIKE CONCAT('%', :phone, '%')) AND " +
             "(:email IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-            "(:status IS NULL OR c.active = :status)")
+            "(:status IS NULL OR c.active = :status) AND " +
+            "(:startDate IS NULL OR c.createdAt >= :startDate) AND " +
+            "(:endDate IS NULL OR c.createdAt <= :endDate) AND " +
+            "(:rank IS NULL OR c.ranking.name = :rank)")
     Page<Customer> searchCustomers(@Param("name") String name,
                                    @Param("phone") String phone,
                                    @Param("email") String email,
                                    @Param("status") Boolean status,
                                    @Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate,
+                                   @Param("rank") String rank,
                                    Pageable pageable);
 
     Optional<Customer> findByEmail(String email);

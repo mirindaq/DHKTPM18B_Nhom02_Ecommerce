@@ -11,19 +11,26 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.AuthenticationException;
 
 @Component
 @RequiredArgsConstructor
-public class SecurityUtil {
+public class SecurityUtils {
     private final UserRepository userRepository;
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+        if (authentication == null ||
+                !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            throw new AuthenticationException("Unauthorized. User must be logged in.") {};
+        }
+
+        if (authentication.getPrincipal() instanceof UserDetails userDetails) {
             return userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new ResourceNotFoundException("Account not found with username: " + userDetails.getUsername()));
         }
-        throw new AccessDeniedException("Access denied. You don't have the required role.");
+        throw new AccessDeniedException("Access denied: Invalid principal type.");
     }
 
     public Staff getCurrentStaff() {

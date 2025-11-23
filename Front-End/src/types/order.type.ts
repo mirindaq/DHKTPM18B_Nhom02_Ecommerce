@@ -4,6 +4,19 @@ import type { ProductVariantResponse } from "@/types/product.type";
 
 export type PaymentMethod = "CASH_ON_DELIVERY" | "VN_PAY" | "PAY_OS";
 
+export type OrderStatus =
+  | "PENDING"
+  | "PENDING_PAYMENT"
+  | "PROCESSING"
+  | "READY_FOR_PICKUP"
+  | "SHIPPED"
+  | "ASSIGNED_SHIPPER"
+  | "DELIVERING"
+  | "FAILED"
+  | "CANCELED"
+  | "COMPLETED"
+  | "PAYMENT_FAILED";
+
 export interface OrderCreationRequest {
   receiverAddress?: string;
   receiverName?: string;
@@ -23,7 +36,7 @@ export interface OrderResponse {
   receiverName: string;
   receiverPhone: string;
   orderDate: string;
-  status: string;
+  status: OrderStatus;
   note: string;
   paymentMethod: PaymentMethod;
   isPickup: boolean;
@@ -34,14 +47,34 @@ export interface OrderResponse {
   orderDetails: OrderDetailResponse[];
 }
 
+export interface ProductVariantOrderResponse {
+  id: number;
+  sku: string;
+  price: number;
+  stock: number;
+  productName: string;
+  productThumbnail: string;
+  brandName: string;
+  categoryName: string;
+}
 
-interface OrderDetailResponse {
+export interface OrderDetailResponse {
   id: number;
   price: number;
   quantity: number;
   discount: number;
   finalPrice: number;
-  productVariant: ProductVariantResponse
+  productVariant: ProductVariantOrderResponse;
+}
+
+export interface OrderSearchParams {
+  customerName?: string;
+  orderDate?: string;
+  customerPhone?: string;
+  status?: OrderStatus;
+  isPickup?: boolean;
+  page?: number;
+  size?: number;
 }
 
 export type OrderApiResponse = ResponseApi<OrderResponse>;

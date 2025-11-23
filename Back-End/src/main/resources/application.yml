@@ -17,6 +17,11 @@ spring:
         dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT}
         enable_lazy_load_no_trans: ${SPRING_JPA_PROPERTIES_HIBERNATE_ENABLE_LAZY_LOAD_NO_TRANS}
 
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    connection-timeout: 5s
+    socket-timeout: 60s
+
   mail:
     host: ${SPRING_MAIL_HOST}
     username: ${SPRING_MAIL_USERNAME}
@@ -52,7 +57,25 @@ spring:
             token-uri: ${GOOGLE_TOKEN_URI}
             user-info-uri: ${GOOGLE_USER_INFO_URI}
 
-
+  ai:
+    google:
+      genai:
+        api-key: ${GEMINI_KEY}
+        chat:
+          options:
+            model: gemini-2.5-flash
+        embedding:
+          text:
+            options:
+              model: text-embedding-004
+          api-key: ${GEMINI_KEY}
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        collection-name: ecomstore
+        use-tls: false
+        initialize-schema: true
 
 payment:
   vnPay:
@@ -63,6 +86,12 @@ payment:
     version: 2.1.0
     command: pay
     orderType: other
+  pay_os:
+    client-id: 123
+    api-key: 123
+    checksum-key: 123
+    return-url: 123
+    cancel-url: 123
 
 cloudinary:
   url: ${CLOUDINARY_URL}

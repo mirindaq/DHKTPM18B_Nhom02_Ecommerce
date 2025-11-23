@@ -61,6 +61,8 @@ export default function Profile() {
     if (pathname.includes("/profile/membership")) {
       setActiveSidebarMenu("Hạng thành viên và ưu đãi");
       setActiveTab("membership");
+    } else if (pathname.includes("/profile/wishlist")) {
+      setActiveSidebarMenu("Danh sách yêu thích");
     } else if (pathname === `${PUBLIC_PATH.HOME}profile`) {
       // Nếu đang ở route gốc, giữ nguyên default state (overview)
       setActiveSidebarMenu("Tổng quan");
@@ -139,6 +141,24 @@ export default function Profile() {
       onClick: () => {
         setActiveSidebarMenu("Lịch sử mua hàng");
         navigate("/orders");
+      },
+    },
+    {
+      icon: <MapPin size={20} />,
+      label: "Địa chỉ nhận hàng",
+      active: location.pathname.includes("/profile/addresses"),
+      onClick: () => {
+        setActiveSidebarMenu("Địa chỉ nhận hàng");
+        navigate(`${PUBLIC_PATH.HOME}profile/addresses`);
+      },
+    },
+    {
+      icon: <Heart size={20} />,
+      label: "Danh sách yêu thích",
+      active: location.pathname.includes("/profile/wishlist"),
+      onClick: () => {
+        setActiveSidebarMenu("Danh sách yêu thích");
+        navigate(`${PUBLIC_PATH.HOME}profile/wishlist`);
       },
     },
     { icon: <Search size={20} />, label: "Tra cứu bảo hành" },
@@ -573,7 +593,7 @@ export default function Profile() {
 
           {/* Main Content Area */}
           <div className="col-span-9">
-            {location.pathname.includes("/profile/membership") ? (
+            {location.pathname.startsWith("/profile/") ? (
               <Outlet />
             ) : (
               <Card>

@@ -25,7 +25,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping(value = "")
-    public ResponseEntity<ResponseSuccess<CustomerResponse>> createUser(@Valid @RequestBody CustomerAddRequest customerAddRequest){
+    public ResponseEntity<ResponseSuccess<CustomerResponse>> createUser(@Valid @RequestBody CustomerAddRequest customerAddRequest) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Create Customer success",
@@ -34,7 +34,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseSuccess<CustomerResponse>> getCustomerById(@PathVariable long id){
+    public ResponseEntity<ResponseSuccess<CustomerResponse>> getCustomerById(@PathVariable long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customer Profile success",
@@ -52,18 +52,20 @@ public class CustomerController {
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Boolean status,
             @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate)
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) String rank)
+
     {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customers success",
-                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate)
+                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate, rank)
         ));
     }
 
     @PutMapping(value = "/{id}")
     public ResponseEntity<ResponseSuccess<CustomerResponse>> updateCustomer(@PathVariable long id,
-                                                                            @Valid @RequestBody CustomerProfileRequest customerProfileRequest){
+                                                                            @Valid @RequestBody CustomerProfileRequest customerProfileRequest) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update Customer success",
@@ -72,7 +74,7 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseSuccess<String>> deleteCustomer(@PathVariable long id){
+    public ResponseEntity<ResponseSuccess<String>> deleteCustomer(@PathVariable long id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,

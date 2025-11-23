@@ -14,10 +14,12 @@ import iuh.fit.ecommerce.mappers.PromotionMapper;
 import iuh.fit.ecommerce.repositories.PromotionRepository;
 import iuh.fit.ecommerce.repositories.PromotionTargetRepository;
 import iuh.fit.ecommerce.services.PromotionService;
+import iuh.fit.ecommerce.specifications.PromotionSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,13 +63,25 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public ResponseWithPagination<List<PromotionResponse>> getAllPromotions(int page, int limit, String name,
                                                                             String type, Boolean active,
-                                                                            LocalDate startDate, LocalDate endDate) {
+                                                                            LocalDate startDate, Integer priority) {
         page = page > 0 ? page - 1 : page;
         Pageable pageable = PageRequest.of(page, limit);
 
-        Page<Promotion> promotionPage = promotionRepository.searchPromotions(
-                name, type, active, startDate, endDate, pageable
+        // Convert type string to PromotionType enum
+        PromotionType promotionType = null;
+        if (type != null && !type.isEmpty()) {
+            try {
+                promotionType = PromotionType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Invalid type, will be ignored
+            }
+        }
+
+        Specification<Promotion> spec = PromotionSpecification.filterPromotions(
+                name, promotionType, active, startDate, priority
         );
+
+        Page<Promotion> promotionPage = promotionRepository.findAll(spec, pageable);
 
         return ResponseWithPagination.fromPage(promotionPage, promotionMapper::toResponse);
     }

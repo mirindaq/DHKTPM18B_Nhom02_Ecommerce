@@ -73,6 +73,8 @@ public class BrandServiceImpl implements BrandService {
         brand.setStatus(!brand.getStatus());
         brandRepository.save(brand);
     }
+
+    @Override
     public Brand getBrandEntityById(Long id) {
         return brandRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + id));

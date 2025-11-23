@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +14,7 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 @EnableConfigurationProperties(OAuth2ClientProperties.class)
+@EnableScheduling
 public class EcommerceApplication {
 
 	public static void main(String[] args) {
@@ -27,6 +29,7 @@ public class EcommerceApplication {
 					System.setProperty(entry.getKey(), entry.getValue())
 			);
 		}
+        
 
 
 		SpringApplication.run(EcommerceApplication.class, args);

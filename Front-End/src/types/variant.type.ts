@@ -6,6 +6,7 @@ export type VariantValue = {
   value: string;
   variantId: number;
   variantName?: string;
+  slug: string;
   status: boolean;
 };
 
@@ -14,6 +15,7 @@ export type Variant = {
   name: string;
   status: boolean;
   category: Category;
+  slug: string;
   variantValues: VariantValue[];
 };
 

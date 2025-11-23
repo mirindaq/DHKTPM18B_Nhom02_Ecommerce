@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
@@ -23,6 +22,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import static iuh.fit.ecommerce.enums.OrderStatus.*;
+
+import vn.payos.PayOS;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
+import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
+import vn.payos.model.v2.paymentRequests.PaymentLink;
 
 @Service
 @RequiredArgsConstructor
@@ -43,12 +48,17 @@ public class PaymentServiceImpl implements PaymentService {
     private String orderType;
     @Value("${domain.frontend}")
     private String domainFrontend;
+    @Value("${payment.pay_os.return-url}")
+    private String payOsReturnUrl;
+    @Value("${payment.pay_os.cancel-url}")
+    private String payOsCancelUrl;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final OrderRepository orderRepository;
     private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
     private final VoucherRepository voucherRepository;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final PayOS payOS;
     private final int TIME_OUT = 15;
 
     @Override
@@ -128,6 +138,134 @@ public class PaymentServiceImpl implements PaymentService {
         orderRepository.save(order);
 
         response.sendRedirect(redirectUrl);
+    }
+
+    @Override
+    public String createPayOsPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds) {
+        long amount = order.getFinalTotalPrice().longValue();
+        
+        String orderCode = String.valueOf(System.currentTimeMillis());
+        
+        List<PaymentLinkItem> items = order.getOrderDetails().stream()
+                .map(detail -> PaymentLinkItem.builder()
+                        .name(detail.getProductVariant().getProduct().getName())
+                        .quantity(detail.getQuantity().intValue())
+                        .price(detail.getPrice().longValue())
+                        .build())
+                .toList();
+        
+        long voucherId = voucher != null ? voucher.getId() : 0;
+        String cartItemIdsParam = cartItemIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        String returnUrl = payOsReturnUrl + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&cartItemIds=" + cartItemIdsParam + "&orderCode=" + orderCode;
+        String cancelUrl = payOsCancelUrl + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&orderCode=" + orderCode;
+        
+        CreatePaymentLinkRequest paymentRequest = CreatePaymentLinkRequest.builder()
+                .orderCode(Long.parseLong(orderCode))
+                .amount(amount)
+                .description("Thanh toan don hang #" + order.getId())
+                .returnUrl(returnUrl)
+                .cancelUrl(cancelUrl)
+                .items(items)
+                .build();
+        
+        CreatePaymentLinkResponse result = payOS.paymentRequests().create(paymentRequest);
+        
+        scheduleRevokeJob(voucher, order.getId(), TIME_OUT + 1);
+        
+        return result.getCheckoutUrl();
+    }
+
+    @Override
+    public void handlePayOsSuccess(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Long orderId = Long.parseLong(request.getParameter("orderId"));
+        long voucherId = Long.parseLong(request.getParameter("voucherId"));
+        List<Long> cartItemIds = Arrays.stream(request.getParameter("cartItemIds").split(","))
+                .map(Long::parseLong)
+                .toList();
+        String orderCode = request.getParameter("orderCode");
+        
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        
+        try {
+            PaymentLink paymentInfo = payOS.paymentRequests().get(Long.parseLong(orderCode));
+            if ("PAID".equals(paymentInfo.getStatus().toString())) {
+                order.setStatus(PENDING);
+                clearCart(order.getCustomer().getCart(), cartItemIds);
+                orderRepository.save(order);
+                
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+                String payDate = formatter.format(new Date());
+
+                paymentInfo.getTransactions();
+                String redirectUrl = String.format(
+                        "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                        domainFrontend,
+                        "00",
+                        orderId,
+                        !paymentInfo.getTransactions().isEmpty()
+                            ? paymentInfo.getTransactions().get(0).getReference() : orderCode,
+                        orderCode,
+                        order.getFinalTotalPrice().longValue(),
+                        "PAYOS",
+                        payDate
+                );
+                response.sendRedirect(redirectUrl);
+            } else {
+                handlePaymentFailure(order, voucherId);
+                String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "01");
+                response.sendRedirect(redirectUrl);
+            }
+        } catch (Exception e) {
+            handlePaymentFailure(order, voucherId);
+            String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "99");
+            response.sendRedirect(redirectUrl);
+        }
+    }
+
+    @Override
+    public void handlePayOsCancel(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Long orderId = Long.parseLong(request.getParameter("orderId"));
+        long voucherId = Long.parseLong(request.getParameter("voucherId"));
+        String orderCode = request.getParameter("orderCode");
+        
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        
+        handlePaymentFailure(order, voucherId);
+        
+        String redirectUrl = buildFailureUrl(orderId, orderCode, order.getFinalTotalPrice().longValue(), "24");
+        response.sendRedirect(redirectUrl);
+    }
+
+    private void handlePaymentFailure(Order order, long voucherId) {
+        order.setStatus(PAYMENT_FAILED);
+        restoreVariantStock(order);
+        if (voucherId != 0) {
+            Voucher voucher = voucherRepository.findById(voucherId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with id: " + voucherId));
+            voucherUsageHistoryRepository.deleteByVoucherAndOrder(voucher, order);
+        }
+        orderRepository.save(order);
+    }
+
+    private String buildFailureUrl(Long orderId, String orderCode, Long amount, String responseCode) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String payDate = formatter.format(new Date());
+        
+        return String.format(
+                "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                domainFrontend,
+                responseCode,
+                orderId,
+                orderCode,
+                orderCode,
+                amount,
+                "PAYOS",
+                payDate
+        );
     }
 
     private void clearCart(Cart cart, List<Long> cartItemIds) {

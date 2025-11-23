@@ -30,3 +30,4 @@ public class OrderResponse {
     private CustomerResponse customer;
     private List<OrderDetailResponse> orderDetails;
 }
+
