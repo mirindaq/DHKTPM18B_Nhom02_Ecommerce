@@ -21,19 +21,20 @@ public class DeliveryAssignment extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(name = "expected_delivery_date")
     private LocalDate expectedDeliveryDate;
 
-    @Column
+    @Column(name = "delivery_image")
     private String deliveryImage;
 
-    @Column
+    @Column(name = "delivery_status")
+    @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
 
-    @Column
+    @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
-    @Column
+    @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
     @OneToMany(mappedBy = "deliveryAssignment")

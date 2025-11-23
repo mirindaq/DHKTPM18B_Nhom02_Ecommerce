@@ -45,8 +45,9 @@ import UserLayout from "@/layouts/UserLayout";
 import StaffLayout from "@/layouts/StaffLayout";
 import ShipperLayout from "@/layouts/ShipperLayout";
 import StaffDashboard from "@/pages/staff/StaffDashboard";
+import StaffAssignDelivery from "@/pages/staff/StaffAssignDelivery";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
-import ShipperOrders from "@/pages/shipper/ShipperOrders";
+import Deliveries from "@/pages/shipper/Deliveries";
 import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
 import FilterCriterias from "@/pages/admin/FilterCriterias";
 import Checkout from "@/pages/user/Checkout"
@@ -133,7 +134,7 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <ArticleHomePage /> },
         { path: "search", element: <ArticleSearch /> },
-      ]
+      ],
     },
 
     // Article detail route
@@ -144,9 +145,7 @@ const useRouteElements = () => {
           <ArticleLayout />
         </RoleBasedAuthWrapper>
       ),
-      children: [
-        { index: true, element: <ArticleDetailPage /> },
-      ]
+      children: [{ index: true, element: <ArticleDetailPage /> }],
     },
 
     // Article category route
@@ -157,9 +156,7 @@ const useRouteElements = () => {
           <ArticleLayout />
         </RoleBasedAuthWrapper>
       ),
-      children: [
-        { index: true, element: <ArticleCategoryPage /> },
-      ]
+      children: [{ index: true, element: <ArticleCategoryPage /> }],
     },
 
     // Auth routes
@@ -184,6 +181,22 @@ const useRouteElements = () => {
       element: (
         <RoleBasedAuthWrapper>
           <AdminLogin />
+        </RoleBasedAuthWrapper>
+      ),
+    },
+    {
+      path: AUTH_PATH.LOGIN_STAFF,
+      element: (
+        <RoleBasedAuthWrapper>
+          <StaffLogin />
+        </RoleBasedAuthWrapper>
+      ),
+    },
+    {
+      path: AUTH_PATH.LOGIN_SHIPPER,
+      element: (
+        <RoleBasedAuthWrapper>
+          <ShipperLogin />
         </RoleBasedAuthWrapper>
       ),
     },
@@ -244,6 +257,7 @@ const useRouteElements = () => {
         { path: STAFF_PATH.ORDERS, element: <Orders /> },
         { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
         { path: STAFF_PATH.CHAT, element: <ChatManagement /> },
+        { path: STAFF_PATH.ASSIGN_DELIVERY, element: <StaffAssignDelivery /> },
       ],
     },
 
@@ -257,8 +271,7 @@ const useRouteElements = () => {
       ),
       children: [
         { index: true, element: <ShipperDashboard /> },
-        { path: SHIPPER_PATH.ORDERS, element: <ShipperOrders /> },
-        { path: SHIPPER_PATH.DELIVERIES, element: <ShipperOrders /> },
+        { path: SHIPPER_PATH.DELIVERIES, element: <Deliveries /> },
       ],
     },
     {

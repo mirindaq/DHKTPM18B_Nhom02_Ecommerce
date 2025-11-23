@@ -18,4 +18,5 @@ public class UserProfileResponse {
     private String avatar;
     private String phone;
     private RankResponse rank;
+    private Boolean leader;
 }

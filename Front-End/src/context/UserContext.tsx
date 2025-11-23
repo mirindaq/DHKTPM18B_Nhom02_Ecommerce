@@ -24,6 +24,7 @@ interface UserContextType {
   isStaff: boolean;
   isCustomer: boolean;
   isShipper: boolean;
+  isLeader: boolean;
   login: (user: UserProfile) => void;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -61,6 +62,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const isStaff = React.useMemo(() => hasRole(ROLES.STAFF), [hasRole]);
   const isCustomer = React.useMemo(() => hasRole(ROLES.CUSTOMER), [hasRole]);
   const isShipper = React.useMemo(() => hasRole(ROLES.SHIPPER), [hasRole]);
+  const isLeader = React.useMemo(() => user?.leader ?? false, [user?.leader]);
 
   const login = React.useCallback((userData: UserProfile) => {
     setUser(userData);
@@ -131,6 +133,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       isStaff,
       isCustomer,
       isShipper,
+      isLeader,
       login,
       logout,
       refreshProfile,
@@ -145,6 +148,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       isStaff,
       isCustomer,
       isShipper,
+      isLeader,
       login,
       logout,
       refreshProfile,
