@@ -11,6 +11,7 @@ public class Endpoints {
             "/api/v1/orders(?:/.*)?",
             "/api/v1/addresses(?:/.*)?",
             "/api/v1/chats(?:/.*)?",
+            "/api/v1/wishlist(?:/.*)?",
             "/api/v1/shippers(?:/.*)?",
             "/api/v1/delivery-assignments(?:/.*)?"
     };
