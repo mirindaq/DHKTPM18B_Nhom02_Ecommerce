@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.request.chat.MessageRequest;
 import iuh.fit.ecommerce.dtos.response.chat.ChatResponse;
 import iuh.fit.ecommerce.dtos.response.chat.MessageResponse;
 import iuh.fit.ecommerce.entities.*;
+import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ChatMapper;
 import iuh.fit.ecommerce.mappers.MessageMapper;
@@ -122,9 +123,62 @@ public class ChatServiceImpl implements ChatService {
 
         Staff staff = staffService.getStaffEntityById(staffId);
 
+        if (hasShipperRole(staff)) {
+            throw new InvalidParamException("Cannot assign chat to shipper. Only staff can be assigned to chat.");
+        }
+
         chat.setStaff(staff);
         Chat updatedChat = chatRepository.save(chat);
         return chatMapper.toResponse(updatedChat);
+    }
+
+    private boolean hasShipperRole(Staff staff) {
+        return staff.getUserRoles().stream()
+                .anyMatch(userRole -> "SHIPPER".equalsIgnoreCase(userRole.getRole().getName()));
+    }
+
+    @Override
+    @Transactional
+    public ChatResponse unassignStaffFromChat(Long chatId) {
+        Chat chat = getChatEntityById(chatId);
+        
+        chat.setStaff(null);
+        Chat updatedChat = chatRepository.save(chat);
+        return chatMapper.toResponse(updatedChat);
+    }
+
+    @Override
+    @Transactional
+    public List<ChatResponse> bulkTransferChats(List<Long> chatIds, Long staffId) {
+        Staff staff = staffService.getStaffEntityById(staffId);
+
+        if (hasShipperRole(staff)) {
+            throw new InvalidParamException("Cannot transfer chats to shipper. Only staff can be assigned to chat.");
+        }
+        
+        List<Chat> chats = chatRepository.findAllById(chatIds);
+        
+        chats.forEach(chat -> chat.setStaff(staff));
+        
+        List<Chat> updatedChats = chatRepository.saveAll(chats);
+        
+        return updatedChats.stream()
+                .map(chatMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<ChatResponse> bulkUnassignChats(List<Long> chatIds) {
+        List<Chat> chats = chatRepository.findAllById(chatIds);
+        
+        chats.forEach(chat -> chat.setStaff(null));
+        
+        List<Chat> updatedChats = chatRepository.saveAll(chats);
+        
+        return updatedChats.stream()
+                .map(chatMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     private Chat getChatEntityById(Long chatId) {

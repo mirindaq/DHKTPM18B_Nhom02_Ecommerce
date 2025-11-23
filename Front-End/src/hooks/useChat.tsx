@@ -181,6 +181,28 @@ export function useChat(options: UseChatOptions = {}) {
     }
   }, []);
 
+  const transferChat = useCallback(async (chatId: number, staffId: number) => {
+    try {
+      const response = await chatService.assignStaffToChat(chatId, staffId);
+      return response.data;
+    } catch (error) {
+      console.error("Error transferring chat:", error);
+      toast.error("Không thể chuyển chat");
+      throw error;
+    }
+  }, []);
+
+  const unassignChat = useCallback(async (chatId: number) => {
+    try {
+      const response = await chatService.unassignStaffFromChat(chatId);
+      return response.data;
+    } catch (error) {
+      console.error("Error unassigning chat:", error);
+      toast.error("Không thể trả lại chat");
+      throw error;
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       disconnect();
@@ -204,6 +226,8 @@ export function useChat(options: UseChatOptions = {}) {
     connect,
     disconnect,
     assignStaff,
+    transferChat,
+    unassignChat,
   };
 }
 

@@ -18,6 +18,7 @@ import {
   Check,
   GitCompareArrows,
   Send,
+  Loader2,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
@@ -31,11 +32,13 @@ import QuestionItem from "@/components/user/QuestionItem";
 import QuestionPagination from "@/components/user/QuestionPagination";
 import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
+import { useWishlist } from "@/hooks/useWishlist";
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
+  const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist();
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantResponse | null>(null);
   // Dynamic state for attributes and variants
   const [attributes, setAttributes] = useState<any[]>([]);
@@ -310,6 +313,23 @@ export default function ProductDetail() {
     }));
   };
 
+  // Handle wishlist toggle
+  const handleWishlistToggle = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (product?.id) {
+      toggleWishlist(product.id);
+    }
+  };
+
+  // Get current product ID for wishlist check
+  const productId = product?.id || 0;
+  const inWishlist = productId > 0 ? isInWishlist(productId) : false;
+  const isLoadingWishlist = isAdding || isRemoving;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
@@ -401,10 +421,25 @@ export default function ProductDetail() {
             {/* Product Title */}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
             <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-              <div className="flex items-center space-x-1">
-                <Heart className="w-4 h-4 text-gray-400" />
+              <button
+                onClick={handleWishlistToggle}
+                disabled={isLoadingWishlist || productId === 0}
+                className={`flex items-center space-x-1 transition-colors hover:text-red-500 ${
+                  inWishlist ? "text-red-500" : "text-gray-500"
+                } ${isLoadingWishlist ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+              >
+                {isLoadingWishlist ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Heart
+                    className={`w-4 h-4 ${
+                      inWishlist ? "fill-red-500 text-red-500" : ""
+                    }`}
+                  />
+                )}
                 <span>Yêu thích</span>
-              </div>
+              </button>
               <div className="flex items-center space-x-1">
                 <GitCompareArrows className="w-4 h-4 text-gray-400" />
                 <span>So sánh</span>

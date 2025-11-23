@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { useUser } from '@/context/UserContext';
 import { ADMIN_PATH, STAFF_PATH, SHIPPER_PATH, PUBLIC_PATH, AUTH_PATH } from '@/constants/path';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import AuthStorageUtil from '@/utils/authStorage.util';
 
 interface RoleBasedAuthWrapperProps {
   children: React.ReactNode;
@@ -84,7 +85,18 @@ const RoleBasedAuthWrapper: React.FC<RoleBasedAuthWrapperProps> = ({ children })
   useEffect(() => {
     if (shouldLogout) {
       console.log('RoleBasedAuthWrapper - Logging out due to role mismatch');
-      logout().catch(console.error);
+      // Lấy login path trước khi logout (vì logout sẽ clear user data)
+      const loginPath = AuthStorageUtil.getLoginPath();
+      logout()
+        .then(() => {
+          // Dùng window.location.href để đảm bảo redirect ngay lập tức
+          window.location.href = loginPath;
+        })
+        .catch((error) => {
+          console.error('Logout error:', error);
+          // Fallback về login path nếu có lỗi
+          window.location.href = loginPath;
+        });
     }
   }, [shouldLogout, logout]);
 

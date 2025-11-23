@@ -160,5 +160,14 @@ public class StaffServiceImpl implements StaffService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<StaffResponse> getAllActiveStaffs() {
+        // Chỉ lấy Staff có role STAFF, không lấy SHIPPER
+        List<Staff> activeStaffs = staffRepository.findAllActiveStaffsOnly();
+        
+        return activeStaffs.stream()
+                .map(staffMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
 }

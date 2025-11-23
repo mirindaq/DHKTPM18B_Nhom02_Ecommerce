@@ -9,10 +9,10 @@ import iuh.fit.ecommerce.services.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,11 +28,26 @@ public class OrderController {
 
     @PostMapping(value = "")
     public ResponseEntity<ResponseSuccess<Object>> customerCreateOrder(@Valid @RequestBody OrderCreationRequest orderCreationRequest,
-                                                                       HttpServletRequest request){
+                                                                       HttpServletRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Create Customer success",
                 orderService.customerCreateOrder(orderCreationRequest, request)
+        ));
+    }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<OrderResponse>>>> getMyOrders(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "7") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get my orders success",
+                orderService.getMyOrders(page, size, status, startDate, endDate)
         ));
     }
 

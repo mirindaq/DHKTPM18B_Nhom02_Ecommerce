@@ -1,7 +1,8 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 import { useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { AUTH_PATH } from "@/constants/path";
+import AuthStorageUtil from "@/utils/authStorage.util";
 import {
   Sidebar,
   SidebarContent,
@@ -34,10 +35,10 @@ import {
   Newspaper,
   LayoutList,
   GitMerge,
-  MessageSquare,
   Filter,
+  MessageSquare,
 } from "lucide-react"
-import AdminChatListener from "@/components/admin/AdminChatListener"
+import AdminChatListener from "@/components/admin/AdminChatListener";
 
 const navigation = [
   {
@@ -126,6 +127,11 @@ const navigation = [
         href: "/admin/staffs",
         icon: UserCheck,
       },
+      {
+        title: "Quản lý Chat",
+        href: "/admin/chats",
+        icon: MessageSquare,
+      },
     ],
   },
   {
@@ -146,11 +152,6 @@ const navigation = [
     ],
   },
   {
-    title: "Quản lý Chat",
-    icon: MessageSquare,
-    href: "/admin/chats",
-  },
-  {
     title: "Báo cáo & Thống kê",
     icon: BarChart3,
     href: "/admin/analytics",
@@ -159,17 +160,20 @@ const navigation = [
 
 export default function AdminLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { logout } = useUser();
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
 
   const handleLogout = async () => {
     try {
+      // Lấy login path trước khi logout (vì logout sẽ clear user data)
+      const loginPath = AuthStorageUtil.getLoginPath();
       await logout();
-      navigate(AUTH_PATH.LOGIN_ADMIN);
+      // Dùng window.location.href để đảm bảo redirect ngay lập tức
+      window.location.href = loginPath;
     } catch (error) {
       console.error("Logout error:", error);
-      navigate(AUTH_PATH.LOGIN_ADMIN);
+      // Fallback về admin login nếu có lỗi
+      window.location.href = AUTH_PATH.LOGIN_ADMIN;
     }
   };
 
@@ -358,7 +362,7 @@ export default function AdminLayout() {
         </SidebarInset>
       </div>
 
-      {/* Auto-connect to WebSocket for staff */}
+      {/* Auto-connect to WebSocket for admin */}
       <AdminChatListener />
     </SidebarProvider>
   );

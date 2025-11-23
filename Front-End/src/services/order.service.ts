@@ -1,14 +1,16 @@
 import axiosClient from '@/configurations/axios.config';
-import type {
-  OrderCreationRequest,
-  OrderListResponse,
-  OrderApiResponse,
-  OrderSearchParams
-} from '@/types/order.type';
+import type { OrderCreationRequest, OrderListResponse, OrderApiResponse, OrderSearchParams } from '@/types/order.type';
 
 export const orderService = {
   createOrder: async (request: OrderCreationRequest) => {
     const response = await axiosClient.post("/orders", request);
+    return response.data;
+  },
+
+  getMyOrders: async (page: number = 1, size: number = 7, status?: string, startDate?: string, endDate?: string) => {
+    const response = await axiosClient.get<OrderListResponse>(`/orders/my-orders`, {
+      params: { page, size, status, startDate, endDate }
+    });
     return response.data;
   },
 
@@ -53,7 +55,9 @@ export const orderService = {
   },
 
   getOrdersNeedShipper: async (page: number = 1, size: number = 10) => {
-    const response = await axiosClient.get<OrderListResponse>(`/orders/need-shipper?page=${page}&size=${size}`);
+    const response = await axiosClient.get<OrderListResponse>(`/orders/need-shipper`, {
+      params: { page, size }
+    });
     return response.data;
   }
-}
+};

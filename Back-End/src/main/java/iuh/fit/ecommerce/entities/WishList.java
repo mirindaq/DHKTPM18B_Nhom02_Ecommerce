@@ -17,11 +17,11 @@ public class WishList {
     private Long id;
 
     @ManyToOne
-    @JoinColumn( name = "product_variant_id" )
-    private ProductVariant productVariant;
+    @JoinColumn( name = "product_id" )
+    private Product product;
 
     @ManyToOne
-    @JoinColumn( name = "user_id")
-    private User user;
+    @JoinColumn( name = "customer_id")
+    private Customer customer;
 
 }
