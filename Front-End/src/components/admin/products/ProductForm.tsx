@@ -152,7 +152,6 @@ export default function ProductForm({
           })) || [],
         variants: product.variants?.map((v) => ({
             price: v.price,
-            oldPrice: v.oldPrice,
             stock: v.stock,
             variantValueIds: v.productVariantValues.map((pvv) => pvv.variantValue.id),
           })) || [],
@@ -286,7 +285,7 @@ export default function ProductForm({
     
     setFormData(prev => {
       // Tạo map để tìm nhanh hơn thay vì dùng find trong loop
-      const existingMap = new Map<string, { price: number; oldPrice?: number; stock: number; variantValueIds: number[] }>();
+      const existingMap = new Map<string, { price: number; stock: number; variantValueIds: number[] }>();
       if (prev.variants && prev.variants.length > 0) {
         prev.variants.forEach(v => {
           const key = [...v.variantValueIds].sort().join(',');
@@ -300,7 +299,6 @@ export default function ProductForm({
           const existing = existingMap.get(key);
           return {
               price: existing?.price || 0,
-              oldPrice: existing?.oldPrice || 0,
               stock: existing?.stock || 0,
               variantValueIds: combo.variantValueIds
           };
@@ -377,19 +375,16 @@ export default function ProductForm({
       setPreviewProductImageUrls(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
   };
 
-  // Submit handler (Giữ nguyên logic cũ nhưng làm gọn)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       let finalThumbnail = formData.thumbnail;
       let finalProductImages = [...formData.productImages];
 
-      // Lấy nội dung từ Quill editor và xử lý upload ảnh trong editor
       let editorHtml = "";
       if (quillRef.current) {
         editorHtml = quillRef.current.root.innerHTML || "";
        
-        // Xử lý upload ảnh trong editor (tương tự như NewsCreate)
         if (editorHtml && editorHtml !== "<p><br></p>") {
           const parser = new DOMParser();
           const doc = parser.parseFromString(editorHtml, "text/html");
@@ -443,7 +438,6 @@ export default function ProductForm({
         setIsUploading(false);
       }
         
-      // Loại bỏ sku khỏi variants khi submit (sku tự động tạo)
       const submitData: CreateProductRequest = {
         ...formData,
         thumbnail: finalThumbnail,

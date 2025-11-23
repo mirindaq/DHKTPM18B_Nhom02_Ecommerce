@@ -29,25 +29,25 @@ public class WishListController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ResponseSuccess<List<WishListResponse>>> addProductVariantToWishList(
+    public ResponseEntity<ResponseSuccess<List<WishListResponse>>> addProductToWishList(
             @RequestBody WishListRequest request
     ) {
-        List<WishListResponse> updatedList = wishListService.addProductVariantToWishList(request);
+        List<WishListResponse> updatedList = wishListService.addProductToWishList(request);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
-                "Add product variant to wish list success",
+                "Add product to wish list success",
                 updatedList
         ));
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<ResponseSuccess<List<WishListResponse>>> removeProductVariantFromWishList(
+    public ResponseEntity<ResponseSuccess<List<WishListResponse>>> removeProductFromWishList(
             @RequestBody WishListRequest request
     ) {
-        List<WishListResponse> updatedList = wishListService.removeProductVariantFromWishList(request);
+        List<WishListResponse> updatedList = wishListService.removeProductFromWishList(request);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
-                "Remove product variant from wish list success",
+                "Remove product from wish list success",
                 updatedList
         ));
     }

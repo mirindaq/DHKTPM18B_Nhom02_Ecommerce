@@ -280,7 +280,6 @@ public class ProductServiceImpl implements ProductService {
         for (ProductVariantRequest req : requests) {
             ProductVariant variant = ProductVariant.builder()
                     .price(req.getPrice())
-                    .oldPrice(req.getOldPrice())
                     .sku(generateSku(product.getSpu(), req.getVariantValueIds()))
                     .stock(req.getStock())
                     .product(product)

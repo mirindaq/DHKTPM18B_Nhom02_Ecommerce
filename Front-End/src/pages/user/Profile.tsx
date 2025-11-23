@@ -61,6 +61,8 @@ export default function Profile() {
     if (pathname.includes("/profile/membership")) {
       setActiveSidebarMenu("Hạng thành viên và ưu đãi");
       setActiveTab("membership");
+    } else if (pathname.includes("/profile/wishlist")) {
+      setActiveSidebarMenu("Danh sách yêu thích");
     } else if (pathname === `${PUBLIC_PATH.HOME}profile`) {
       // Nếu đang ở route gốc, giữ nguyên default state (overview)
       setActiveSidebarMenu("Tổng quan");
@@ -147,7 +149,15 @@ export default function Profile() {
         navigate(`${PUBLIC_PATH.HOME}profile/addresses`);
       },
     },
-
+    {
+      icon: <Heart size={20} />,
+      label: "Danh sách yêu thích",
+      active: location.pathname.includes("/profile/wishlist"),
+      onClick: () => {
+        setActiveSidebarMenu("Danh sách yêu thích");
+        navigate(`${PUBLIC_PATH.HOME}profile/wishlist`);
+      },
+    },
     { icon: <Search size={20} />, label: "Tra cứu bảo hành" },
     {
       icon: <Heart size={20} />,

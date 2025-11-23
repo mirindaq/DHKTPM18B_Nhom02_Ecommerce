@@ -11,6 +11,6 @@ import lombok.*;
 public class WishListRequest {
 
     @NotNull
-    private Long productVariantId;
+    private Long productId;
 
 }

@@ -55,6 +55,7 @@ import PaymentStatus from "@/pages/user/PaymentStatus"
 import AddPromotion from "@/pages/admin/AddPromotion"
 import EditPromotion from "@/pages/admin/EditPromotion"
 import Address from "@/pages/user/Address"
+import MyWishlist from "@/pages/user/MyWishlist"
 import CustomerChat from "@/pages/user/CustomerChat"
 import ChatManagement from "@/pages/admin/ChatManagement"
 import StaffLogin from "@/pages/auth/StaffLogin"
@@ -120,6 +121,7 @@ const useRouteElements = () => {
               element: <Membership />,
             },
             { path: "addresses", element: <Address /> },
+            { path: "wishlist", element: <MyWishlist /> },
           ],
         },
       ],

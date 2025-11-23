@@ -41,7 +41,6 @@ export type ProductAttributeRequest = {
 
 export type ProductVariantRequest = {
   price: number;
-  oldPrice?: number;
   stock: number;
   variantValueIds: number[];
 };

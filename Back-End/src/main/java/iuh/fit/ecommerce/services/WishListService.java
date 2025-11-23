@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface WishListService {
     @Transactional
-    List<WishListResponse> addProductVariantToWishList(WishListRequest request);
+    List<WishListResponse> addProductToWishList(WishListRequest request);
 
     @Transactional
-    List<WishListResponse> removeProductVariantFromWishList(WishListRequest request);
+    List<WishListResponse> removeProductFromWishList(WishListRequest request);
 
     List<WishListResponse> getMyWishList();
 }
