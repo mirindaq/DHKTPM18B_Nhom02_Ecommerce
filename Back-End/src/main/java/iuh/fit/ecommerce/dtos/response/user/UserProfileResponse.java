@@ -19,4 +19,5 @@ public class UserProfileResponse {
     private String phone;
     private RankResponse rank;
     private Boolean leader;
+    private Double totalSpending;
 }

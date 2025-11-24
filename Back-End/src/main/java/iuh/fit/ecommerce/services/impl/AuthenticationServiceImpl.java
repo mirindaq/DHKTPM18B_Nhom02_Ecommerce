@@ -95,7 +95,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public UserProfileResponse getProfile() {
         User user = securityUtils.getCurrentUser();
-        return userMapper.toUserProfileResponse(user);
+        UserProfileResponse response = userMapper.toUserProfileResponse(user);
+        if (user instanceof Customer customer) {
+            Double spending = customer.getTotalSpending();
+            response.setTotalSpending(spending != null ? spending : 0.0);
+        }
+        return response;
     }
 
     @Override
