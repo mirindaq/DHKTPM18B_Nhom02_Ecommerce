@@ -40,7 +40,7 @@ public class OrderController {
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<OrderResponse>>>> getMyOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "7") int size,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) List<String> status,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ) {

@@ -18,14 +18,14 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     @Query("""
         SELECT o FROM Order o
         WHERE o.customer = :customer
-            AND (:status IS NULL OR o.status = :status)
+            AND (:statuses IS NULL OR o.status IN :statuses)
             AND (:startDate IS NULL OR o.orderDate >= :startDate)
             AND (:endDate IS NULL OR o.orderDate < :endDate)
         ORDER BY o.orderDate DESC
     """)
     Page<Order> findMyOrders(
             @Param("customer") Customer customer,
-            @Param("status") OrderStatus status,
+            @Param("statuses") List<OrderStatus> statuses,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable
