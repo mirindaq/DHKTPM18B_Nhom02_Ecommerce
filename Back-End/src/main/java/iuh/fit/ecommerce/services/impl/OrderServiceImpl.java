@@ -78,17 +78,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, String status, String startDate, String endDate) {
+    public ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, List<String> status, String startDate, String endDate) {
         page = Math.max(page - 1, 0);
         Pageable pageable = PageRequest.of(page, size);
         Customer customer = securityUtils.getCurrentCustomer();
 
-        OrderStatus orderStatus = null;
-        if (status != null && !status.isBlank()) {
-            try {
-                orderStatus = OrderStatus.valueOf(status.trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new InvalidParamException("Invalid status: " + status);
+        List<OrderStatus> orderStatuses = null;
+        if (status != null && !status.isEmpty()) {
+            orderStatuses = new ArrayList<>();
+            for (String s : status) {
+                try {
+                    orderStatuses.add(OrderStatus.valueOf(s.trim().toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    throw new InvalidParamException("Invalid status: " + s);
+                }
             }
         }
 
@@ -102,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
             endDt = DateUtils.convertStringToLocalDate(endDate).plusDays(1).atStartOfDay();
         }
 
-        Page<Order> ordersPage = orderRepository.findMyOrders(customer, orderStatus, start, endDt, pageable);
+        Page<Order> ordersPage = orderRepository.findMyOrders(customer, orderStatuses, start, endDt, pageable);
         return ResponseWithPagination.fromPage(ordersPage, orderMapper::toResponse);
     }
 

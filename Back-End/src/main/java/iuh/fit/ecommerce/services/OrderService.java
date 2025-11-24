@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface OrderService {
     Object customerCreateOrder(OrderCreationRequest orderCreationRequest, HttpServletRequest request);
-    ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, String status, String startDate, String endDate);
+    ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, List<String> status, String startDate, String endDate);
 
     Order findById(Long id);
 
