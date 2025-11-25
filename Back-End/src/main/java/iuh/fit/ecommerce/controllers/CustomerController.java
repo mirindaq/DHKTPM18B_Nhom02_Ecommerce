@@ -25,7 +25,6 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
-    private final SecurityUtils securityUtils;
 
     @PostMapping(value = "")
     public ResponseEntity<ResponseSuccess<CustomerResponse>> createUser(@Valid @RequestBody CustomerAddRequest customerAddRequest) {
@@ -99,8 +98,8 @@ public class CustomerController {
     @PutMapping("/update-push-token")
     public ResponseEntity<ResponseSuccess<Void>> updatePushToken(
             @Valid @RequestBody UpdatePushTokenRequest request) {
-        iuh.fit.ecommerce.entities.Customer customer = securityUtils.getCurrentCustomer();
-        customerService.updateExpoPushToken(customer.getId(), request.getExpoPushToken());
+
+        customerService.updateExpoPushToken(request.getExpoPushToken());
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update push token successfully",

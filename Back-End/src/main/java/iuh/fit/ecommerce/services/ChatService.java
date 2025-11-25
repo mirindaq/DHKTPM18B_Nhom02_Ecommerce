@@ -38,5 +38,8 @@ public interface ChatService {
     void markMessagesAsReadByStaff(Long chatId);
     
     Long getUnreadMessageCount(Long chatId, Long userId);
+
+
+    ChatResponse getMyChat();
 }
 

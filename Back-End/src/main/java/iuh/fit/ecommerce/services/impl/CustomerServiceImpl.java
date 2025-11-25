@@ -10,6 +10,7 @@ import iuh.fit.ecommerce.mappers.CustomerMapper;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.CustomerService;
 import iuh.fit.ecommerce.services.RankingService;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerMapper customerMapper;
     private final PasswordEncoder passwordEncoder;
     private final RankingService rankingService;
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional
@@ -125,8 +127,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public void updateExpoPushToken(Long customerId, String expoPushToken) {
-        Customer customer = getCustomerEntityById(customerId);
+    public void updateExpoPushToken(String expoPushToken) {
+        Customer customer = securityUtils.getCurrentCustomer();
         customer.setExpoPushToken(expoPushToken);
         customerRepository.save(customer);
     }

@@ -14,7 +14,9 @@ public class Endpoints {
             "/api/v1/wishlist(?:/.*)?",
             "/api/v1/shippers(?:/.*)?",
             "/api/v1/delivery-assignments(?:/.*)?",
-            "/api/v1/feedbacks(?:/.*)?"
+            "/api/v1/feedbacks(?:/.*)?",
+            "/api/v1/customers/update-push-token?"
+
     };
 }
 

@@ -37,24 +37,26 @@ public class PushNotificationServiceImpl implements PushNotificationService {
         }
 
         try {
+            // Tạo message JSON payload
             Map<String, Object> message = new HashMap<>();
-            message.put("to", expoPushToken);
+            message.put("to", expoPushToken);  // Token của thiết bị nhận
             message.put("sound", "default");
             message.put("title", title);
             message.put("body", body);
-            message.put("data", data);
+            message.put("data", data);  // Dữ liệu tùy chọn có thể gửi cùng thông báo
             message.put("priority", "high");
             message.put("channelId", "default");
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("messages", List.of(message));
+            // Chuyển Map thành JSON
+            String jsonBody = objectMapper.writeValueAsString(message);
 
+            // Thiết lập header
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-
+            // Gửi yêu cầu POST tới Expo Push API
+            HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(
                     EXPO_PUSH_URL,
                     request,
@@ -64,7 +66,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Push notification sent successfully to token: {}", expoPushToken);
             } else {
-                log.error("Failed to send push notification. Status: {}, Response: {}", 
+                log.error("Failed to send push notification. Status: {}, Response: {}",
                         response.getStatusCode(), response.getBody());
             }
         } catch (Exception e) {
@@ -72,4 +74,3 @@ public class PushNotificationServiceImpl implements PushNotificationService {
         }
     }
 }
-

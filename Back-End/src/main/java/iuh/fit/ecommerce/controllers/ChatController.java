@@ -44,12 +44,23 @@ public class ChatController {
         ));
     }
     
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseSuccess<ChatResponse>> getChatById(@PathVariable Long id) {
-        ChatResponse chatResponse = chatService.getChatById(id);
+//    @GetMapping("/{id}")
+//    public ResponseEntity<ResponseSuccess<ChatResponse>> getChatById(@PathVariable Long id) {
+//        ChatResponse chatResponse = chatService.getChatById(id);
+//        return ResponseEntity.ok(new ResponseSuccess<>(
+//                OK,
+//                "Get chat successfully",
+//                chatResponse
+//        ));
+//    }
+
+
+    @GetMapping("/my-chat")
+    public ResponseEntity<ResponseSuccess<ChatResponse>> getMyChat() {
+        ChatResponse chatResponse = chatService.getMyChat();
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
-                "Get chat successfully",
+                "Get my chat successfully",
                 chatResponse
         ));
     }

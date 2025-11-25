@@ -305,5 +305,11 @@ public class ChatServiceImpl implements ChatService {
         }
         return messageRepository.countUnreadMessagesByChatIdNotFromUserId(chatId, userId);
     }
+
+    @Override
+    public ChatResponse getMyChat() {
+        User currentUser = securityUtil.getCurrentUser();
+        return  getChatByCustomerId(currentUser.getId());
+    }
 }
 
