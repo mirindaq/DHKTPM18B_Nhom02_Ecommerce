@@ -89,6 +89,15 @@ export type ProductVariantPromotionResponse = {
   discount: number;
 }
 
+export type ProductFilters = {
+  keyword?: string;
+  brandId?: number | null;
+  categoryId?: number | null;
+  status?: boolean | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+}
+
 export type ProductResponse = ResponseApi<Product>;
 export type ProductListResponse = ResponseApiWithPagination<Product[]>;
 export type ProductVariantDescriptionResponse = ResponseApi<ProductVariantDescription[]>;

@@ -22,7 +22,7 @@ class WebSocketService {
     }
 
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(import.meta.env.VITE_WS_BASE_URL || 'http://localhost:8080/ws'),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -42,7 +42,7 @@ class WebSocketService {
       onWebSocketClose: () => {
         console.log('WebSocket Closed');
         this.isConnected = false;
-        
+
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
@@ -68,9 +68,9 @@ class WebSocketService {
       this.subscriptions.set(chatId, []);
     }
     this.subscriptions.get(chatId)?.push(subscription);
-    
+
     console.log(`Subscribed to chat ${chatId}, total subscriptions: ${this.subscriptions.get(chatId)?.length}`);
-    
+
     return subscription;
   }
 

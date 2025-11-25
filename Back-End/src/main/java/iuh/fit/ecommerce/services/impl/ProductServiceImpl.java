@@ -89,10 +89,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseWithPagination<List<ProductResponse>> getAllProducts(int page, int size) {
+    public ResponseWithPagination<List<ProductResponse>> getAllProducts(int page, int size, String keyword, Long brandId, Long categoryId, Boolean status, Double minPrice, Double maxPrice) {
         page = Math.max(page - 1, 0);
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findProductsWithFilters(keyword, brandId, categoryId, status, minPrice, maxPrice, pageable);
         return ResponseWithPagination.fromPage(productPage, productMapper::toResponse);
     }
 

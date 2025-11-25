@@ -4,7 +4,7 @@ import { authService } from "@/services/auth.service";
 import AuthStorageUtil from "@/utils/authStorage.util";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -37,7 +37,7 @@ const processQueue = (error: any, token: string | null = null) => {
       resolve(token);
     }
   });
-  
+
   failedQueue = [];
 };
 
@@ -70,26 +70,26 @@ axiosClient.interceptors.response.use(
       try {
         const response = await authService.refreshToken();
         const { accessToken, refreshToken: newRefreshToken } = (response.data as any).data;
-        
+
         AuthStorageUtil.setTokens({ accessToken, refreshToken: newRefreshToken });
-        
+
         processQueue(null, accessToken);
-        
+
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
 
         const loginPath = AuthStorageUtil.getLoginPath();
-        
+
         AuthStorageUtil.clearAll();
-        
+
         try {
           await authService.logout();
         } catch (logoutError) {
           console.log('Logout failed, but continuing with redirect:', logoutError);
         }
-        
+
         window.location.href = loginPath;
         return Promise.reject(refreshError);
       } finally {
@@ -97,15 +97,15 @@ axiosClient.interceptors.response.use(
       }
     } else if (error.response?.status === 401) {
       const loginPath = AuthStorageUtil.getLoginPath();
-      
+
       AuthStorageUtil.clearAll();
-      
+
       try {
         await authService.logout();
       } catch (logoutError) {
         console.log('Logout failed, but continuing with redirect:', logoutError);
       }
-      
+
       window.location.href = loginPath;
       return Promise.reject(error);
     }
