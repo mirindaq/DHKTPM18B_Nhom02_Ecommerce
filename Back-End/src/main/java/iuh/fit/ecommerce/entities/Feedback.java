@@ -40,6 +40,10 @@ public class Feedback extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean status = true; // true: hiển thị, false: ẩn
+
     @OneToMany(mappedBy = "feedback", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<FeedbackImage> images = new ArrayList<>();

@@ -17,6 +17,9 @@ import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.services.FeedbackService;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,5 +122,59 @@ public class FeedbackServiceImpl implements FeedbackService {
         ).orElseThrow(() -> new ResourceNotFoundException("Feedback not found"));
 
         return feedbackMapper.toResponse(feedback);
+    }
+
+    // Admin APIs
+    @Override
+    public Page<FeedbackResponse> getAllFeedbacks(int page, int size, Integer rating, Boolean status, String fromDate, String toDate) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        
+        // Parse dates if provided
+        java.time.LocalDateTime fromDateTime = null;
+        java.time.LocalDateTime toDateTime = null;
+        
+        if (fromDate != null && !fromDate.isEmpty()) {
+            try {
+                fromDateTime = java.time.LocalDate.parse(fromDate).atStartOfDay();
+            } catch (Exception e) {
+                // Invalid date format, ignore
+            }
+        }
+        
+        if (toDate != null && !toDate.isEmpty()) {
+            try {
+                toDateTime = java.time.LocalDate.parse(toDate).atTime(23, 59, 59);
+            } catch (Exception e) {
+                // Invalid date format, ignore
+            }
+        }
+        
+        Page<Feedback> feedbacks = feedbackRepository.findAllWithFilters(rating, status, fromDateTime, toDateTime, pageable);
+        return feedbacks.map(feedbackMapper::toResponse);
+    }
+
+    @Override
+    public FeedbackResponse getFeedbackById(Long id) {
+        Feedback feedback = feedbackRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Feedback not found"));
+        return feedbackMapper.toResponse(feedback);
+    }
+
+    @Override
+    @Transactional
+    public void changeStatusFeedback(Long id) {
+        Feedback feedback = feedbackRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Feedback not found"));
+        feedback.setStatus(!feedback.getStatus());
+        feedbackRepository.save(feedback);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFeedback(Long id) {
+        if (!feedbackRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Feedback not found");
+        }
+        feedbackRepository.deleteById(id);
     }
 }

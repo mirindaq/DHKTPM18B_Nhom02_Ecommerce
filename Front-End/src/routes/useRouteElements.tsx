@@ -28,7 +28,12 @@ import OrderDetail from "@/pages/user/OrderDetail";
 import UserLogin from "@/pages/auth/UserLogin";
 import AdminLogin from "@/pages/auth/AdminLogin";
 import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent";
-import { AdminRoute, StaffRoute, ShipperRoute, UserRoute } from "@/components/auth/ProtectedRoute";
+import {
+  AdminRoute,
+  StaffRoute,
+  ShipperRoute,
+  UserRoute,
+} from "@/components/auth/ProtectedRoute";
 import RoleBasedRedirect from "@/components/auth/RoleBasedRedirect";
 import RoleBasedAuthWrapper from "@/components/auth/RoleBasedAuthWrapper";
 import Error401 from "@/pages/error/Error401";
@@ -59,7 +64,14 @@ import CustomerChat from "@/pages/user/CustomerChat";
 import ChatManagement from "@/pages/admin/ChatManagement";
 import StaffLogin from "@/pages/auth/StaffLogin";
 import ShipperLogin from "@/pages/auth/ShipperLogin";
-import { ADMIN_PATH, AUTH_PATH, PUBLIC_PATH, STAFF_PATH, SHIPPER_PATH } from "@/constants/path";
+import Feedbacks from "@/pages/admin/Feedbacks";
+import {
+  ADMIN_PATH,
+  AUTH_PATH,
+  PUBLIC_PATH,
+  STAFF_PATH,
+  SHIPPER_PATH,
+} from "@/constants/path";
 import EditPromotion from "@/pages/admin/EditPromotion";
 import AddPromotion from "@/pages/admin/AddPromotion";
 
@@ -239,9 +251,13 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.ARTICLE_ADD, element: <AddArticle /> },
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
-        { path: "category-brand-assignment", element: <CategoryBrandAssignmentPage /> },
+        {
+          path: "category-brand-assignment",
+          element: <CategoryBrandAssignmentPage />,
+        },
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
+        { path: "/admin/feedbacks", element: <Feedbacks /> },
       ],
     },
 
