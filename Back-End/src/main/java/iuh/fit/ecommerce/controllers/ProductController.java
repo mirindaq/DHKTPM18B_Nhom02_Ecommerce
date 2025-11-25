@@ -44,12 +44,18 @@ public class ProductController {
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ProductResponse>>>> getAllProducts(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "7") int size
+            @RequestParam(defaultValue = "7") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long brandId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Boolean status,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all products success",
-                productService.getAllProducts(page, size)
+                productService.getAllProducts(page, size, keyword, brandId, categoryId, status, minPrice, maxPrice)
         ));
     }
 
