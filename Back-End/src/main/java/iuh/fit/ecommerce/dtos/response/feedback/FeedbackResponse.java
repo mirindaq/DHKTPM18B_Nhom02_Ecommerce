@@ -19,6 +19,7 @@ public class FeedbackResponse {
     private String customerName;
     private Integer rating;
     private String comment;
+    private Boolean status;
     private List<String> imageUrls;
     private String createdAt;
 }
