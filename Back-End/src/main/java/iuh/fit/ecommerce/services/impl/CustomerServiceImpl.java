@@ -123,4 +123,12 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id = " + id));
     }
 
+    @Override
+    @Transactional
+    public void updateExpoPushToken(Long customerId, String expoPushToken) {
+        Customer customer = getCustomerEntityById(customerId);
+        customer.setExpoPushToken(expoPushToken);
+        customerRepository.save(customer);
+    }
+
 }

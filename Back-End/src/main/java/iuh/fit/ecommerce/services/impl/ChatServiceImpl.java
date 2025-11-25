@@ -11,16 +11,15 @@ import iuh.fit.ecommerce.mappers.ChatMapper;
 import iuh.fit.ecommerce.mappers.MessageMapper;
 import iuh.fit.ecommerce.repositories.ChatRepository;
 import iuh.fit.ecommerce.repositories.MessageRepository;
-import iuh.fit.ecommerce.services.ChatService;
-import iuh.fit.ecommerce.services.CustomerService;
-import iuh.fit.ecommerce.services.StaffService;
-import iuh.fit.ecommerce.services.UserService;
+import iuh.fit.ecommerce.services.*;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,6 +35,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMapper chatMapper;
     private final MessageMapper messageMapper;
     private final SecurityUtils securityUtil;
+    private final PushNotificationService pushNotificationService;
 
     @Override
     @Transactional
@@ -201,6 +201,37 @@ public class ChatServiceImpl implements ChatService {
                 .build();
         
         Message savedMessage = messageRepository.save(message);
+
+
+
+        // Gửi push notification nếu staff nhắn cho customer
+        if (messageRequest.getIsStaff() != null && messageRequest.getIsStaff() && chat.getCustomer() != null) {
+            Customer customer = chat.getCustomer();
+            String expoPushToken = customer.getExpoPushToken();
+
+            if (expoPushToken != null && !expoPushToken.isEmpty()) {
+                String senderName = sender.getFullName() != null ? sender.getFullName() : "Nhân viên";
+                String title = "Tin nhắn mới từ " + senderName;
+                String body = messageRequest.getContent();
+
+                // Giới hạn độ dài body để tránh quá dài
+                if (body.length() > 100) {
+                    body = body.substring(0, 100) + "...";
+                }
+
+                Map<String, Object> notificationData = new HashMap<>();
+                notificationData.put("chatId", chat.getId());
+                notificationData.put("type", "chat_message");
+
+                pushNotificationService.sendPushNotification(
+                        expoPushToken,
+                        title,
+                        body,
+                        notificationData
+                );
+            }
+        }
+
         return messageMapper.toResponse(savedMessage);
     }
     

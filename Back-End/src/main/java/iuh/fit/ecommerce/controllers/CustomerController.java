@@ -2,10 +2,12 @@ package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
+import iuh.fit.ecommerce.dtos.request.customer.UpdatePushTokenRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
 import iuh.fit.ecommerce.services.CustomerService;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
+    private final SecurityUtils securityUtils;
 
     @PostMapping(value = "")
     public ResponseEntity<ResponseSuccess<CustomerResponse>> createUser(@Valid @RequestBody CustomerAddRequest customerAddRequest) {
@@ -89,6 +92,18 @@ public class CustomerController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Change status customer success",
+                null
+        ));
+    }
+
+    @PutMapping("/update-push-token")
+    public ResponseEntity<ResponseSuccess<Void>> updatePushToken(
+            @Valid @RequestBody UpdatePushTokenRequest request) {
+        iuh.fit.ecommerce.entities.Customer customer = securityUtils.getCurrentCustomer();
+        customerService.updateExpoPushToken(customer.getId(), request.getExpoPushToken());
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Update push token successfully",
                 null
         ));
     }

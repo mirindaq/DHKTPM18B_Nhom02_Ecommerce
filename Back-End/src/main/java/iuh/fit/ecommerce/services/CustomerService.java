@@ -6,6 +6,7 @@ import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
 import iuh.fit.ecommerce.entities.Customer;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,4 +20,6 @@ public interface CustomerService {
     void deleteCustomer(long id);
     void changeStatusCustomer(Long id);
     Customer getCustomerEntityById( Long id);
+
+    void updateExpoPushToken(Long id, @NotBlank(message = "Expo push token is required") String expoPushToken);
 }
