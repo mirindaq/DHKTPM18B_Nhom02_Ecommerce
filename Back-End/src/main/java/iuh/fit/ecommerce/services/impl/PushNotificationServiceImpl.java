@@ -37,17 +37,15 @@ public class PushNotificationServiceImpl implements PushNotificationService {
         }
 
         try {
-            // Tạo message JSON payload
             Map<String, Object> message = new HashMap<>();
-            message.put("to", expoPushToken);  // Token của thiết bị nhận
+            message.put("to", expoPushToken);
             message.put("sound", "default");
             message.put("title", title);
             message.put("body", body);
-            message.put("data", data);  // Dữ liệu tùy chọn có thể gửi cùng thông báo
+            message.put("data", data);
             message.put("priority", "high");
             message.put("channelId", "default");
 
-            // Chuyển Map thành JSON
             String jsonBody = objectMapper.writeValueAsString(message);
 
             // Thiết lập header

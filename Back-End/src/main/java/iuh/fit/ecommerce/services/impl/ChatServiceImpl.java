@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.request.chat.MessageRequest;
 import iuh.fit.ecommerce.dtos.response.chat.ChatResponse;
 import iuh.fit.ecommerce.dtos.response.chat.MessageResponse;
 import iuh.fit.ecommerce.entities.*;
+import iuh.fit.ecommerce.enums.MessageType;
 import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.ChatMapper;
@@ -210,13 +211,19 @@ public class ChatServiceImpl implements ChatService {
             String expoPushToken = customer.getExpoPushToken();
 
             if (expoPushToken != null && !expoPushToken.isEmpty()) {
-                String senderName = sender.getFullName() != null ? sender.getFullName() : "Nhân viên";
-                String title = "Tin nhắn mới từ " + senderName;
-                String body = messageRequest.getContent();
+                String title = "Hỗ trợ khách hàng";
 
-                // Giới hạn độ dài body để tránh quá dài
-                if (body.length() > 100) {
-                    body = body.substring(0, 100) + "...";
+                String body = "";
+                if ( messageRequest.getMessageType().equals(MessageType.IMAGE)){
+                    body = "[Hình ảnh]";
+                }
+                else {
+                    body = messageRequest.getContent();
+
+                    // Giới hạn độ dài body để tránh quá dài
+                    if (body.length() > 100) {
+                        body = body.substring(0, 100) + "...";
+                    }
                 }
 
                 Map<String, Object> notificationData = new HashMap<>();
