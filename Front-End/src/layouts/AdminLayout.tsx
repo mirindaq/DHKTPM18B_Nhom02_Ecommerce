@@ -38,6 +38,7 @@ import {
   Filter,
   MessageSquare,
   Star,
+  PackagePlus,
 } from "lucide-react";
 import AdminChatListener from "@/components/admin/AdminChatListener";
 
@@ -93,6 +94,11 @@ const navigation = [
         title: "Đơn hàng",
         href: "/admin/orders",
         icon: ShoppingCart,
+      },
+      {
+        title: "Nhập hàng",
+        href: "/admin/purchase-orders",
+        icon: PackagePlus,
       },
     ],
   },

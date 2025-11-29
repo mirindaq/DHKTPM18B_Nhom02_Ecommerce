@@ -33,6 +33,7 @@ export const ADMIN_PATH = {
   CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
+  PURCHASE_ORDERS: "/admin/purchase-orders",
 };
 
 // Staff paths
