@@ -32,4 +32,6 @@ public interface ArticleService {
 
     //    void updateArticleStatus(Long id, Boolean status);
     void changeStatusArticle(Long id);
+    
+    boolean isAdminOrStaff();
 }

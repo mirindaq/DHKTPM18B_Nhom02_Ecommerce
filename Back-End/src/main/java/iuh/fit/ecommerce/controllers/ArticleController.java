@@ -63,10 +63,17 @@ public class ArticleController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) LocalDate createdDate) {
 
+        // Check if user is ADMIN or STAFF
+        boolean isAdminOrStaff = articleService.isAdminOrStaff();
+        
+        // If not ADMIN/STAFF, ignore status and createdDate params
+        Boolean finalStatus = isAdminOrStaff ? status : null;
+        LocalDate finalCreatedDate = isAdminOrStaff ? createdDate : null;
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Articles success",
-                articleService.getAllArticles(page, limit, status, title, categoryId, createdDate)
+                articleService.getAllArticles(page, limit, finalStatus, title, categoryId, finalCreatedDate)
         ));
     }
 

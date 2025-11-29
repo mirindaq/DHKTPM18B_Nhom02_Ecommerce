@@ -5,7 +5,6 @@ import iuh.fit.ecommerce.dtos.response.article.ArticleResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.entities.Article;
 import iuh.fit.ecommerce.entities.ArticleCategory;
-import iuh.fit.ecommerce.entities.Brand;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
@@ -14,8 +13,7 @@ import iuh.fit.ecommerce.repositories.ArticleCategoryRepository;
 import iuh.fit.ecommerce.repositories.ArticleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
 import iuh.fit.ecommerce.services.ArticleService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
-import iuh.fit.ecommerce.utils.StringUtils;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +33,7 @@ public class ArticleServiceImpl implements ArticleService {
     private final ArticleCategoryRepository articleCategoryRepository;
     private final StaffRepository staffRepository;
     private final ArticleMapper articleMapper;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
 
     /**
      * ✅ Tạo bài viết (chỉ Staff)
@@ -43,7 +41,7 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public ArticleResponse createArticle(ArticleAddRequest articleAddRequest) {
-        Staff staff = securityUtil.getCurrentStaff();
+        Staff staff = securityUtils.getCurrentStaff();
 
         // Kiểm tra trùng title
         if (articleRepository.existsByTitle(articleAddRequest.getTitle())) {
@@ -148,7 +146,7 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     public ArticleResponse updateArticle(Long id, ArticleAddRequest articleAddRequest) {
         Article article = findById(id);
-        Staff staff = securityUtil.getCurrentStaff();
+        Staff staff = securityUtils.getCurrentStaff();
 
         ArticleCategory category = articleCategoryRepository.findById(articleAddRequest.getArticleCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -194,5 +192,20 @@ public class ArticleServiceImpl implements ArticleService {
     private Article findBySlug(String slug) {
         return articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found with slug: " + slug));
+    }
+
+    @Override
+    public boolean isAdminOrStaff() {
+        try {
+            Staff staff = securityUtils.getCurrentStaff();
+            return staff.getUserRoles().stream()
+                    .anyMatch(userRole -> {
+                        String roleName = userRole.getRole().getName();
+                        return "ADMIN".equals(roleName) || "STAFF".equals(roleName);
+                    });
+        } catch (Exception e) {
+            // If no user logged in or not a staff, return false
+            return false;
+        }
     }
 }
