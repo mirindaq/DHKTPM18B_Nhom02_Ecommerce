@@ -13,6 +13,14 @@ public class PurchaseOrderSpecification {
             criteriaBuilder.equal(root.get("supplier").get("id"), supplierId);
     }
 
+    public static Specification<PurchaseOrder> hasSupplierName(String supplierName) {
+        return (root, query, criteriaBuilder) -> 
+            criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("supplier").get("name")), 
+                "%" + supplierName.toLowerCase() + "%"
+            );
+    }
+
     public static Specification<PurchaseOrder> hasStartDate(LocalDate startDate) {
         return (root, query, criteriaBuilder) -> {
             LocalDateTime startDateTime = startDate.atStartOfDay();

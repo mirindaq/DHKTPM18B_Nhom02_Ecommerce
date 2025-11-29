@@ -14,9 +14,13 @@ public interface PurchaseOrderService {
             int page, 
             int size,
             String supplierId,
+            String supplierName,
             LocalDate startDate,
             LocalDate endDate
     );
     
     PurchaseOrderResponse getPurchaseOrderById(Long id);
 }
+
+
+

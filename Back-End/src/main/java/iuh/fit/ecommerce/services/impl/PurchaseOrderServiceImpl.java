@@ -101,16 +101,21 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             int page, 
             int size,
             String supplierId,
+            String supplierName,
             LocalDate startDate,
             LocalDate endDate
     ) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "purchaseDate"));
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.ASC, "id"));
 
         Specification<PurchaseOrder> spec = (root, query, criteriaBuilder) -> 
             criteriaBuilder.conjunction();
 
         if (supplierId != null && !supplierId.isBlank()) {
             spec = spec.and(PurchaseOrderSpecification.hasSupplierId(supplierId));
+        }
+
+        if (supplierName != null && !supplierName.isBlank()) {
+            spec = spec.and(PurchaseOrderSpecification.hasSupplierName(supplierName));
         }
 
         if (startDate != null) {

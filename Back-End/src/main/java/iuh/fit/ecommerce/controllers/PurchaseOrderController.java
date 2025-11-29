@@ -43,13 +43,14 @@ public class PurchaseOrderController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String supplierId,
+            @RequestParam(required = false) String supplierName,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all purchase orders success",
-                purchaseOrderService.getAllPurchaseOrders(page, size, supplierId, startDate, endDate)
+                purchaseOrderService.getAllPurchaseOrders(page, size, supplierId, supplierName, startDate, endDate)
         ));
     }
 
