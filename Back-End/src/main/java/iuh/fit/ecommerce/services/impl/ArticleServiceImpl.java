@@ -13,7 +13,7 @@ import iuh.fit.ecommerce.repositories.ArticleCategoryRepository;
 import iuh.fit.ecommerce.repositories.ArticleRepository;
 import iuh.fit.ecommerce.repositories.StaffRepository;
 import iuh.fit.ecommerce.services.ArticleService;
-import iuh.fit.ecommerce.utils.SecurityUtils;
+import iuh.fit.ecommerce.utils.SecurityUtil;
 import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class ArticleServiceImpl implements ArticleService {
     private final ArticleCategoryRepository articleCategoryRepository;
     private final StaffRepository staffRepository;
     private final ArticleMapper articleMapper;
-    private final SecurityUtils securityUtils;
+    private final SecurityUtil securityUtils;
 
     /**
      * ✅ Tạo bài viết (chỉ Staff)
