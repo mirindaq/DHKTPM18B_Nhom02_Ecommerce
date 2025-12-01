@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.controllers;
 
+import iuh.fit.ecommerce.dtos.excel.ImportResult;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
 import iuh.fit.ecommerce.dtos.request.customer.UpdatePushTokenRequest;
@@ -7,12 +8,18 @@ import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
 import iuh.fit.ecommerce.services.CustomerService;
-import iuh.fit.ecommerce.utils.SecurityUtils;
+import iuh.fit.ecommerce.services.excel.CustomerExcelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,14 +32,15 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
+    private final CustomerExcelService customerExcelService;
 
     @PostMapping(value = "")
-    public ResponseEntity<ResponseSuccess<CustomerResponse>> createUser(@Valid @RequestBody CustomerAddRequest customerAddRequest) {
+    public ResponseEntity<ResponseSuccess<CustomerResponse>> createUser(
+            @Valid @RequestBody CustomerAddRequest customerAddRequest) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Create Customer success",
-                customerService.createCustomer(customerAddRequest)
-        ));
+                customerService.createCustomer(customerAddRequest)));
     }
 
     @GetMapping("/{id}")
@@ -40,10 +48,8 @@ public class CustomerController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customer Profile success",
-                customerService.getCustomerById(id)
-        ));
+                customerService.getCustomerById(id)));
     }
-
 
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<CustomerResponse>>>> getAllCustomers(
@@ -61,18 +67,16 @@ public class CustomerController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Customers success",
-                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate, rank)
-        ));
+                customerService.getAllCustomers(page, limit, name, phone, email, status, startDate, endDate, rank)));
     }
 
     @PutMapping(value = "/{id}")
     public ResponseEntity<ResponseSuccess<CustomerResponse>> updateCustomer(@PathVariable long id,
-                                                                            @Valid @RequestBody CustomerProfileRequest customerProfileRequest) {
+            @Valid @RequestBody CustomerProfileRequest customerProfileRequest) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update Customer success",
-                customerService.updateCustomer(id, customerProfileRequest)
-        ));
+                customerService.updateCustomer(id, customerProfileRequest)));
     }
 
     @DeleteMapping("/{id}")
@@ -81,8 +85,7 @@ public class CustomerController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Delete Customer success",
-                "Deleted successfully"
-        ));
+                "Deleted successfully"));
     }
 
     @PutMapping("/change-status/{id}")
@@ -91,8 +94,7 @@ public class CustomerController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Change status customer success",
-                null
-        ));
+                null));
     }
 
     @PutMapping("/update-push-token")
@@ -103,8 +105,62 @@ public class CustomerController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update push token successfully",
-                null
-        ));
+                null));
+    }
+
+    // Customer import
+    @GetMapping("/template")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Resource> downloadTemplate() {
+        try {
+            Workbook workbook = customerExcelService.generateTemplate();
+            byte[] bytes = customerExcelService.workbookToBytes(workbook);
+
+            ByteArrayResource resource = new ByteArrayResource(bytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=customer_template.xlsx")
+                    .contentType(MediaType
+                            .parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(bytes.length)
+                    .body(resource);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate template: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseSuccess<ImportResult>> importCustomers(
+            @RequestParam("file") MultipartFile file) {
+        ImportResult result = customerExcelService.importExcel(file);
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                result.hasErrors() ? OK : CREATED,
+                result.getMessage(),
+                result));
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Resource> exportCustomers() {
+        try {
+            Workbook workbook = customerExcelService.exportAllCustomers();
+            byte[] bytes = customerExcelService.workbookToBytes(workbook);
+
+            ByteArrayResource resource = new ByteArrayResource(bytes);
+
+            String filename = "customers_" + LocalDate.now() + ".xlsx";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType
+                            .parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(bytes.length)
+                    .body(resource);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to export customers: " + e.getMessage());
+        }
     }
 
 }

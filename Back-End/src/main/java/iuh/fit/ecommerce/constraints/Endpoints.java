@@ -15,8 +15,13 @@ public class Endpoints {
             "/api/v1/shippers(?:/.*)?",
             "/api/v1/delivery-assignments(?:/.*)?",
             "/api/v1/feedbacks(?:/.*)?",
-            "/api/v1/customers/update-push-token?"
-
+            "/api/v1/customers/update-push-token?",
+            "/api/v1/staffs/template",
+            "/api/v1/staffs/import",
+            "/api/v1/staffs/export",
+            "/api/v1/customers/template",
+            "/api/v1/customers/import",
+            "/api/v1/customers/export"
     };
 }
 
