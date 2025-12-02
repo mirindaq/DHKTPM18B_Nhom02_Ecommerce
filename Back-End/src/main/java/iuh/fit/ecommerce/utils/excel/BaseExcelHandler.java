@@ -47,7 +47,8 @@ public abstract class BaseExcelHandler<T> implements ExcelImporter<T>, ExcelExpo
             List<T> validData = new ArrayList<>();
             for (int i = 0; i < dataList.size(); i++) {
                 T data = dataList.get(i);
-                int rowIndex = i + DATA_START_ROW_INDEX + 1;
+                // Row index in Excel: 3 (instruction rows) + 1 (header) + i (data index) = 4 + i
+                int rowIndex = 4 + i;
 
                 validateRow(data, rowIndex, result);
 
@@ -85,19 +86,51 @@ public abstract class BaseExcelHandler<T> implements ExcelImporter<T>, ExcelExpo
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Template");
 
-        // Create header row
-        Row headerRow = sheet.createRow(HEADER_ROW_INDEX);
-        CellStyle headerStyle = createHeaderStyle(workbook);
+        // Add instruction rows
+        addInstructionRows(workbook, sheet);
+
+        // Create header row (after instruction rows)
+        int headerRowIndex = HEADER_ROW_INDEX + 2; // Skip 2 instruction rows
+        Row headerRow = sheet.createRow(headerRowIndex);
+        CellStyle requiredHeaderStyle = createRequiredHeaderStyle(workbook);
+        CellStyle optionalHeaderStyle = createOptionalHeaderStyle(workbook);
 
         String[] headers = getHeaders();
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerStyle);
+            
+            // Apply style based on whether column is required (has *)
+            if (headers[i].contains("*")) {
+                cell.setCellStyle(requiredHeaderStyle);
+            } else {
+                cell.setCellStyle(optionalHeaderStyle);
+            }
+            
             sheet.autoSizeColumn(i);
         }
 
         return workbook;
+    }
+
+    protected void addInstructionRows(Workbook workbook, Sheet sheet) {
+        CellStyle instructionStyle = workbook.createCellStyle();
+        Font instructionFont = workbook.createFont();
+        instructionFont.setItalic(true);
+        instructionFont.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
+        instructionStyle.setFont(instructionFont);
+
+        // Row 0: Required fields instruction
+        Row row0 = sheet.createRow(0);
+        Cell cell0 = row0.createCell(0);
+        cell0.setCellValue("Hướng dẫn: Cột màu đỏ (*) là BẮT BUỘC, cột màu xanh là TÙY CHỌN");
+        cell0.setCellStyle(instructionStyle);
+
+        // Row 1: Note
+        Row row1 = sheet.createRow(1);
+        Cell cell1 = row1.createCell(0);
+        cell1.setCellValue("Lưu ý: Bắt đầu nhập dữ liệu từ dòng 4 trở đi. Không xóa dòng tiêu đề!!!");
+        cell1.setCellStyle(instructionStyle);
     }
 
     @Override
@@ -163,19 +196,23 @@ public abstract class BaseExcelHandler<T> implements ExcelImporter<T>, ExcelExpo
             return "";
         }
 
-        return switch (cell.getCellType()) {
-            case STRING -> cell.getStringCellValue().trim();
-            case NUMERIC -> {
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    yield cell.getLocalDateTimeCellValue().toString();
-                } else {
-                    yield String.valueOf((long) cell.getNumericCellValue());
-                }
+        CellType cellType = cell.getCellType();
+        
+        if (cellType == CellType.STRING) {
+            return cell.getStringCellValue().trim();
+        } else if (cellType == CellType.NUMERIC) {
+            if (DateUtil.isCellDateFormatted(cell)) {
+                return cell.getLocalDateTimeCellValue().toString();
+            } else {
+                return String.valueOf((long) cell.getNumericCellValue());
             }
-            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            case FORMULA -> cell.getCellFormula();
-            default -> "";
-        };
+        } else if (cellType == CellType.BOOLEAN) {
+            return String.valueOf(cell.getBooleanCellValue());
+        } else if (cellType == CellType.FORMULA) {
+            return cell.getCellFormula();
+        } else {
+            return "";
+        }
     }
 
     protected void setCellValue(Cell cell, Object value) {
@@ -205,6 +242,43 @@ public abstract class BaseExcelHandler<T> implements ExcelImporter<T>, ExcelExpo
         style.setBorderLeft(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
         style.setAlignment(HorizontalAlignment.CENTER);
+        return style;
+    }
+
+    protected CellStyle createRequiredHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 12);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+        // Màu đỏ nhạt cho cột bắt buộc
+        style.setFillForegroundColor(IndexedColors.CORAL.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        return style;
+    }
+
+    protected CellStyle createOptionalHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 12);
+        style.setFont(font);
+        // Màu xanh nhạt cho cột không bắt buộc
+        style.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
 

@@ -121,15 +121,23 @@ public class StaffController {
         public ResponseEntity<ResponseSuccess<ImportResult>> importStaffs(
                         @RequestParam(value = "file", required = false) MultipartFile file) {
 
-                if (file == null) {
-                        throw new RuntimeException("File is null! Please check Postman form-data setup.");
-                }
-                ImportResult result = staffExcelService.importExcel(file);
+                try {
+                        if (file == null || file.isEmpty()) {
+                                throw new RuntimeException("File is null or empty! Please select a valid Excel file.");
+                        }
+                        
+                        System.out.println("Received file: " + file.getOriginalFilename() + ", Size: " + file.getSize());
+                        
+                        ImportResult result = staffExcelService.importExcel(file);
 
-                return ResponseEntity.ok(new ResponseSuccess<>(
-                                result.hasErrors() ? OK : CREATED,
-                                result.getMessage(),
-                                result));
+                        return ResponseEntity.ok(new ResponseSuccess<>(
+                                        result.hasErrors() ? OK : CREATED,
+                                        result.getMessage(),
+                                        result));
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Import failed: " + e.getMessage(), e);
+                }
         }
 
         @GetMapping("/export")

@@ -133,12 +133,23 @@ public class CustomerController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<ImportResult>> importCustomers(
             @RequestParam("file") MultipartFile file) {
-        ImportResult result = customerExcelService.importExcel(file);
+        try {
+            if (file == null || file.isEmpty()) {
+                throw new RuntimeException("File is null or empty! Please select a valid Excel file.");
+            }
+            
+            System.out.println("Received file: " + file.getOriginalFilename() + ", Size: " + file.getSize());
+            
+            ImportResult result = customerExcelService.importExcel(file);
 
-        return ResponseEntity.ok(new ResponseSuccess<>(
-                result.hasErrors() ? OK : CREATED,
-                result.getMessage(),
-                result));
+            return ResponseEntity.ok(new ResponseSuccess<>(
+                    result.hasErrors() ? OK : CREATED,
+                    result.getMessage(),
+                    result));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Import failed: " + e.getMessage(), e);
+        }
     }
 
     @GetMapping("/export")

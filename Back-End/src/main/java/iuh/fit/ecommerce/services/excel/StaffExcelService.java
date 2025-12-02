@@ -58,8 +58,10 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             
+            // Start from row 3 (index 3) because rows 0-1 are instructions, row 2 is header
+            int dataStartRow = 3;
     
-            for (int i = DATA_START_ROW_INDEX; i <= sheet.getLastRowNum(); i++) {
+            for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null || isEmptyRow(row)) {
                     continue;

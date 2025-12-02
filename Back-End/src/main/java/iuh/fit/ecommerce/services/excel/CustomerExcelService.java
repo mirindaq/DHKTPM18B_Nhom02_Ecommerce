@@ -51,8 +51,11 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
         
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
+            
+            // Start from row 3 (index 3) because rows 0-1 are instructions, row 2 is header
+            int dataStartRow = 3;
         
-            for (int i = DATA_START_ROW_INDEX; i <= sheet.getLastRowNum(); i++) {
+            for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null || isEmptyRow(row)) {
                     continue;
@@ -99,7 +102,14 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
         Role customerRole = roleRepository.findByName("CUSTOMER")
             .orElseThrow(() -> new RuntimeException("Role CUSTOMER not found"));
         
-        Ranking defaultRanking = rankingRepository.findByName("S-NEW");
+        // Get default ranking (first ranking or null if not exists)
+        Ranking defaultRanking = rankingRepository.findAll().stream()
+            .findFirst()
+            .orElse(null);
+        
+        if (defaultRanking == null) {
+            log.warn("No ranking found in database. Customers will be created without ranking.");
+        }
         
         List<Customer> customerList = new ArrayList<>();
         
