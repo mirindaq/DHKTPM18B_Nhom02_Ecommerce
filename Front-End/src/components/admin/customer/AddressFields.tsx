@@ -84,7 +84,7 @@ export default function AddressFields({
           >
             <option value="">Chọn tỉnh/thành phố</option>
             {provinces.map((p) => (
-              <option key={p.code} value={p.code}>
+              <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
@@ -99,7 +99,7 @@ export default function AddressFields({
           >
             <option value="">Chọn phường/xã</option>
             {wards.map((w) => (
-              <option key={w.code} value={w.code}>
+              <option key={w.id} value={w.id}>
                 {w.name}
               </option>
             ))}

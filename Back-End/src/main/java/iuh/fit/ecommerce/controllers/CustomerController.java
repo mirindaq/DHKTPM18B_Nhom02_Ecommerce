@@ -163,4 +163,37 @@ public class CustomerController {
         }
     }
 
+    
+    @PostMapping("/{customerId}/addresses")
+    public ResponseEntity<ResponseSuccess<?>> addAddressForCustomer(
+            @PathVariable Long customerId,
+            @Valid @RequestBody iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                CREATED,
+                "Add address for customer success",
+                customerService.addAddressForCustomer(customerId, request)));
+    }
+
+    @PutMapping("/{customerId}/addresses/{addressId}")
+    public ResponseEntity<ResponseSuccess<?>> updateAddressForCustomer(
+            @PathVariable Long customerId,
+            @PathVariable Long addressId,
+            @Valid @RequestBody iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Update address for customer success",
+                customerService.updateAddressForCustomer(customerId, addressId, request)));
+    }
+
+    @DeleteMapping("/{customerId}/addresses/{addressId}")
+    public ResponseEntity<ResponseSuccess<Void>> deleteAddressForCustomer(
+            @PathVariable Long customerId,
+            @PathVariable Long addressId) {
+        customerService.deleteAddressForCustomer(customerId, addressId);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Delete address for customer success",
+                null));
+    }
+
 }

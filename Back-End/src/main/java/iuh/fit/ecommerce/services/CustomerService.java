@@ -22,4 +22,9 @@ public interface CustomerService {
     Customer getCustomerEntityById( Long id);
 
     void updateExpoPushToken(@NotBlank(message = "Expo push token is required") String expoPushToken);
+    
+    // Address management for admin
+    Object addAddressForCustomer(Long customerId, iuh.fit.ecommerce.dtos.request.address.AddressRequest request);
+    Object updateAddressForCustomer(Long customerId, Long addressId, iuh.fit.ecommerce.dtos.request.address.AddressRequest request);
+    void deleteAddressForCustomer(Long customerId, Long addressId);
 }

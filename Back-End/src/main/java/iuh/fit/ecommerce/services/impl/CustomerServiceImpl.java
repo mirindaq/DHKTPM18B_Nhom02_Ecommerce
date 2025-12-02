@@ -36,6 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final PasswordEncoder passwordEncoder;
     private final RankingService rankingService;
     private final SecurityUtils securityUtils;
+    private final iuh.fit.ecommerce.services.AddressService addressService;
 
     @Override
     @Transactional
@@ -131,6 +132,30 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = securityUtils.getCurrentCustomer();
         customer.setExpoPushToken(expoPushToken);
         customerRepository.save(customer);
+    }
+    
+    @Override
+    @Transactional
+    public Object addAddressForCustomer(Long customerId, iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+
+        getCustomerEntityById(customerId);
+        return addressService.addAddress(customerId, request);
+    }
+
+    @Override
+    @Transactional
+    public Object updateAddressForCustomer(Long customerId, Long addressId, iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+
+        getCustomerEntityById(customerId);
+        return addressService.updateAddress(customerId, addressId, request);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAddressForCustomer(Long customerId, Long addressId) {
+
+        getCustomerEntityById(customerId);
+        addressService.deleteAddress(customerId, addressId);
     }
 
 }
