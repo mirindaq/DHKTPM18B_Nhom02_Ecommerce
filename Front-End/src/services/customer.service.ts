@@ -136,16 +136,41 @@ export const customerService = {
     await axiosClient.delete(`/customers/${customerId}/addresses/${addressId}`);
   },
  
-updateAddress: async (
-  customerId: number,
-  addressId: number,
-  request: CreateAddressRequest
-): Promise<AddressResponse> => {
-  const response = await axiosClient.put<{ data: AddressResponse }>(
-    `/customers/${customerId}/addresses/${addressId}`,
-    request
-  );
-  return response.data.data;
-},
+  updateAddress: async (
+    customerId: number,
+    addressId: number,
+    request: CreateAddressRequest
+  ): Promise<AddressResponse> => {
+    const response = await axiosClient.put<{ data: AddressResponse }>(
+      `/customers/${customerId}/addresses/${addressId}`,
+      request
+    );
+    return response.data.data;
+  },
 
+  // Excel operations
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosClient.get('/customers/template', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  importCustomers: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosClient.post('/customers/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  exportCustomers: async (): Promise<Blob> => {
+    const response = await axiosClient.get('/customers/export', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };

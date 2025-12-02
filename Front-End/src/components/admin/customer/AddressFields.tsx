@@ -61,21 +61,21 @@ export default function AddressFields({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
   
-        <div>
+        <div className="space-y-1">
           <Label>Tên người nhận *</Label>
           <Input
             value={address.fullName || ""}
             onChange={(e) => onAddressChange(index, "fullName", e.target.value)}
           />
         </div>
-        <div>
+        <div className="space-y-1">
           <Label>SĐT người nhận *</Label>
           <Input
             value={address.phone || ""}
             onChange={(e) => onAddressChange(index, "phone", e.target.value)}
           />
         </div>
-        <div>
+        <div className="space-y-1">
           <Label>Tỉnh/Thành phố *</Label>
           <select
             className="w-full border rounded-md p-2"
@@ -90,7 +90,7 @@ export default function AddressFields({
             ))}
           </select>
         </div>
-        <div>
+        <div className="space-y-1">
           <Label>Phường/Xã *</Label>
           <select
             className="w-full border rounded-md p-2"
@@ -105,7 +105,7 @@ export default function AddressFields({
             ))}
           </select>
         </div>
-        <div className="md:col-span-2 ">
+        <div className="md:col-span-2 space-y-1">
           <Label>Địa chỉ chi tiết (Số nhà, Tên đường) *</Label>
           <Input
             value={address.subAddress || ""}

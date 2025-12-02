@@ -3,10 +3,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Camera, Loader2, ArrowLeft, Plus } from "lucide-react";
-import { format } from "date-fns";
+import { Camera, Loader2, ArrowLeft, Plus } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import type {
   CustomerSummary,
@@ -37,7 +35,7 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
       fullName: customer.fullName ?? "",
       email: customer.email ?? "",
       phone: customer.phone ?? "",
-      dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth) : null,
+      dateOfBirth: customer.dateOfBirth ?? "",
       avatar: customer.avatar ?? "",
       password: "",
     };
@@ -47,7 +45,7 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
     email: "",
     phone: "",
     password: "",
-    dateOfBirth: null,
+    dateOfBirth: "",
     avatar: "",
   };
 };
@@ -316,7 +314,7 @@ const [deletedAddressIds, setDeletedAddressIds] = useState<number[]>([]);
         await new Promise((r) => setTimeout(r, 500));
         toast.success("Upload avatar thành công (mô phỏng)");
       }
-      const dob = formData.dateOfBirth ? format(formData.dateOfBirth, "yyyy-MM-dd") : null;
+      const dob = formData.dateOfBirth || null;
       const payload: CreateCustomerRequest = {
         fullName: formData.fullName,
         email: formData.email,
@@ -435,39 +433,33 @@ const [deletedAddressIds, setDeletedAddressIds] = useState<number[]>([]);
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1">
               <Label>Họ và tên *</Label>
               <Input value={formData.fullName} onChange={(e) => handleValueChange("fullName", e.target.value)} />
             </div>
-            <div>
+            <div className="space-y-1">
               <Label>SĐT *</Label>
               <Input value={formData.phone} onChange={(e) => handleValueChange("phone", e.target.value)} />
             </div>
             {!customer && (
               <>
-                <div>
+                <div className="space-y-1">
                   <Label>Email *</Label>
                   <Input value={formData.email} onChange={(e) => handleValueChange("email", e.target.value)} />
                 </div>
-                <div>
+                <div className="space-y-1">
                   <Label>Mật khẩu *</Label>
                   <Input type="password" onChange={(e) => handleValueChange("password", e.target.value)} />
                 </div>
               </>
             )}
-            <div>
+            <div className="space-y-1">
               <Label>Ngày sinh</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dateOfBirth ? format(formData.dateOfBirth, "dd/MM/yyyy") : "Chọn ngày"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={formData.dateOfBirth || undefined} onSelect={(date) => handleValueChange("dateOfBirth", date)} />
-                </PopoverContent>
-              </Popover>
+              <DatePicker
+                id="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={(val) => handleValueChange("dateOfBirth", val)}
+              />
             </div>
           </div>
         </div>
