@@ -5,15 +5,12 @@ import iuh.fit.ecommerce.dtos.request.banner.BannerUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.banner.BannerResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.entities.Banner;
-import iuh.fit.ecommerce.entities.Brand;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.BannerMapper;
 import iuh.fit.ecommerce.repositories.BannerRepository;
-import iuh.fit.ecommerce.repositories.StaffRepository;
 import iuh.fit.ecommerce.services.BannerService;
-import iuh.fit.ecommerce.services.StaffService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,7 +27,7 @@ public class BannerServiceImpl implements BannerService {
 
     private final BannerRepository bannerRepository;
     private final BannerMapper bannerMapper;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
 
     @Override
     public BannerResponse getBannerById(Long id) {
@@ -41,7 +38,7 @@ public class BannerServiceImpl implements BannerService {
     @Override
     public BannerResponse addBanner(BannerAddRequest request) {
         Banner banner = bannerMapper.toEntity(request);
-        Staff staff = securityUtil.getCurrentStaff();
+        Staff staff = securityUtils.getCurrentStaff();
         banner.setStaff(staff);
         return bannerMapper.toResponse(  bannerRepository.save(banner));
     }

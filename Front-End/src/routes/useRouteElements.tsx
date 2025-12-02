@@ -74,6 +74,7 @@ import {
 } from "@/constants/path";
 import EditPromotion from "@/pages/admin/EditPromotion";
 import AddPromotion from "@/pages/admin/AddPromotion";
+import Banners from "@/pages/admin/Banner";
 
 const useRouteElements = () => {
   return useRoutes([

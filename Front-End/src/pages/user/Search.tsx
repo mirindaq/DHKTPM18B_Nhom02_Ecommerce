@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
-import { Loader2, Search as SearchIcon } from 'lucide-react';
+import { Search as SearchIcon } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import type { Product } from '@/types/product.type';
 import Breadcrumb from '@/components/user/search/Breadcrumb';
@@ -8,6 +8,7 @@ import SortSection from '@/components/user/search/SortSection';
 import ProductCard from '@/components/user/ProductCard';
 import { useQuery } from '@/hooks/useQuery';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { PUBLIC_PATH } from '@/constants/path';
 
 type SortOption = 'popular' | 'price_asc' | 'price_desc' | 'rating_asc' | 'rating_desc';
@@ -39,6 +40,28 @@ export default function Search() {
       }
     }
   );
+
+  const ProductSkeleton = () => (
+    <div className="overflow-hidden bg-white rounded-xl border border-gray-200">
+      <Skeleton className="aspect-[5/4] w-full" />
+      <div className="p-4 space-y-2.5">
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-4/5" />
+        <div className="flex gap-1.5">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <Skeleton className="h-7 w-2/3" />
+        <div className="flex gap-2">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+        <Skeleton className="h-4 w-20" />
+      </div>
+    </div>
+  )
+
 
   const products = productsData?.data?.data || [];
   const totalItem = productsData?.data?.totalItem || 0;
@@ -146,8 +169,10 @@ export default function Search() {
 
       {/* Products grid */}
       {productsLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <ProductSkeleton key={index} />
+          ))}
         </div>
       ) : products.length === 0 ? (
         <div className="text-center py-12">

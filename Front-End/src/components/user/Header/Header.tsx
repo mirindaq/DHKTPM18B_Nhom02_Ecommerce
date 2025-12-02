@@ -80,7 +80,7 @@ export default function Header() {
     "flex items-center space-x-1 bg-[#AC0014] hover:bg-red-700 px-3 py-2 rounded-lg text-sm";
 
   return (
-    <header className="bg-[#D70018] text-white py-2">
+    <header className="bg-gradient-to-b from-red-600 to-rose-400 text-white py-2">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2 space-x-4">
         {/* Logo */}
         <div className="flex items-center space-x-1 font-bold text-2xl tracking-tighter">

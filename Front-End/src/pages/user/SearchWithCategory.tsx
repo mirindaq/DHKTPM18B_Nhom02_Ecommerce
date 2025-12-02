@@ -13,6 +13,7 @@ import BrandSelection from '@/components/user/search/BrandSelection';
 import FilterSection from '@/components/user/search/FilterSection';
 import SortSection from '@/components/user/search/SortSection';
 import ProductCard from '@/components/user/ProductCard';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@/hooks/useQuery';
 
 interface SearchFilters {
@@ -182,6 +183,27 @@ export default function SearchWithCategory() {
     setSearchParams(params);
   };
 
+  const ProductSkeleton = () => (
+    <div className="overflow-hidden bg-white rounded-xl border border-gray-200">
+      <Skeleton className="aspect-[5/4] w-full" />
+      <div className="p-4 space-y-2.5">
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-4/5" />
+        <div className="flex gap-1.5">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <Skeleton className="h-7 w-2/3" />
+        <div className="flex gap-2">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+        <Skeleton className="h-4 w-20" />
+      </div>
+    </div>
+  )
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <Breadcrumb
@@ -233,8 +255,10 @@ export default function SearchWithCategory() {
         <SortSection sortBy={currentSort} onSortChange={handleSortChange} />
 
         {productsLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <ProductSkeleton key={index} />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-12">
@@ -243,7 +267,7 @@ export default function SearchWithCategory() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

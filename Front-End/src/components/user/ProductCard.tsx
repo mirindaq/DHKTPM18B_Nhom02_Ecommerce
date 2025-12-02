@@ -42,6 +42,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   const inWishlist = productId > 0 ? isInWishlist(productId) : false
   const isLoading = isAdding || isRemoving
 
+  // Lấy các variant values để hiển thị (giới hạn 3 values)
+  const variantOptions = product.variants?.slice(0, 3).flatMap(variant => 
+    variant.productVariantValues.map(pv => pv.variantValue.value)
+  ).filter((value, index, self) => self.indexOf(value) === index).slice(0, 3) || []
+
   const handleProductClick = () => {
     navigate(`${PUBLIC_PATH.HOME}product/${product.slug}`)
   }
@@ -68,101 +73,98 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <Card 
-      className="group relative overflow-hidden bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer"
+    <div 
+      className="group relative overflow-hidden bg-white rounded-sm border border-gray-200 hover:border-blue-400 transition-all duration-200 cursor-pointer"
       onClick={handleProductClick}
     >
-      {/* Badges */}
-      <div className="absolute top-2 left-2 z-10">
-        {discountPercent > 0 && (
-          <Badge className="bg-red-500 text-white font-bold text-xs px-2 py-1 rounded-r-lg">
-            Giảm {discountPercent}%
-          </Badge>
-        )}
-      </div>
-      
-      <div className="absolute top-2 right-2 z-10">
-        <Badge className="bg-blue-100 text-blue-600 font-bold text-xs px-2 py-1 rounded-l-lg">
-          Trả góp 0%
-        </Badge>
-      </div>
-
       {/* Product Image */}
-      <div className="relative aspect-square overflow-hidden">
+      <div className="relative aspect-[5/4] overflow-hidden bg-gray-50">
         <img
           src={product.thumbnail}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200 p-2"
         />
+        
+        {/* Badges overlay */}
+        {discountPercent > 0 && (
+          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded">
+            -{discountPercent}%
+          </Badge>
+        )}
+        
+        {/* Wishlist Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleWishlistClick}
+          disabled={isLoading || productId === 0}
+          className={`absolute top-2 right-2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white transition-all ${
+            inWishlist ? "text-red-500" : "text-gray-400 hover:text-red-500"
+          }`}
+          title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+        >
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Heart className={`w-5 h-5 ${inWishlist ? "fill-current" : ""}`} />
+          )}
+        </Button>
       </div>
 
-      <CardContent className="p-4 space-y-3">
+      <div className="p-4 space-y-2.5">
         {/* Product Name */}
-        <h3 className="font-bold text-lg text-gray-900 line-clamp-2 min-h-[3.5rem]">
+        <h3 className="font-semibold text-lg text-gray-800 line-clamp-2 leading-snug min-h-[3.25rem]">
           {product.name}
         </h3>
 
+        {/* Variant Options */}
+        {variantOptions.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {variantOptions.map((option, index) => (
+              <span 
+                key={index}
+                className="inline-flex items-center text-xs text-gray-700 bg-white border border-gray-300 px-2 py-0.5 rounded"
+              >
+                {option}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Price Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
+        <div className="space-y-1.5">
+          <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-2xl font-bold text-red-500">
               {formatPrice(finalPrice)}
             </span>
             {oldPrice > 0 && (
-              <span className="text-sm text-gray-400 line-through">
+              <span className="text-base text-gray-400 line-through">
                 {formatPrice(oldPrice)}
               </span>
             )}
           </div>
 
-          {/* Smember Discount */}
-          <div className="bg-blue-50 rounded-md px-2 py-1">
-            <span className="text-sm text-blue-600 font-medium">
-              Smember giảm đến {formatPrice(finalPrice * 0.01)}
+          {/* Smember & Installment */}
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded font-medium">
+              Smember -{formatPrice(finalPrice * 0.01)}
+            </span>
+            <span className="inline-flex items-center text-sm text-emerald-600 bg-emerald-50 px-2 py-1 rounded font-medium">
+              Trả góp 0%
             </span>
           </div>
-
-          {/* Installment Info */}
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6 tháng
-          </p>
         </div>
 
-        {/* Rating and Like */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-bold text-sm">{product.rating || 4.9}</span>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleWishlistClick}
-            disabled={isLoading || productId === 0}
-            className={`p-2 transition-colors ${
-              inWishlist
-                ? "text-red-500 hover:text-red-600 hover:bg-red-50"
-                : "text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-            }`}
-            title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-            ) : (
-              <Heart
-                className={`w-4 h-4 mr-1 ${
-                  inWishlist ? "fill-red-500 text-red-500" : ""
-                }`}
-              />
-            )}
-            <span className="text-sm">Yêu thích</span>
-          </Button>
+        {/* Rating */}
+        <div className="flex items-center gap-1.5 pt-1">
+          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+          <span className="text-base font-medium text-gray-600">{product.rating || 4.9}</span>
+          <span className="text-sm text-gray-400 ml-1">| Đã bán 1k+</span>
         </div>
-      </CardContent>
+      </div>
       
       {/* Login Modal */}
       <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
-    </Card>
+    </div>
   )
 }

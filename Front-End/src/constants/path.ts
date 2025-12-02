@@ -74,12 +74,14 @@ export const PUBLIC_PATH = {
 
 // User account paths
 export const USER_PATH = {
-  ACCOUNT: "/account",
-  OVERVIEW: "/account/overview",
-  ORDER_HISTORY: "/account/orders",
-  ORDER_HISTORY_DETAIL: "/account/orders/:orderId",
-  WISHLIST: "/account/wishlist",
-  ADDRESS: "/account/address",
+  PROFILE: "/profile",
+  OVERVIEW: "/profile",
+  ORDERS: "/profile/orders",
+  ORDER_DETAIL: "/profile/orders/:orderId",
+  ADDRESSES: "/profile/addresses",
+  WISHLIST: "/profile/wishlist",
+  MEMBERSHIP: "/profile/membership",
+  ACCOUNT_INFO: "/profile/account",
   PAY: "/pay",
   PAY_SUCCESS: "/pay/success",
 };

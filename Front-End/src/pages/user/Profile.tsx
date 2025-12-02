@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import { useNavigate, Outlet, useLocation } from "react-router";
-import { PUBLIC_PATH } from "@/constants/path";
+import { PUBLIC_PATH, USER_PATH } from "@/constants/path";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,16 +58,16 @@ export default function Profile() {
   useEffect(() => {
     const pathname = location.pathname;
 
-    if (pathname.includes("/profile/membership")) {
+    if (pathname.includes(USER_PATH.MEMBERSHIP)) {
       setActiveSidebarMenu("Hạng thành viên và ưu đãi");
       setActiveTab("membership");
-    } else if (pathname.includes("/profile/wishlist")) {
+    } else if (pathname.includes(USER_PATH.WISHLIST)) {
       setActiveSidebarMenu("Danh sách yêu thích");
-    } else if (pathname.includes("/profile/orders")) {
+    } else if (pathname.includes(USER_PATH.ORDERS)) {
       setActiveSidebarMenu("Lịch sử mua hàng");
-    } else if (pathname.includes("/profile/addresses")) {
+    } else if (pathname.includes(USER_PATH.ADDRESSES)) {
       setActiveSidebarMenu("Địa chỉ nhận hàng");
-    } else if (pathname === `${PUBLIC_PATH.HOME}profile` || pathname === `${PUBLIC_PATH.HOME}profile/`) {
+    } else if (pathname === USER_PATH.PROFILE || pathname === `${USER_PATH.PROFILE}/`) {
       // Nếu đang ở route gốc, giữ nguyên default state (overview)
       setActiveSidebarMenu("Tổng quan");
       setActiveTab("overview");
@@ -92,8 +92,8 @@ export default function Profile() {
     if (tab) {
       setActiveTab(tab);
       // Navigate về /profile để reset nested route
-      if (location.pathname !== `${PUBLIC_PATH.HOME}profile`) {
-        navigate(`${PUBLIC_PATH.HOME}profile`);
+      if (location.pathname !== USER_PATH.PROFILE) {
+        navigate(USER_PATH.PROFILE);
       }
     }
   };
@@ -144,35 +144,35 @@ export default function Profile() {
       active: activeSidebarMenu === "Lịch sử mua hàng",
       onClick: () => {
         setActiveSidebarMenu("Lịch sử mua hàng");
-        navigate(`${PUBLIC_PATH.HOME}profile/orders`);
+        navigate(USER_PATH.ORDERS);
       },
     },
     {
       icon: <MapPin size={20} />,
       label: "Địa chỉ nhận hàng",
-      active: location.pathname.includes("/profile/addresses"),
+      active: location.pathname.includes(USER_PATH.ADDRESSES),
       onClick: () => {
         setActiveSidebarMenu("Địa chỉ nhận hàng");
-        navigate(`${PUBLIC_PATH.HOME}profile/addresses`);
+        navigate(USER_PATH.ADDRESSES);
       },
     },
     {
       icon: <Heart size={20} />,
       label: "Danh sách yêu thích",
-      active: location.pathname.includes("/profile/wishlist"),
+      active: location.pathname.includes(USER_PATH.WISHLIST),
       onClick: () => {
         setActiveSidebarMenu("Danh sách yêu thích");
-        navigate(`${PUBLIC_PATH.HOME}profile/wishlist`);
+        navigate(USER_PATH.WISHLIST);
       },
     },
     { icon: <Search size={20} />, label: "Tra cứu bảo hành" },
     {
       icon: <Heart size={20} />,
       label: "Hạng thành viên và ưu đãi",
-      active: location.pathname.includes("/profile/membership"),
+      active: location.pathname.includes(USER_PATH.MEMBERSHIP),
       onClick: () => {
         setActiveSidebarMenu("Hạng thành viên và ưu đãi");
-        navigate(`${PUBLIC_PATH.HOME}profile/membership`);
+        navigate(USER_PATH.MEMBERSHIP);
       },
     },
     {
@@ -597,7 +597,7 @@ export default function Profile() {
 
           {/* Main Content Area */}
           <div className="col-span-9">
-            {location.pathname.startsWith("/profile/") ? (
+            {location.pathname.startsWith(`${USER_PATH.PROFILE}/`) ? (
               <Outlet />
             ) : (
               <Card>
