@@ -236,6 +236,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.VARIANTS, element: <Variants /> },
         { path: ADMIN_PATH.CATEGORIES, element: <Categories /> },
         { path: ADMIN_PATH.BRANDS, element: <Brands /> },
+        { path: ADMIN_PATH.BANNERS, element: <Banners /> },
         { path: ADMIN_PATH.CUSTOMERS, element: <Customers /> },
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },

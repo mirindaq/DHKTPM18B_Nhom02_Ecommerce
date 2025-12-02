@@ -111,7 +111,12 @@ const navigation = [
         href: "/admin/vouchers",
         icon: ShoppingCart,
       },
-    ],
+      {
+        title: "Banner",
+        href: "/admin/banners",
+        icon: Award,
+      },
+    ]
   },
   {
     title: "Quản lý người dùng",

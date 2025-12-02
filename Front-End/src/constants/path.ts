@@ -30,6 +30,7 @@ export const ADMIN_PATH = {
   ARTICLES: "/admin/articles",
   ARTICLE_ADD: "/admin/articles/add",
   ARTICLE_CATEGORIES: "/admin/article-categories",
+  BANNERS: "/admin/banners",
   CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
