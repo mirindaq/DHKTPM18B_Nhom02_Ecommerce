@@ -16,7 +16,7 @@ public class StaffExcelDTO {
     private String fullName;
     private String phone;
     private String address;
+    private LocalDate dateOfBirth;  // Optional
     private LocalDate joinDate;
     private Boolean isLeader;
-    private String note;
 }

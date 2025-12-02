@@ -13,6 +13,5 @@ public class CustomerExcelDTO {
     private String email;
     private String fullName;
     private String phone;
-    private String address;
-    private String note;
+    private java.time.LocalDate dateOfBirth;  // Optional
 }

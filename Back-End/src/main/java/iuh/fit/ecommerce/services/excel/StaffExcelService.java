@@ -45,9 +45,9 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
             "Họ tên*",
             "Số điện thoại*",
             "Địa chỉ",
-            "Ngày vào làm ",
-            "Leader (true/false)",
-            "Ghi chú"
+            "Ngày sinh (dd/MM/yyyy)",
+            "Ngày vào làm (dd/MM/yyyy)",
+            "Team leader(true/false)"
         };
     }
     
@@ -70,9 +70,9 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
                     .fullName(getCellValueAsString(row.getCell(1)))
                     .phone(getCellValueAsString(row.getCell(2)))
                     .address(getCellValueAsString(row.getCell(3)))
-                    .joinDate(parseDateCell(row.getCell(4)))
-                    .isLeader(parseBooleanCell(row.getCell(5)))
-                    .note(getCellValueAsString(row.getCell(6)))
+                    .dateOfBirth(parseDateCell(row.getCell(4)))
+                    .joinDate(parseDateCell(row.getCell(5)))
+                    .isLeader(parseBooleanCell(row.getCell(6)))
                     .build();
                 
                 dataList.add(dto);
@@ -102,6 +102,15 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
         } else if (!data.getPhone().matches("^0\\d{9}$")) {
             result.addError(rowIndex, "Số điện thoại", "Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)");
         }
+        
+        // Validate date of birth (optional, but if provided must be valid)
+        if (data.getDateOfBirth() != null) {
+            if (data.getDateOfBirth().isAfter(LocalDate.now())) {
+                result.addError(rowIndex, "Ngày sinh", "Ngày sinh không được là ngày tương lai");
+            } else if (data.getDateOfBirth().isBefore(LocalDate.of(1900, 1, 1))) {
+                result.addError(rowIndex, "Ngày sinh", "Ngày sinh không hợp lệ");
+            }
+        }
      
         if (data.getJoinDate() != null && data.getJoinDate().isAfter(LocalDate.now())) {
             result.addError(rowIndex, "Ngày vào làm", "Ngày vào làm không được là ngày tương lai");
@@ -123,6 +132,7 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
                 .password(passwordEncoder.encode("123456")) // Default password
                 .phone(dto.getPhone())
                 .address(dto.getAddress())
+                .dateOfBirth(dto.getDateOfBirth()) // Optional
                 .joinDate(dto.getJoinDate() != null ? dto.getJoinDate() : LocalDate.now())
                 .leader(dto.getIsLeader() != null ? dto.getIsLeader() : false)
                 .active(true)
@@ -151,9 +161,9 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
             data.getFullName(),
             data.getPhone(),
             data.getAddress(),
+            data.getDateOfBirth() != null ? data.getDateOfBirth().format(DATE_FORMATTER) : "",
             data.getJoinDate() != null ? data.getJoinDate().format(DATE_FORMATTER) : "",
-            data.getIsLeader() != null ? data.getIsLeader() : false,
-            data.getNote() != null ? data.getNote() : ""
+            data.getIsLeader() != null ? data.getIsLeader() : false
         };
     }
   
@@ -165,9 +175,9 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
                 .fullName(staff.getFullName())
                 .phone(staff.getPhone())
                 .address(staff.getAddress())
+                .dateOfBirth(staff.getDateOfBirth())
                 .joinDate(staff.getJoinDate())
                 .isLeader(staff.getLeader())
-                .note("")
                 .build())
             .toList();
         

@@ -2,7 +2,6 @@ package iuh.fit.ecommerce.services.excel;
 
 import iuh.fit.ecommerce.dtos.excel.CustomerExcelDTO;
 import iuh.fit.ecommerce.dtos.excel.ImportResult;
-import iuh.fit.ecommerce.entities.Address;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.entities.Role;
@@ -42,8 +41,7 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
             "Email*",
             "Họ tên*",
             "Số điện thoại*",
-            "Địa chỉ",
-            "Ghi chú"
+            "Ngày sinh (dd/MM/yyyy)"
         };
     }
     
@@ -64,8 +62,7 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
                     .email(getCellValueAsString(row.getCell(0)))
                     .fullName(getCellValueAsString(row.getCell(1)))
                     .phone(getCellValueAsString(row.getCell(2)))
-                    .address(getCellValueAsString(row.getCell(3)))
-                    .note(getCellValueAsString(row.getCell(4)))
+                    .dateOfBirth(parseDateCell(row.getCell(3)))
                     .build();
                 
                 dataList.add(dto);
@@ -112,6 +109,7 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
                 .fullName(dto.getFullName())
                 .password(passwordEncoder.encode("123456")) // Default password
                 .phone(dto.getPhone())
+                .dateOfBirth(dto.getDateOfBirth()) // Optional
                 .active(true)
                 .totalSpending(0.0)
                 .ranking(defaultRanking)
@@ -138,8 +136,7 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
             data.getEmail(),
             data.getFullName(),
             data.getPhone(),
-            data.getAddress(),
-            data.getNote() != null ? data.getNote() : ""
+            data.getDateOfBirth() != null ? data.getDateOfBirth().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : ""
         };
     }
     
@@ -147,22 +144,12 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
     public Workbook exportAllCustomers() throws Exception {
         List<Customer> customerList = customerRepository.findAll();
         List<CustomerExcelDTO> dtoList = customerList.stream()
-            .map(customer -> {
-                // Get first address if exists
-                String address = "";
-                if (customer.getAddresses() != null && !customer.getAddresses().isEmpty()) {
-                    Address addr = customer.getAddresses().get(0);
-                    address = addr.getSubAddress() != null ? addr.getSubAddress() : "";
-                }
-                
-                return CustomerExcelDTO.builder()
-                    .email(customer.getEmail())
-                    .fullName(customer.getFullName())
-                    .phone(customer.getPhone())
-                    .address(address)
-                    .note("")
-                    .build();
-            })
+            .map(customer -> CustomerExcelDTO.builder()
+                .email(customer.getEmail())
+                .fullName(customer.getFullName())
+                .phone(customer.getPhone())
+                .dateOfBirth(customer.getDateOfBirth())
+                .build())
             .toList();
         
         return generateExcel(dtoList);
@@ -177,5 +164,23 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
             }
         }
         return true;
+    }
+    
+    private java.time.LocalDate parseDateCell(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
+        
+        String dateStr = getCellValueAsString(cell);
+        if (dateStr.isBlank()) {
+            return null;
+        }
+        
+        try {
+            return java.time.LocalDate.parse(dateStr, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } catch (Exception e) {
+            log.warn("Failed to parse date: {}", dateStr);
+            return null;
+        }
     }
 }
