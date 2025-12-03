@@ -28,4 +28,6 @@ public interface VoucherService {
     Voucher getVoucherEntityById(Long id);
 
     List<VoucherAvailableResponse> getAvailableVouchersForCustomer();
+
+    List<VoucherAvailableResponse> getAvailableVouchersForCustomerById(Long customerId);
 }

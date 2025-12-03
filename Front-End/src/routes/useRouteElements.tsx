@@ -75,6 +75,8 @@ import {
 import EditPromotion from "@/pages/admin/EditPromotion";
 import AddPromotion from "@/pages/admin/AddPromotion";
 import Banners from "@/pages/admin/Banner";
+import StaffSell from "@/pages/staff/StaffSell";
+import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -278,6 +280,8 @@ const useRouteElements = () => {
         { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
         { path: STAFF_PATH.CHAT, element: <ChatManagement /> },
         { path: STAFF_PATH.ASSIGN_DELIVERY, element: <StaffAssignDelivery /> },
+        { path: STAFF_PATH.SELL, element: <StaffSell /> },
+        { path: STAFF_PATH.PAYMENT_STATUS, element: <StaffPaymentStatus /> },
       ],
     },
 

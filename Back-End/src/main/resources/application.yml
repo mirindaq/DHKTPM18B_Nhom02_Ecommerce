@@ -104,3 +104,4 @@ app:
 
 domain:
   frontend: ${DOMAIN_FRONTEND}
+  frontend-staff: ${DOMAIN_FRONTEND_STAFF}

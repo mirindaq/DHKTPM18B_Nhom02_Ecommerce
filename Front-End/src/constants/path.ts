@@ -45,6 +45,8 @@ export const STAFF_PATH = {
   ARTICLES: "/staff/articles",
   CHAT: "/staff/chats",
   ASSIGN_DELIVERY: "/staff/assign-delivery",
+  SELL: "/staff/sell",
+  PAYMENT_STATUS: "/staff/payment-status",
 };
 
 // Shipper paths

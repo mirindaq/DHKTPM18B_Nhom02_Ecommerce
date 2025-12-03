@@ -17,7 +17,7 @@ import {
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Truck, Settings, LogOut, Store, MessageSquare } from "lucide-react";
+import { ShoppingCart, Truck, Settings, LogOut, Store, MessageSquare, Users } from "lucide-react";
 import { STAFF_PATH } from "@/constants/path";
 import AdminChatListener from "@/components/admin/AdminChatListener";
 
@@ -48,9 +48,19 @@ export default function StaffLayout() {
   // Navigation items based on role
   const navigationItems = [
     {
+      title: "Bán hàng",
+      icon: Store,
+      href: STAFF_PATH.SELL,
+    },
+    {
       title: "Đơn hàng",
       icon: ShoppingCart,
       href: STAFF_PATH.ORDERS,
+    },
+    {
+      title: "Quản lý khách hàng",
+      href: STAFF_PATH.CUSTOMERS,
+      icon: Users,
     },
     {
       title: "Quản lý Chat",

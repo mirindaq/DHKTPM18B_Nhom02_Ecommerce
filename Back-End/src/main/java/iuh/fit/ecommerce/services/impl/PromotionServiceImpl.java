@@ -3,6 +3,8 @@ package iuh.fit.ecommerce.services.impl;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionAddRequest;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantResponse;
 import iuh.fit.ecommerce.dtos.response.promotion.PromotionResponse;
 import iuh.fit.ecommerce.entities.Product;
 import iuh.fit.ecommerce.entities.ProductVariant;
@@ -10,6 +12,7 @@ import iuh.fit.ecommerce.entities.Promotion;
 import iuh.fit.ecommerce.entities.PromotionTarget;
 import iuh.fit.ecommerce.enums.PromotionType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
+import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.mappers.PromotionMapper;
 import iuh.fit.ecommerce.repositories.PromotionRepository;
 import iuh.fit.ecommerce.repositories.PromotionTargetRepository;
@@ -35,6 +38,7 @@ public class PromotionServiceImpl implements PromotionService {
     private final PromotionRepository promotionRepository;
     private final PromotionTargetRepository promotionTargetRepository;
     private final PromotionMapper promotionMapper;
+    private final ProductMapper productMapper;
 
     @Override
     @Transactional
@@ -184,7 +188,38 @@ public class PromotionServiceImpl implements PromotionService {
         return promos.isEmpty() ? null : promos.get(0);
     }
 
+    @Override
+    public ProductResponse addPromotionToProductResponseByProduct(Product product) {
+        ProductResponse response = productMapper.toResponse(product);
 
+        List<ProductVariant> variants = product.getProductVariants();
+        if (variants == null || variants.isEmpty()) return response;
+
+        Map<Long, List<Promotion>>  promosByVariant = getPromotionsGroupByVariantId(variants, product);
+
+        Map<Long, ProductVariant> variantMap = variants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+
+        for (ProductVariantResponse v : response.getVariants()) {
+            ProductVariant entityVariant = variantMap.get(v.getId());
+            if (entityVariant == null) continue;
+
+            Double originalPrice = calculateOriginalPrice(entityVariant);
+            v.setOldPrice(originalPrice);
+
+            Promotion bestPromo = getBestPromotion(entityVariant, promosByVariant);
+
+            if (bestPromo != null) {
+                Double finalPrice = calculateDiscountPrice(entityVariant, bestPromo);
+                v.setPrice(finalPrice);
+                v.setDiscount(bestPromo.getDiscount());
+            } else {
+                v.setPrice(originalPrice);
+                v.setDiscount(0.0);
+            }
+        }
+        return response;
+    }
 
 
     private boolean appliesToVariant(Promotion promo, ProductVariant variant) {

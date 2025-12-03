@@ -113,6 +113,11 @@ export const customerService = {
     return response.data;
   },
 
+  getCustomerByPhone: async (phone: string) => {
+    const response = await axiosClient.get<CustomerDetailResponse>(`/customers/search-by-phone?phone=${phone}`);
+    return response.data;
+  },
+
   createCustomer: async (request: CreateCustomerRequest) => {
     const response = await axiosClient.post<CustomerResponse>('/customers', request);
     return response.data;

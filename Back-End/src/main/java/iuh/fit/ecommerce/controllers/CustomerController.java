@@ -107,4 +107,24 @@ public class CustomerController {
         ));
     }
 
+    @GetMapping("/search-by-phone")
+    public ResponseEntity<ResponseSuccess<CustomerResponse>> getCustomerByPhone(
+            @RequestParam String phone) {
+        CustomerResponse customer = customerService.getCustomerByPhone(phone);
+        
+        if (customer == null) {
+            return ResponseEntity.ok(new ResponseSuccess<>(
+                    OK,
+                    "Customer not found",
+                    null
+            ));
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get customer by phone success",
+                customer
+        ));
+    }
+
 }

@@ -107,36 +107,7 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             return null;
         }
-
-        ProductResponse response = productMapper.toResponse(product);
-        List<ProductVariant> variants = product.getProductVariants();
-        if (variants == null || variants.isEmpty()) return response;
-
-        Map<Long, List<Promotion>>  promosByVariant = promotionService.getPromotionsGroupByVariantId(variants, product);
-
-        Map<Long, ProductVariant> variantMap = variants.stream()
-                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
-
-        for (ProductVariantResponse v : response.getVariants()) {
-            ProductVariant entityVariant = variantMap.get(v.getId());
-            if (entityVariant == null) continue;
-
-            Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);
-            v.setOldPrice(originalPrice);
-
-            Promotion bestPromo = promotionService.getBestPromotion(entityVariant, promosByVariant);
-
-            if (bestPromo != null) {
-                Double finalPrice = promotionService.calculateDiscountPrice(entityVariant, bestPromo);
-                v.setPrice(finalPrice);
-                v.setDiscount(bestPromo.getDiscount());
-            } else {
-                v.setPrice(originalPrice);
-                v.setDiscount(0.0);
-            }
-        }
-
-        return response;
+        return promotionService.addPromotionToProductResponseByProduct( product);
     }
 
     @Override

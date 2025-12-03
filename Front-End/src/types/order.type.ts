@@ -30,6 +30,22 @@ export interface OrderCreationRequest {
   cartItemIds: number[];
 }
 
+export interface StaffOrderItem {
+  productVariantId: number;
+  quantity: number;
+}
+
+export interface StaffOrderCreationRequest {
+  customerId: number; // Required: customer must exist
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  note?: string;
+  voucherId?: number; // Optional: apply voucher for customer
+  paymentMethod: PaymentMethod; // CASH_ON_DELIVERY or VN_PAY only
+  items: StaffOrderItem[];
+}
+
 export interface OrderResponse {
   id: number;
   receiverAddress: string;

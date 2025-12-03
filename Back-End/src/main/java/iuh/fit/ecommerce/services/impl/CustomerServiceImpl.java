@@ -133,4 +133,16 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.save(customer);
     }
 
+    @Override
+    public CustomerResponse getCustomerByPhone(String phone) {
+        Customer customer = customerRepository.findByPhone(phone)
+                .orElse(null);
+        
+        if (customer == null) {
+            return null;
+        }
+        
+        return customerMapper.toResponse(customer);
+    }
+
 }

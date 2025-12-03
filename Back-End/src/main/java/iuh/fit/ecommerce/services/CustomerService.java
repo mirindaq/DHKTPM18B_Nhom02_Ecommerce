@@ -22,4 +22,6 @@ public interface CustomerService {
     Customer getCustomerEntityById( Long id);
 
     void updateExpoPushToken(@NotBlank(message = "Expo push token is required") String expoPushToken);
+
+    CustomerResponse getCustomerByPhone(String phone);
 }

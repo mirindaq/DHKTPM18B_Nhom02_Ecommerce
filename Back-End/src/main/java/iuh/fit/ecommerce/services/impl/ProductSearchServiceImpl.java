@@ -10,6 +10,7 @@ import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.ProductRepository;
 import iuh.fit.ecommerce.repositories.elasticsearch.ProductSearchRepository;
 import iuh.fit.ecommerce.services.ProductSearchService;
+import iuh.fit.ecommerce.services.PromotionService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final ElasticsearchOperations elasticsearchOperations;
+    private final PromotionService promotionService;
 
     @Override
     public ResponseWithPagination<List<ProductResponse>> searchProducts(
@@ -81,12 +83,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             Criteria criteria = new Criteria("status").is(true);
 
             if (query != null && !query.trim().isEmpty()) {
-                // 1. Xử lý chuỗi tìm kiếm: Xóa ngoặc kép để tránh lỗi cú pháp nếu user nhập
                 String searchText = query.trim().replace("\"", "");
 
-                // 2. SỬA TẠI ĐÂY: Dùng .matches() thay vì .contains()
-                // .matches() sử dụng thuật toán Full-text search (phân tích từ ngữ)
-                // Nó hiểu được dấu cách và tìm kiếm chính xác hơn
                 Criteria searchCriteria = new Criteria("name").matches(searchText)
                         .or("description").matches(searchText)
                         .or("searchableText").matches(searchText);
@@ -126,7 +124,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             }
 
             List<ProductResponse> productResponses = orderedProducts.stream()
-                    .map(productMapper::toResponse)
+                    .map(promotionService::addPromotionToProductResponseByProduct)
                     .collect(Collectors.toList());
 
             long totalItem = searchHits.getTotalHits();
