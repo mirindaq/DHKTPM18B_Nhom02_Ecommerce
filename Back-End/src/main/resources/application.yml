@@ -71,7 +71,7 @@ spring:
           api-key: ${GEMINI_KEY}
     vectorstore:
       qdrant:
-        host: localhost
+        host: ${QDRANT_HOST:localhost}
         port: 6334
         collection-name: ecomstore
         use-tls: false
