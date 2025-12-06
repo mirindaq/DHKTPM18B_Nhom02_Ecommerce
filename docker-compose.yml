@@ -179,7 +179,7 @@ services:
     volumes:
       - /home/ubuntu/EcommerceMobile/logs:/var/log
       - ./promtail-config.yml:/etc/promtail/config.yml
-    command: -config.file=/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
     networks:
