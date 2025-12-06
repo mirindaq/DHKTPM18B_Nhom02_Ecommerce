@@ -58,7 +58,7 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             
-            // Start from row 3 (index 3) because rows 0-1 are instructions, row 2 is header
+           
             int dataStartRow = 3;
     
             for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
@@ -105,7 +105,7 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
             result.addError(rowIndex, "Số điện thoại", "Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)");
         }
         
-        // Validate date of birth (optional, but if provided must be valid)
+      
         if (data.getDateOfBirth() != null) {
             if (data.getDateOfBirth().isAfter(LocalDate.now())) {
                 result.addError(rowIndex, "Ngày sinh", "Ngày sinh không được là ngày tương lai");
@@ -125,35 +125,56 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
         Role staffRole = roleRepository.findByName("STAFF")
             .orElseThrow(() -> new RuntimeException("Role STAFF not found"));
         
-        List<Staff> staffList = new ArrayList<>();
+     
+        String encodedPassword = passwordEncoder.encode("123456");
         
-        for (StaffExcelDTO dto : dataList) {
-            Staff staff = Staff.builder()
-                .email(dto.getEmail())
-                .fullName(dto.getFullName())
-                .password(passwordEncoder.encode("123456")) // Default password
-                .phone(dto.getPhone())
-                .address(dto.getAddress())
-                .dateOfBirth(dto.getDateOfBirth()) // Optional
-                .joinDate(dto.getJoinDate() != null ? dto.getJoinDate() : LocalDate.now())
-                .leader(dto.getIsLeader() != null ? dto.getIsLeader() : false)
-                .active(true)
-                .workStatus(WorkStatus.ACTIVE)
-                .build();
+        int CHUNK_SIZE = 100; // Process 100 records per chunk
+        int totalChunks = (dataList.size() + CHUNK_SIZE - 1) / CHUNK_SIZE;
+        
+        log.info("Starting import of {} staff members in {} chunks", dataList.size(), totalChunks);
+        
+     
+        for (int i = 0; i < dataList.size(); i += CHUNK_SIZE) {
+            int end = Math.min(i + CHUNK_SIZE, dataList.size());
+            List<StaffExcelDTO> chunk = dataList.subList(i, end);
             
-            staff.setUserRoles(new ArrayList<>());
+            List<Staff> staffList = new ArrayList<>();
             
-            UserRole userRole = UserRole.builder()
-                .role(staffRole)
-                .user(staff)
-                .build();
+            for (StaffExcelDTO dto : chunk) {
+                Staff staff = Staff.builder()
+                    .email(dto.getEmail())
+                    .fullName(dto.getFullName())
+                    .password(encodedPassword) 
+                    .phone(dto.getPhone())
+                    .address(dto.getAddress())
+                    .dateOfBirth(dto.getDateOfBirth()) // Optional
+                    .joinDate(dto.getJoinDate() != null ? dto.getJoinDate() : LocalDate.now())
+                    .leader(dto.getIsLeader() != null ? dto.getIsLeader() : false)
+                    .active(true)
+                    .workStatus(WorkStatus.ACTIVE)
+                    .build();
+                
+                staff.setUserRoles(new ArrayList<>());
+                
+                UserRole userRole = UserRole.builder()
+                    .role(staffRole)
+                    .user(staff)
+                    .build();
+                
+                staff.getUserRoles().add(userRole);
+                staffList.add(staff);
+            }
             
-            staff.getUserRoles().add(userRole);
-            staffList.add(staff);
+        
+            staffRepository.saveAll(staffList);
+            
+            int currentChunk = (i / CHUNK_SIZE) + 1;
+            double progress = (currentChunk * 100.0) / totalChunks;
+            log.info("Processed chunk {}/{} ({} records) - Progress: {:.1f}%", 
+                     currentChunk, totalChunks, staffList.size(), progress);
         }
         
-        staffRepository.saveAll(staffList);
-        log.info("Successfully imported {} staff members", staffList.size());
+        log.info("Successfully imported {} staff members", dataList.size());
     }
     
     @Override

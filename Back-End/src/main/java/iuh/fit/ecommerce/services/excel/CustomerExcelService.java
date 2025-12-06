@@ -52,7 +52,7 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             
-            // Start from row 3 (index 3) because rows 0-1 are instructions, row 2 is header
+          
             int dataStartRow = 3;
         
             for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
@@ -102,7 +102,7 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
         Role customerRole = roleRepository.findByName("CUSTOMER")
             .orElseThrow(() -> new RuntimeException("Role CUSTOMER not found"));
         
-        // Get default ranking (first ranking or null if not exists)
+       
         Ranking defaultRanking = rankingRepository.findAll().stream()
             .findFirst()
             .orElse(null);
@@ -111,33 +111,54 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
             log.warn("No ranking found in database. Customers will be created without ranking.");
         }
         
-        List<Customer> customerList = new ArrayList<>();
+      
+        String encodedPassword = passwordEncoder.encode("123456");
         
-        for (CustomerExcelDTO dto : dataList) {
-            Customer customer = Customer.builder()
-                .email(dto.getEmail())
-                .fullName(dto.getFullName())
-                .password(passwordEncoder.encode("123456")) // Default password
-                .phone(dto.getPhone())
-                .dateOfBirth(dto.getDateOfBirth()) // Optional
-                .active(true)
-                .totalSpending(0.0)
-                .ranking(defaultRanking)
-                .build();
+        int CHUNK_SIZE = 100; // Process 100 records per chunk
+        int totalChunks = (dataList.size() + CHUNK_SIZE - 1) / CHUNK_SIZE;
+        
+        log.info("Starting import of {} customers in {} chunks", dataList.size(), totalChunks);
+        
+   
+        for (int i = 0; i < dataList.size(); i += CHUNK_SIZE) {
+            int end = Math.min(i + CHUNK_SIZE, dataList.size());
+            List<CustomerExcelDTO> chunk = dataList.subList(i, end);
             
-            customer.setUserRoles(new ArrayList<>());
+            List<Customer> customerList = new ArrayList<>();
             
-            UserRole userRole = UserRole.builder()
-                .role(customerRole)
-                .user(customer)
-                .build();
+            for (CustomerExcelDTO dto : chunk) {
+                Customer customer = Customer.builder()
+                    .email(dto.getEmail())
+                    .fullName(dto.getFullName())
+                    .password(encodedPassword) 
+                    .phone(dto.getPhone())
+                    .dateOfBirth(dto.getDateOfBirth()) 
+                    .active(true)
+                    .totalSpending(0.0)
+                    .ranking(defaultRanking)
+                    .build();
+                
+                customer.setUserRoles(new ArrayList<>());
+                
+                UserRole userRole = UserRole.builder()
+                    .role(customerRole)
+                    .user(customer)
+                    .build();
+                
+                customer.getUserRoles().add(userRole);
+                customerList.add(customer);
+            }
             
-            customer.getUserRoles().add(userRole);
-            customerList.add(customer);
+            // Batch insert this chunk
+            customerRepository.saveAll(customerList);
+            
+            int currentChunk = (i / CHUNK_SIZE) + 1;
+            double progress = (currentChunk * 100.0) / totalChunks;
+            log.info("Processed chunk {}/{} ({} records) - Progress: {:.1f}%", 
+                     currentChunk, totalChunks, customerList.size(), progress);
         }
         
-        customerRepository.saveAll(customerList);
-        log.info("Successfully imported {} customers", customerList.size());
+        log.info("Successfully imported {} customers", dataList.size());
     }
     
     @Override
