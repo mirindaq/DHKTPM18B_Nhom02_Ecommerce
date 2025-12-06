@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,4 +23,9 @@ public class UploadController {
                 "Upload image success", uploadService.upload(uploadRequest)));
     }
 
+    @DeleteMapping("")
+    public ResponseEntity<ResponseSuccess<Void>> deleteFile(@RequestParam String url) {
+        uploadService.deleteFile(url);
+        return ResponseEntity.ok(new ResponseSuccess<>(HttpStatus.OK, "Xóa ảnh thành công", null));
+    }
 }
