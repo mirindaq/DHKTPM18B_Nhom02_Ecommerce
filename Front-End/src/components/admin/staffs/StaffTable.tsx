@@ -24,7 +24,7 @@ interface StaffTableProps {
 export default function StaffTable({
   staffs,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
   onToggleStatus,
   isLoading = false,
   currentPage = 1,
@@ -108,7 +108,11 @@ export default function StaffTable({
                   <TableCell>
                     <div className="w-12 h-12 rounded-full overflow-hidden border">
                       <img
-                        src={staff.avatar?.trim() ? staff.avatar : "/assets/avatar.jpg"}
+                        src={
+                          staff.avatar?.trim()
+                            ? staff.avatar
+                            : "/assets/avatar.jpg"
+                        }
                         alt={staff.fullName}
                         className="w-full h-full object-cover"
                       />

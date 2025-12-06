@@ -1,46 +1,46 @@
-import { useState, useEffect } from 'react'
-import { productService } from '@/services/product.service'
-import ProductCard from '@/components/user/ProductCard'
-import { Loader2 } from 'lucide-react'
-import type { Product } from '@/types/product.type'
+import { useState, useEffect } from "react";
+import { productService } from "@/services/product.service";
+import ProductCard from "@/components/user/ProductCard";
+import { Loader2 } from "lucide-react";
+import type { Product } from "@/types/product.type";
 
 interface FeaturedProductsSectionProps {
-  title?: string
-  limit?: number
+  title?: string;
+  limit?: number;
 }
 
-export default function FeaturedProductsSection({ 
-  title = 'Sản phẩm nổi bật',
-  limit = 8 
+export default function FeaturedProductsSection({
+  title = "Sản phẩm nổi bật",
+  limit = 8,
 }: FeaturedProductsSectionProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        setLoading(true)
-        const response = await productService.getProducts(1, limit, '')
-        setProducts(response.data.data)
+        setLoading(true);
+        const response = await productService.getProducts(1, limit, {});
+        setProducts(response.data.data);
       } catch (error) {
-        console.error('Lỗi khi tải sản phẩm nổi bật:', error)
+        console.error("Lỗi khi tải sản phẩm nổi bật:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    loadProducts()
-  }, [limit])
+    };
+    loadProducts();
+  }, [limit]);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
       </div>
-    )
+    );
   }
 
   if (products.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -52,6 +52,5 @@ export default function FeaturedProductsSection({
         ))}
       </div>
     </div>
-  )
+  );
 }
-

@@ -8,11 +8,7 @@ import VoucherFilter from "@/components/admin/vouchers/VoucherFilter";
 import Pagination from "@/components/ui/pagination";
 import { useQuery, useMutation } from "@/hooks";
 import { voucherService } from "@/services/voucher.service";
-import type {
-  Voucher,
-  VoucherListResponse,
-  VoucherType,
-} from "@/types/voucher.type";
+import type { VoucherListResponse, VoucherType } from "@/types/voucher.type";
 
 export default function Vouchers() {
   const navigate = useNavigate();
@@ -29,9 +25,13 @@ export default function Vouchers() {
   }>({});
 
   // useQuery dựa trên filters
-  const { data: vouchersData, isLoading: isLoadingVouchers, refetch: refetchVouchers } =
-    useQuery<VoucherListResponse>(
-      () => voucherService.getVouchers(
+  const {
+    data: vouchersData,
+    isLoading: isLoadingVouchers,
+    refetch: refetchVouchers,
+  } = useQuery<VoucherListResponse>(
+    () =>
+      voucherService.getVouchers(
         currentPage,
         pageSize,
         searchParams.name || "",
@@ -40,15 +40,15 @@ export default function Vouchers() {
         searchParams.startDate,
         searchParams.endDate
       ),
-      {
-        queryKey: [
-          "vouchers", 
-          currentPage.toString(), 
-          pageSize.toString(), 
-          JSON.stringify(searchParams)
-        ],
-      }
-    );
+    {
+      queryKey: [
+        "vouchers",
+        currentPage.toString(),
+        pageSize.toString(),
+        JSON.stringify(searchParams),
+      ],
+    }
+  );
 
   const vouchers = vouchersData?.data?.data || [];
   const pagination = vouchersData?.data;
@@ -93,16 +93,16 @@ export default function Vouchers() {
   const getActiveVouchersCount = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return vouchers.filter((voucher) => {
       if (!voucher.active) return false;
-      
+
       const startDate = new Date(voucher.startDate);
       startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = new Date(voucher.endDate);
       endDate.setHours(23, 59, 59, 999);
-      
+
       return today >= startDate && today <= endDate;
     }).length;
   };
@@ -114,13 +114,13 @@ export default function Vouchers() {
   const getExpiredVouchersCount = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return vouchers.filter((voucher) => {
       if (!voucher.active) return false;
-      
+
       const endDate = new Date(voucher.endDate);
       endDate.setHours(23, 59, 59, 999);
-      
+
       return today > endDate;
     }).length;
   };
@@ -194,10 +194,10 @@ export default function Vouchers() {
       {/* Pagination */}
       {pagination && pagination.totalPage > 1 && (
         <div className="flex justify-center">
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={pagination.totalPage} 
-            onPageChange={handlePageChange} 
+          <Pagination
+            currentPage={currentPage}
+            totalPages={pagination.totalPage}
+            onPageChange={handlePageChange}
           />
         </div>
       )}

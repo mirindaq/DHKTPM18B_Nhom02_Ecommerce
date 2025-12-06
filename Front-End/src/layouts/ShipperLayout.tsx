@@ -35,7 +35,7 @@ const navigation = [
 
 export default function ShipperLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
+  useNavigate();
   const { logout } = useUser();
 
   const handleLogout = async () => {

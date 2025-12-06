@@ -1,79 +1,86 @@
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Heart, Star, Loader2 } from "lucide-react"
-import { useNavigate } from "react-router"
-import { PUBLIC_PATH } from "@/constants/path"
-import type { Product } from "@/types/product.type"
-import { useWishlist } from "@/hooks/useWishlist"
-import { useUser } from "@/context/UserContext"
-import LoginModal from "@/components/user/LoginModal"
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Heart, Star, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router";
+import { PUBLIC_PATH } from "@/constants/path";
+import type { Product } from "@/types/product.type";
+import { useWishlist } from "@/hooks/useWishlist";
+import { useUser } from "@/context/UserContext";
+import LoginModal from "@/components/user/LoginModal";
 
 interface ProductCardProps {
-  product: Product
+  product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const navigate = useNavigate()
-  const { isAuthenticated } = useUser()
-  const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist()
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  
+  const navigate = useNavigate();
+  const { isAuthenticated } = useUser();
+  const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
   // Tìm variant có giá thấp nhất
   const lowestPriceVariant = product.variants?.reduce((lowest, variant) => {
-    if (!lowest) return variant
-    const lowestPrice = lowest.oldPrice > 0 
-      ? lowest.oldPrice * (1 - (lowest.discount || 0) / 100)
-      : lowest.price
-    const variantPrice = variant.oldPrice > 0
-      ? variant.oldPrice * (1 - (variant.discount || 0) / 100)
-      : variant.price
-    return variantPrice < lowestPrice ? variant : lowest
-  }, product.variants?.[0])
-  
-  const currentPrice = lowestPriceVariant?.price || 0
-  const oldPrice = lowestPriceVariant?.oldPrice || 0
-  const discountPercent = lowestPriceVariant?.discount || 0
+    if (!lowest) return variant;
+    const lowestPrice =
+      lowest.oldPrice > 0
+        ? lowest.oldPrice * (1 - (lowest.discount || 0) / 100)
+        : lowest.price;
+    const variantPrice =
+      variant.oldPrice > 0
+        ? variant.oldPrice * (1 - (variant.discount || 0) / 100)
+        : variant.price;
+    return variantPrice < lowestPrice ? variant : lowest;
+  }, product.variants?.[0]);
 
-  const finalPrice = oldPrice > 0 ? oldPrice * (1 - discountPercent / 100) : currentPrice
+  const currentPrice = lowestPriceVariant?.price || 0;
+  const oldPrice = lowestPriceVariant?.oldPrice || 0;
+  const discountPercent = lowestPriceVariant?.discount || 0;
 
-  const productId = product.id || 0
-  const inWishlist = productId > 0 ? isInWishlist(productId) : false
-  const isLoading = isAdding || isRemoving
+  const finalPrice =
+    oldPrice > 0 ? oldPrice * (1 - discountPercent / 100) : currentPrice;
+
+  const productId = product.id || 0;
+  const inWishlist = productId > 0 ? isInWishlist(productId) : false;
+  const isLoading = isAdding || isRemoving;
 
   // Lấy các variant values để hiển thị (giới hạn 3 values)
-  const variantOptions = product.variants?.slice(0, 3).flatMap(variant => 
-    variant.productVariantValues.map(pv => pv.variantValue.value)
-  ).filter((value, index, self) => self.indexOf(value) === index).slice(0, 3) || []
+  const variantOptions =
+    product.variants
+      ?.slice(0, 3)
+      .flatMap((variant) =>
+        variant.productVariantValues.map((pv) => pv.variantValue.value)
+      )
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .slice(0, 3) || [];
 
   const handleProductClick = () => {
-    navigate(`${PUBLIC_PATH.HOME}product/${product.slug}`)
-  }
+    navigate(`${PUBLIC_PATH.HOME}product/${product.slug}`);
+  };
 
   const handleWishlistClick = (e: React.MouseEvent) => {
-    e.stopPropagation() // Ngăn chặn sự kiện click lan ra Card
-    
+    e.stopPropagation(); // Ngăn chặn sự kiện click lan ra Card
+
     if (!isAuthenticated) {
-      setShowLoginModal(true)
-      return
+      setShowLoginModal(true);
+      return;
     }
 
     if (productId > 0) {
-      toggleWishlist(productId)
+      toggleWishlist(productId);
     }
-  }
+  };
 
   // Format giá tiền
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
 
   return (
-    <div 
+    <div
       className="group relative overflow-hidden bg-white rounded-sm border border-gray-200 hover:border-blue-400 transition-all duration-200 cursor-pointer"
       onClick={handleProductClick}
     >
@@ -84,14 +91,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200 p-2"
         />
-        
+
         {/* Badges overlay */}
         {discountPercent > 0 && (
           <Badge className="absolute top-2 left-2 bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded">
             -{discountPercent}%
           </Badge>
         )}
-        
+
         {/* Wishlist Button */}
         <Button
           variant="ghost"
@@ -121,7 +128,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {variantOptions.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {variantOptions.map((option, index) => (
-              <span 
+              <span
                 key={index}
                 className="inline-flex items-center text-xs text-gray-700 bg-white border border-gray-300 px-2 py-0.5 rounded"
               >
@@ -158,13 +165,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Rating */}
         <div className="flex items-center gap-1.5 pt-1">
           <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-          <span className="text-base font-medium text-gray-600">{product.rating || 4.9}</span>
+          <span className="text-base font-medium text-gray-600">
+            {product.rating || 4.9}
+          </span>
           <span className="text-sm text-gray-400 ml-1">| Đã bán 1k+</span>
         </div>
       </div>
-      
+
       {/* Login Modal */}
       <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
     </div>
-  )
+  );
 }

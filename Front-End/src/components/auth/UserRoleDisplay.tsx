@@ -1,8 +1,8 @@
 import React from "react";
-import { useUser, ROLES } from "@/context/UserContext";
+import { useUser } from "@/context/UserContext";
 
 const UserRoleDisplay: React.FC = () => {
-  const { user, isAdmin, isStaff, isShipper, isUser, logout } = useUser();
+  const { user, isAdmin, isStaff, isShipper, isCustomer, logout } = useUser();
 
   if (!user) return null;
 
@@ -21,7 +21,7 @@ const UserRoleDisplay: React.FC = () => {
         color: "bg-green-500",
         textColor: "text-green-700",
       };
-    if (isUser)
+    if (isCustomer)
       return { text: "User", color: "bg-gray-500", textColor: "text-gray-700" };
     return {
       text: "Unknown",

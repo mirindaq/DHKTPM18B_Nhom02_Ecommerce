@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { addressService } from "@/services/address.service";
 import { authService } from "@/services/auth.service";
 import { provinceService } from "@/services/province.service";
@@ -356,9 +356,7 @@ export default function Address() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-red-600" />
-            <span className="font-medium text-gray-900">
-              Danh sách địa chỉ
-            </span>
+            <span className="font-medium text-gray-900">Danh sách địa chỉ</span>
           </div>
           <Button
             onClick={() => openModal()}
@@ -391,7 +389,10 @@ export default function Address() {
               <p className="text-gray-600 mb-6">
                 Thêm địa chỉ giao hàng đầu tiên của bạn để bắt đầu mua sắm
               </p>
-              <Button onClick={() => openModal()} className="inline-flex items-center gap-2">
+              <Button
+                onClick={() => openModal()}
+                className="inline-flex items-center gap-2"
+              >
                 <Plus className="w-4 h-4" />
                 <span>Thêm địa chỉ mới</span>
               </Button>
@@ -436,7 +437,10 @@ export default function Address() {
                           <p className="font-medium">{address.subAddress}</p>
                           {address.fullAddress && (
                             <p className="text-sm text-gray-500 mt-1">
-                              {address.fullAddress.replace(/\b[Pp]hường\s*/g, "")}
+                              {address.fullAddress.replace(
+                                /\b[Pp]hường\s*/g,
+                                ""
+                              )}
                             </p>
                           )}
                         </div>
@@ -515,7 +519,6 @@ export default function Address() {
             </div>
 
             <div className="p-6">
-
               {/* Lỗi validation trong modal */}
               {Object.keys(errors).length > 0 && (
                 <Alert className="mb-4 bg-red-50 border-red-200">
@@ -585,7 +588,7 @@ export default function Address() {
                     Tỉnh / Thành phố <span className="text-red-500">*</span>
                   </label>
                   <select
-                      disabled={provincesLoading}
+                    disabled={provincesLoading}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
                       provincesLoading
                         ? "bg-gray-100 cursor-not-allowed text-gray-500"
@@ -726,7 +729,7 @@ export default function Address() {
                     updateAddressMutation.isLoading
                   }
                 >
-                  Hủy 
+                  Hủy
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -756,5 +759,4 @@ export default function Address() {
       )}
     </div>
   );
-};
-
+}

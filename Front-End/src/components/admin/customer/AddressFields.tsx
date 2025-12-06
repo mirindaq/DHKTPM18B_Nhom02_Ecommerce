@@ -3,23 +3,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Trash2 } from "lucide-react";
-import { customerService } from "@/services/customer.service";
-import { toast } from "sonner";
-import { useState } from "react";
-import type { AddressFormData } from '@/types/customer.type';
+import type { AddressFormData } from "@/types/customer.type";
 
 interface AddressFieldsProps {
-    address: AddressFormData; // thay any
-    index: number;
-    provinces: any[];
-    wards: any[];
-    onProvinceChange: (provinceCode: string) => void;
-    onAddressChange: (index: number, field: keyof AddressFormData, value: any) => void; // <-- sửa đây
-    onRemove: (index: number) => void;
-    isRemovable?: boolean;
-    isNewCustomer?: boolean;
-  }
-  
+  address: AddressFormData;
+  index: number;
+  provinces: any[];
+  wards: any[];
+  onProvinceChange: (provinceCode: string) => void;
+  onAddressChange: (
+    index: number,
+    field: keyof AddressFormData,
+    value: any
+  ) => void;
+  onRemove: (index: number) => void;
+  isRemovable?: boolean;
+  isNewCustomer?: boolean;
+}
 
 export default function AddressFields({
   address,
@@ -30,37 +30,31 @@ export default function AddressFields({
   onAddressChange,
   onRemove,
   isRemovable = true,
-  isNewCustomer = false,
+  isNewCustomer: _isNewCustomer = false,
 }: AddressFieldsProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
- const handleDeleteAddress = async () => {
-  onRemove(index);
-};
-
+  const handleDeleteAddress = async () => {
+    onRemove(index);
+  };
 
   return (
     <div className="relative border rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
-      <h4 className="text-sm font-semibold text-blue-700 flex items-center gap-2">
-        <MapPin className="h-4 w-4" /> Địa chỉ {index + 1}
-            </h4>
+        <h4 className="text-sm font-semibold text-blue-700 flex items-center gap-2">
+          <MapPin className="h-4 w-4" /> Địa chỉ {index + 1}
+        </h4>
         {isRemovable && (
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={handleDeleteAddress}
-            disabled={isDeleting}
             className="text-red-500 hover:bg-red-50"
           >
-            <Trash2 className={`h-4 w-4 ${isDeleting ? "animate-spin" : ""}`} />
+            <Trash2 className="h-4 w-4" />
           </Button>
         )}
-      </div>
-
+      </div>{" "}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  
         <div>
           <Label>Tên người nhận *</Label>
           <Input
@@ -109,16 +103,19 @@ export default function AddressFields({
           <Label>Địa chỉ chi tiết (Số nhà, Tên đường) *</Label>
           <Input
             value={address.subAddress || ""}
-            onChange={(e) => onAddressChange(index, "subAddress", e.target.value)}
+            onChange={(e) =>
+              onAddressChange(index, "subAddress", e.target.value)
+            }
             placeholder="Ví dụ: 123 Đường ABC, Phường XYZ"
           />
         </div>
       </div>
-
       <div className="flex items-center gap-2 mt-3">
         <Checkbox
           checked={address.isDefault || false}
-          onCheckedChange={(checked) => onAddressChange(index, "isDefault", !!checked)}
+          onCheckedChange={(checked) =>
+            onAddressChange(index, "isDefault", !!checked)
+          }
         />
         <Label>Đặt làm địa chỉ mặc định</Label>
       </div>

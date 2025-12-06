@@ -17,6 +17,7 @@ export type Variant = {
   category: Category;
   slug: string;
   variantValues: VariantValue[];
+  createdAt?: string;
 };
 
 export type CreateVariantValueRequest = {

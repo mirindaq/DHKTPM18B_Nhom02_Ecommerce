@@ -1,32 +1,41 @@
-import { Search, Plus, User, Check, Loader2, CreditCard, Wallet, Package } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { PaymentMethod } from '@/types/order.type'
+import {
+  Search,
+  Plus,
+  User,
+  Check,
+  Loader2,
+  CreditCard,
+  Wallet,
+  Package,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { PaymentMethod } from "@/types/order.type";
 
 interface CustomerInfoProps {
-  customerPhone: string
-  customerName: string
-  customerEmail: string
-  customerFound: boolean | null
-  isSearchingCustomer: boolean
-  paymentMethod: PaymentMethod
-  note: string
-  total: number
-  isSubmitting: boolean
-  formatPrice: (price: number) => string
-  onPhoneChange: (phone: string) => void
-  onSearchCustomer: () => void
-  onNameChange: (name: string) => void
-  onEmailChange: (email: string) => void
-  onNoteChange: (note: string) => void
-  onOpenAddCustomerModal: () => void
-  onOpenPaymentModal: () => void
-  onSubmit: () => void
+  customerPhone: string;
+  customerName: string;
+  customerEmail: string;
+  customerFound: boolean | null;
+  isSearchingCustomer: boolean;
+  paymentMethod: PaymentMethod;
+  note: string;
+  total: number;
+  isSubmitting: boolean;
+  formatPrice: (price: number) => string;
+  onPhoneChange: (phone: string) => void;
+  onSearchCustomer: () => void;
+  onNameChange?: (name: string) => void;
+  onEmailChange?: (email: string) => void;
+  onNoteChange: (note: string) => void;
+  onOpenAddCustomerModal: () => void;
+  onOpenPaymentModal: () => void;
+  onSubmit: () => void;
 }
 
 export default function CustomerInfo({
@@ -42,12 +51,12 @@ export default function CustomerInfo({
   formatPrice,
   onPhoneChange,
   onSearchCustomer,
-  onNameChange,
-  onEmailChange,
+  onNameChange: _onNameChange,
+  onEmailChange: _onEmailChange,
   onNoteChange,
   onOpenAddCustomerModal,
   onOpenPaymentModal,
-  onSubmit
+  onSubmit,
 }: CustomerInfoProps) {
   return (
     <Card>
@@ -69,7 +78,7 @@ export default function CustomerInfo({
                 placeholder="Nhập số điện thoại"
                 value={customerPhone}
                 onChange={(e) => onPhoneChange(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && onSearchCustomer()}
+                onKeyDown={(e) => e.key === "Enter" && onSearchCustomer()}
                 className="flex-1"
               />
               <Button
@@ -131,7 +140,7 @@ export default function CustomerInfo({
                 </Label>
                 <Input
                   id="customerEmail"
-                  value={customerEmail || 'Chưa có email'}
+                  value={customerEmail || "Chưa có email"}
                   disabled
                   className="mt-1.5 bg-gray-100"
                 />
@@ -156,21 +165,25 @@ export default function CustomerInfo({
           <Separator />
 
           <div>
-            <Label className="text-sm font-medium mb-2 block">Phương thức thanh toán</Label>
+            <Label className="text-sm font-medium mb-2 block">
+              Phương thức thanh toán
+            </Label>
             <Button
               variant="outline"
               className="w-full justify-between h-auto p-4 border-2 hover:border-blue-400"
               onClick={onOpenPaymentModal}
             >
               <div className="flex items-center gap-3">
-                {paymentMethod === 'CASH_ON_DELIVERY' ? (
+                {paymentMethod === "CASH_ON_DELIVERY" ? (
                   <>
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                       <Wallet className="w-5 h-5 text-green-600" />
                     </div>
                     <div className="text-left">
                       <div className="font-semibold text-sm">Tiền mặt</div>
-                      <div className="text-xs text-gray-500">Thanh toán tại quầy</div>
+                      <div className="text-xs text-gray-500">
+                        Thanh toán tại quầy
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -209,6 +222,5 @@ export default function CustomerInfo({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-
