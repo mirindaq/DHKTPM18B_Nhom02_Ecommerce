@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.repositories;
 import iuh.fit.ecommerce.entities.FilterValue;
 import iuh.fit.ecommerce.entities.ProductFilterValue;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,5 +20,9 @@ public interface ProductFilterValueRepository extends JpaRepository<ProductFilte
     List<FilterValue> findFilterValuesByProductId(@Param("productId") Long productId);
 
     void deleteAllByProductId(Long productId);
+
+    @Modifying
+    @Query("DELETE FROM ProductFilterValue pfv WHERE pfv.product.id = :productId")
+    void deleteByProductId(@Param("productId") Long productId);
 }
 

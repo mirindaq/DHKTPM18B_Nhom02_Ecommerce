@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import iuh.fit.ecommerce.dtos.request.product.ProductAddRequest;
+import iuh.fit.ecommerce.dtos.request.product.ProductUpdateRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,28 @@ public class ProductController {
                 OK,
                 "Get product detail by slug success",
                 productService.getProductBySlug(slug)
+        ));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseSuccess<ProductResponse>> updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductUpdateRequest productUpdateRequest
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Update product success",
+                productService.updateProduct(id, productUpdateRequest)
+        ));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ResponseSuccess<?>> changeStatusProduct(@PathVariable Long id) {
+        productService.changeStatusProduct(id);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Change product status success",
+                null
         ));
     }
 

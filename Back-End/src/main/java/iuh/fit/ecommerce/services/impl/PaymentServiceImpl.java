@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.entities.Order;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.repositories.*;
+import iuh.fit.ecommerce.services.EmailService;
 import iuh.fit.ecommerce.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -61,6 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final PayOS payOS;
+    private final EmailService emailService;
     private final int TIME_OUT = 15;
 
     @Override
@@ -168,6 +170,8 @@ public class PaymentServiceImpl implements PaymentService {
             if (!isStaffOrder && order.getCustomer() != null && order.getCustomer().getCart() != null) {
                 clearCart(order.getCustomer().getCart(), cartItemIds);
             }
+            // Gửi email xác nhận đơn hàng
+            sendOrderConfirmationEmail(order);
         } else {
             order.setStatus(PAYMENT_FAILED);
             restoreVariantStock(order);
@@ -237,6 +241,9 @@ public class PaymentServiceImpl implements PaymentService {
                 order.setStatus(PENDING);
                 clearCart(order.getCustomer().getCart(), cartItemIds);
                 orderRepository.save(order);
+                
+                // Gửi email xác nhận đơn hàng
+                sendOrderConfirmationEmail(order);
                 
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
                 String payDate = formatter.format(new Date());
@@ -430,5 +437,16 @@ public class PaymentServiceImpl implements PaymentService {
                                 URLEncoder.encode(entry.getValue()
                                         , StandardCharsets.US_ASCII))
                 .collect(Collectors.joining("&"));
+    }
+
+    private void sendOrderConfirmationEmail(Order order) {
+        try {
+            String customerEmail = order.getCustomer().getEmail();
+            if (customerEmail != null && !customerEmail.isBlank()) {
+                emailService.sendOrderConfirmation(customerEmail, order);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the payment callback
+        }
     }
 }

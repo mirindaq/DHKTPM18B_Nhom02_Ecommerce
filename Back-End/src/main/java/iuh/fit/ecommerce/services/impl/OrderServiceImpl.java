@@ -50,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
     private final PushNotificationService pushNotificationService;
     private final CustomerService customerService;
     private final VoucherService voucherService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -354,6 +355,8 @@ public class OrderServiceImpl implements OrderService {
             case CASH_ON_DELIVERY -> {
                 clearCart(cart, cartItemIds);
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
+                // Gửi email xác nhận đơn hàng
+                sendOrderConfirmationEmail(order);
                 return orderMapper.toResponse(order);
             }
             case VN_PAY -> {
@@ -365,6 +368,18 @@ public class OrderServiceImpl implements OrderService {
                 return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds, platform);
             }
             default -> throw new InvalidParamException("Unsupported payment method");
+        }
+    }
+
+    private void sendOrderConfirmationEmail(Order order) {
+        try {
+            String customerEmail = order.getCustomer().getEmail();
+            if (customerEmail != null && !customerEmail.isBlank()) {
+                emailService.sendOrderConfirmation(customerEmail, order);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the order
+            // Email is sent asynchronously, so this won't block
         }
     }
 

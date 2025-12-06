@@ -40,6 +40,14 @@ public class Product extends BaseEntity {
     @Column
     private Double rating;
 
+    @Column(name = "total_rating")
+    @Builder.Default
+    private Double totalRating = 0.0;
+
+    @Column(name = "review_count")
+    @Builder.Default
+    private Integer reviewCount = 0;
+
     @Column
     private String slug;
 

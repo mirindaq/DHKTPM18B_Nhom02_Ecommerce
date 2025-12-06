@@ -34,6 +34,7 @@ export const ADMIN_PATH = {
   CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
+  CARTS: "/admin/carts",
 };
 
 // Staff paths
@@ -47,6 +48,7 @@ export const STAFF_PATH = {
   ASSIGN_DELIVERY: "/staff/assign-delivery",
   SELL: "/staff/sell",
   PAYMENT_STATUS: "/staff/payment-status",
+  CARTS: "/staff/carts",
 };
 
 // Shipper paths
@@ -84,6 +86,12 @@ export const USER_PATH = {
   WISHLIST: "/profile/wishlist",
   MEMBERSHIP: "/profile/membership",
   ACCOUNT_INFO: "/profile/account",
+  VOUCHERS: "/profile/vouchers",
+  EDIT_PROFILE: "/profile/edit",
+  GUARANTEE_POLICY: "/profile/guarantee-policy",
+  WARRANTY_POLICY: "/profile/warranty-policy",
+  STUDENT_BENEFITS: "/profile/student-benefits",
+  TERMS: "/profile/terms",
   PAY: "/pay",
   PAY_SUCCESS: "/pay/success",
 };

@@ -94,6 +94,11 @@ const navigation = [
         href: "/admin/orders",
         icon: ShoppingCart,
       },
+      {
+        title: "Giỏ hàng khách",
+        href: "/admin/carts",
+        icon: ShoppingCart,
+      },
     ],
   },
   {
@@ -116,7 +121,7 @@ const navigation = [
         href: "/admin/banners",
         icon: Award,
       },
-    ]
+    ],
   },
   {
     title: "Quản lý người dùng",

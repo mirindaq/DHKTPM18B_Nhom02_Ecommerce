@@ -5,7 +5,7 @@ import { PUBLIC_PATH, USER_PATH } from "@/constants/path";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -67,7 +67,22 @@ export default function Profile() {
       setActiveSidebarMenu("Lịch sử mua hàng");
     } else if (pathname.includes(USER_PATH.ADDRESSES)) {
       setActiveSidebarMenu("Địa chỉ nhận hàng");
-    } else if (pathname === USER_PATH.PROFILE || pathname === `${USER_PATH.PROFILE}/`) {
+    } else if (pathname.includes(USER_PATH.VOUCHERS)) {
+      setActiveSidebarMenu("Voucher của tôi");
+    } else if (pathname.includes(USER_PATH.EDIT_PROFILE)) {
+      setActiveSidebarMenu("Thông tin tài khoản");
+    } else if (pathname.includes(USER_PATH.GUARANTEE_POLICY)) {
+      setActiveSidebarMenu("Bảo hành & Sửa chữa");
+    } else if (pathname.includes(USER_PATH.WARRANTY_POLICY)) {
+      setActiveSidebarMenu("Chính sách bảo hành");
+    } else if (pathname.includes(USER_PATH.TERMS)) {
+      setActiveSidebarMenu("Điều khoản sử dụng");
+    } else if (pathname.includes(USER_PATH.STUDENT_BENEFITS)) {
+      setActiveSidebarMenu("Ưu đãi S-Student và S-Teacher");
+    } else if (
+      pathname === USER_PATH.PROFILE ||
+      pathname === `${USER_PATH.PROFILE}/`
+    ) {
       // Nếu đang ở route gốc, giữ nguyên default state (overview)
       setActiveSidebarMenu("Tổng quan");
       setActiveTab("overview");
@@ -176,22 +191,61 @@ export default function Profile() {
       },
     },
     {
+      icon: <Ticket size={20} />,
+      label: "Voucher của tôi",
+      active: location.pathname.includes(USER_PATH.VOUCHERS),
+      onClick: () => {
+        setActiveSidebarMenu("Voucher của tôi");
+        navigate(USER_PATH.VOUCHERS);
+      },
+    },
+    {
       icon: <GraduationCap size={20} />,
       label: "Ưu đãi S-Student và S-Teacher",
-      active: activeSidebarMenu === "Ưu đãi S-Student và S-Teacher",
-      onClick: () =>
-        handleMenuClick("Ưu đãi S-Student và S-Teacher", "student"),
+      active: location.pathname.includes(USER_PATH.STUDENT_BENEFITS),
+      onClick: () => {
+        setActiveSidebarMenu("Ưu đãi S-Student và S-Teacher");
+        navigate(USER_PATH.STUDENT_BENEFITS);
+      },
     },
     {
       icon: <User size={20} />,
       label: "Thông tin tài khoản",
       active: activeSidebarMenu === "Thông tin tài khoản",
-      onClick: () => handleMenuClick("Thông tin tài khoản", "account"),
+      onClick: () => {
+        setActiveSidebarMenu("Thông tin tài khoản");
+        navigate(USER_PATH.EDIT_PROFILE);
+      },
     },
     { icon: <MapPin size={20} />, label: "Tìm kiếm cửa hàng" },
-    { icon: <Shield size={20} />, label: "Chính sách bảo hành" },
+    {
+      icon: <Shield size={20} />,
+      label: "Bảo hành & Sửa chữa",
+      active: location.pathname.includes(USER_PATH.GUARANTEE_POLICY),
+      onClick: () => {
+        setActiveSidebarMenu("Bảo hành & Sửa chữa");
+        navigate(USER_PATH.GUARANTEE_POLICY);
+      },
+    },
+    {
+      icon: <Shield size={20} />,
+      label: "Chính sách bảo hành",
+      active: location.pathname.includes(USER_PATH.WARRANTY_POLICY),
+      onClick: () => {
+        setActiveSidebarMenu("Chính sách bảo hành");
+        navigate(USER_PATH.WARRANTY_POLICY);
+      },
+    },
     { icon: <MessageSquare size={20} />, label: "Góp ý - Phản hồi - Hỗ trợ" },
-    { icon: <Book size={20} />, label: "Điều khoản sử dụng" },
+    {
+      icon: <Book size={20} />,
+      label: "Điều khoản sử dụng",
+      active: location.pathname.includes(USER_PATH.TERMS),
+      onClick: () => {
+        setActiveSidebarMenu("Điều khoản sử dụng");
+        navigate(USER_PATH.TERMS);
+      },
+    },
     {
       icon: isLoggingOut ? (
         <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
@@ -428,6 +482,9 @@ export default function Profile() {
             {/* Left: User Info */}
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
+                {user.avatar ? (
+                  <AvatarImage src={user.avatar} alt={user.fullName} />
+                ) : null}
                 <AvatarFallback className="bg-pink-100 text-red-600 text-2xl">
                   <User size={32} />
                 </AvatarFallback>

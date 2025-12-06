@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,13 +19,16 @@ import {
   GitCompareArrows,
   Send,
   Loader2,
+  User,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
 import { productService } from "@/services/product.service";
 import { productQuestionService } from "@/services/productQuestion.service";
+import { feedbackService } from "@/services/feedback.service";
 import { PUBLIC_PATH } from "@/constants/path";
 import type { Product, ProductVariantResponse } from "@/types/product.type";
+import type { Feedback, RatingStatistics } from "@/types/feedback.type";
 import { toast } from "sonner";
 import LoginModal from "@/components/user/LoginModal";
 import QuestionItem from "@/components/user/QuestionItem";
@@ -39,16 +42,24 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
   const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist();
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariantResponse | null>(null);
+  const [selectedVariant, setSelectedVariant] =
+    useState<ProductVariantResponse | null>(null);
   // Dynamic state for attributes and variants
   const [attributes, setAttributes] = useState<any[]>([]);
-  const [availableVariants, setAvailableVariants] = useState<{ [key: string]: string[] }>({});
-  const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
+  const [availableVariants, setAvailableVariants] = useState<{
+    [key: string]: string[];
+  }>({});
+  const [selectedVariants, setSelectedVariants] = useState<{
+    [key: string]: string;
+  }>({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [questionContent, setQuestionContent] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [allQuestions, setAllQuestions] = useState<any[]>([]);
+  const [feedbackRatingFilter, setFeedbackRatingFilter] = useState<
+    number | null
+  >(null);
   const pageSize = 5;
 
   // Extract variants from API data dynamically
@@ -58,11 +69,12 @@ export default function ProductDetail() {
     const variantGroups: { [key: string]: Set<string> } = {};
     const defaultSelections: { [key: string]: string } = {};
 
-    product.variants.forEach(variant => {
+    product.variants.forEach((variant) => {
       if (variant.productVariantValues) {
-        variant.productVariantValues.forEach(variantValue => {
+        variant.productVariantValues.forEach((variantValue) => {
           const { value } = variantValue.variantValue;
-          const variantName = variantValue.variantValue.variantName || 'Mặc định';
+          const variantName =
+            variantValue.variantValue.variantName || "Mặc định";
 
           if (!variantGroups[variantName]) {
             variantGroups[variantName] = new Set();
@@ -74,7 +86,7 @@ export default function ProductDetail() {
 
     // Convert Sets to Arrays and set defaults
     const availableVariants: { [key: string]: string[] } = {};
-    Object.keys(variantGroups).forEach(variantName => {
+    Object.keys(variantGroups).forEach((variantName) => {
       availableVariants[variantName] = Array.from(variantGroups[variantName]);
       defaultSelections[variantName] = availableVariants[variantName][0];
     });
@@ -84,33 +96,84 @@ export default function ProductDetail() {
   };
 
   // Load product data from API
-  const { data: productData, isLoading: loading, error } = useQuery<{ status: number; data: Product }>(
+  const {
+    data: productData,
+    isLoading: loading,
+    error,
+  } = useQuery<{ status: number; data: Product }>(
     () => productService.getProductBySlug(slug!),
     {
-      queryKey: ['product', slug || ''],
+      queryKey: ["product", slug || ""],
       enabled: !!slug,
       onError: (err) => {
-        console.error('Error loading product:', err);
-      }
+        console.error("Error loading product:", err);
+      },
     }
   );
 
   const product = productData?.data || null;
 
   // Load product questions
-  const { data: questionsData, isLoading: questionsLoading, refetch: refetchQuestions } = useQuery(
-    () => productQuestionService.getProductQuestionsBySlug(slug!, currentPage, pageSize),
+  const {
+    data: questionsData,
+    isLoading: questionsLoading,
+    refetch: refetchQuestions,
+  } = useQuery(
+    () =>
+      productQuestionService.getProductQuestionsBySlug(
+        slug!,
+        currentPage,
+        pageSize
+      ),
     {
-      queryKey: ['product-questions', slug || '', currentPage.toString()],
+      queryKey: ["product-questions", slug || "", currentPage.toString()],
       enabled: !!slug,
       onError: (err) => {
-        console.error('Error loading product questions:', err);
-      }
+        console.error("Error loading product questions:", err);
+      },
     }
   );
 
   const totalPages = questionsData?.data?.totalPage || 1;
   const totalItems = questionsData?.data?.totalItem || 0;
+
+  // Load product feedbacks
+  const { data: feedbacksData, isLoading: feedbacksLoading } = useQuery(
+    () =>
+      feedbackService.getFeedbacksByProduct(
+        product?.id || 0,
+        1,
+        5,
+        feedbackRatingFilter || undefined
+      ),
+    {
+      queryKey: [
+        "product-feedbacks",
+        product?.id?.toString() || "",
+        feedbackRatingFilter?.toString() || "all",
+      ],
+      enabled: !!product?.id,
+      onError: (err) => {
+        console.error("Error loading product feedbacks:", err);
+      },
+    }
+  );
+
+  // Load rating statistics
+  const { data: statisticsData, isLoading: statisticsLoading } = useQuery(
+    () => feedbackService.getRatingStatistics(product?.id || 0),
+    {
+      queryKey: ["product-statistics", product?.id?.toString() || ""],
+      enabled: !!product?.id,
+      onError: (err) => {
+        console.error("Error loading rating statistics:", err);
+      },
+    }
+  );
+
+  const feedbacks: Feedback[] = feedbacksData?.data?.content || [];
+  const totalFeedbacks = feedbacksData?.data?.totalElements || 0;
+  const statistics: RatingStatistics | null = statisticsData?.data || null;
 
   // Cập nhật danh sách câu hỏi khi load thêm
   useEffect(() => {
@@ -119,7 +182,7 @@ export default function ProductDetail() {
       if (currentPage === 1) {
         setAllQuestions(newQuestions);
       } else {
-        setAllQuestions(prev => [...prev, ...newQuestions]);
+        setAllQuestions((prev) => [...prev, ...newQuestions]);
       }
     }
   }, [questionsData, currentPage]);
@@ -132,14 +195,13 @@ export default function ProductDetail() {
         setSelectedVariant(product.variants[0]);
         extractVariantsFromProduct(product);
       }
-
     }
   }, [product?.id]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
@@ -147,22 +209,22 @@ export default function ProductDetail() {
   const findMatchingVariant = () => {
     if (!product?.variants) return null;
 
-    return product.variants.find(variant => {
+    return product.variants.find((variant) => {
       if (!variant.productVariantValues) return false;
 
       // Get all variant values for this variant
-      const variantValues = variant.productVariantValues.map(vv => ({
+      const variantValues = variant.productVariantValues.map((vv) => ({
         name: vv.variantValue.variantName,
-        value: vv.variantValue.value
+        value: vv.variantValue.value,
       }));
 
       // Check if all selected variants match this variant
-      return Object.keys(selectedVariants).every(variantName => {
+      return Object.keys(selectedVariants).every((variantName) => {
         const selectedValue = selectedVariants[variantName];
         if (!selectedValue) return true;
 
-        return variantValues.some(vv =>
-          vv.name === variantName && vv.value === selectedValue
+        return variantValues.some(
+          (vv) => vv.name === variantName && vv.value === selectedValue
         );
       });
     });
@@ -179,45 +241,48 @@ export default function ProductDetail() {
   }, [selectedVariants, product?.id]);
 
   const addToCartMutation = useMutation(
-    (data: { productVariantId: number; quantity: number }) => cartService.addProductToCart(data),
+    (data: { productVariantId: number; quantity: number }) =>
+      cartService.addProductToCart(data),
     {
       onSuccess: () => {
-        toast.success('Đã thêm vào giỏ hàng thành công!');
+        toast.success("Đã thêm vào giỏ hàng thành công!");
       },
       onError: () => {
-        toast.error('Không thể thêm vào giỏ hàng');
-      }
+        toast.error("Không thể thêm vào giỏ hàng");
+      },
     }
   );
 
   const createQuestionMutation = useMutation(
-    (data: { content: string; productId: number }) => productQuestionService.createProductQuestion(data),
+    (data: { content: string; productId: number }) =>
+      productQuestionService.createProductQuestion(data),
     {
       onSuccess: () => {
-        toast.success('Câu hỏi đã được gửi thành công!');
+        toast.success("Câu hỏi đã được gửi thành công!");
         setQuestionContent("");
         setAllQuestions([]); // Reset danh sách câu hỏi
         setCurrentPage(1); // Reset về trang đầu khi thêm câu hỏi mới
         refetchQuestions();
       },
       onError: () => {
-        toast.error('Không thể gửi câu hỏi');
-      }
+        toast.error("Không thể gửi câu hỏi");
+      },
     }
   );
 
   const createAnswerMutation = useMutation(
-    (data: { content: string; productQuestionId: number }) => productQuestionService.createProductQuestionAnswer(data),
+    (data: { content: string; productQuestionId: number }) =>
+      productQuestionService.createProductQuestionAnswer(data),
     {
       onSuccess: () => {
-        toast.success('Trả lời đã được gửi thành công!');
+        toast.success("Trả lời đã được gửi thành công!");
         setAllQuestions([]); // Reset danh sách câu hỏi
         setCurrentPage(1); // Reset về trang đầu khi thêm câu trả lời mới
         refetchQuestions();
       },
       onError: () => {
-        toast.error('Không thể gửi trả lời');
-      }
+        toast.error("Không thể gửi trả lời");
+      },
     }
   );
 
@@ -231,17 +296,17 @@ export default function ProductDetail() {
     const matchingVariant = findMatchingVariant();
 
     if (!matchingVariant) {
-      console.error('Không tìm thấy variant phù hợp với lựa chọn hiện tại');
-      toast.error('Không tìm thấy sản phẩm phù hợp');
+      console.error("Không tìm thấy variant phù hợp với lựa chọn hiện tại");
+      toast.error("Không tìm thấy sản phẩm phù hợp");
       return;
     }
 
-    console.log('Selected variants:', selectedVariants);
-    console.log('Matching variant ID:', matchingVariant.id);
+    console.log("Selected variants:", selectedVariants);
+    console.log("Matching variant ID:", matchingVariant.id);
 
     await addToCartMutation.mutate({
       productVariantId: matchingVariant.id,
-      quantity: 1
+      quantity: 1,
     });
   };
 
@@ -255,12 +320,12 @@ export default function ProductDetail() {
     const matchingVariant = findMatchingVariant();
 
     if (!matchingVariant) {
-      console.error('Không tìm thấy variant phù hợp với lựa chọn hiện tại');
+      console.error("Không tìm thấy variant phù hợp với lựa chọn hiện tại");
       return;
     }
 
-    console.log('Buy now - Selected variants:', selectedVariants);
-    console.log('Buy now - Matching variant ID:', matchingVariant.id);
+    console.log("Buy now - Selected variants:", selectedVariants);
+    console.log("Buy now - Matching variant ID:", matchingVariant.id);
 
     // Logic mua ngay - có thể lưu variant ID vào state hoặc localStorage
     navigate(`${PUBLIC_PATH.HOME}checkout`);
@@ -273,18 +338,18 @@ export default function ProductDetail() {
     }
 
     if (!questionContent.trim()) {
-      toast.error('Vui lòng nhập câu hỏi');
+      toast.error("Vui lòng nhập câu hỏi");
       return;
     }
 
     if (!product?.id) {
-      toast.error('Không tìm thấy thông tin sản phẩm');
+      toast.error("Không tìm thấy thông tin sản phẩm");
       return;
     }
 
     await createQuestionMutation.mutate({
       content: questionContent.trim(),
-      productId: product.id
+      productId: product.id,
     });
   };
 
@@ -295,21 +360,21 @@ export default function ProductDetail() {
     }
 
     if (!content.trim()) {
-      toast.error('Vui lòng nhập câu trả lời');
+      toast.error("Vui lòng nhập câu trả lời");
       return;
     }
 
     await createAnswerMutation.mutate({
       content: content.trim(),
-      productQuestionId: questionId
+      productQuestionId: questionId,
     });
   };
 
   // Handle variant selection
   const handleVariantSelection = (variantName: string, value: string) => {
-    setSelectedVariants(prev => ({
+    setSelectedVariants((prev) => ({
       ...prev,
-      [variantName]: value
+      [variantName]: value,
     }));
   };
 
@@ -384,7 +449,9 @@ export default function ProductDetail() {
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Không tìm thấy sản phẩm
             </h2>
-            <p className="text-gray-600 mb-6">Sản phẩm có thể đã bị xóa hoặc không tồn tại</p>
+            <p className="text-gray-600 mb-6">
+              Sản phẩm có thể đã bị xóa hoặc không tồn tại
+            </p>
             <Button
               onClick={() => navigate(PUBLIC_PATH.HOME)}
               className="w-full"
@@ -403,13 +470,21 @@ export default function ProductDetail() {
       <div className="bg-white/80 backdrop-blur-sm border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <nav className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">Trang chủ</span>
+            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
+              Trang chủ
+            </span>
             <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">Laptop</span>
+            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
+              Laptop
+            </span>
             <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">ASUS</span>
+            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
+              ASUS
+            </span>
             <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-900 font-medium truncate">{product.name}</span>
+            <span className="text-gray-900 font-medium truncate">
+              {product.name}
+            </span>
           </nav>
         </div>
       </div>
@@ -419,14 +494,20 @@ export default function ProductDetail() {
           {/* Left Column - Product Images & Info */}
           <div className="lg:col-span-7 space-y-8">
             {/* Product Title */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {product.name}
+            </h1>
             <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
               <button
                 onClick={handleWishlistToggle}
                 disabled={isLoadingWishlist || productId === 0}
                 className={`flex items-center space-x-1 transition-colors hover:text-red-500 ${
                   inWishlist ? "text-red-500" : "text-gray-500"
-                } ${isLoadingWishlist ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                } ${
+                  isLoadingWishlist
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
                 title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
               >
                 {isLoadingWishlist ? (
@@ -476,10 +557,11 @@ export default function ProductDetail() {
                   {product.productImages.map((image, index) => (
                     <div
                       key={index}
-                      className={`relative shrink-0 cursor-pointer group transition-all duration-200 ${index === currentImageIndex
-                        ? 'ring-2 ring-red-500 ring-offset-2 scale-105'
-                        : 'hover:scale-105'
-                        }`}
+                      className={`relative shrink-0 cursor-pointer group transition-all duration-200 ${
+                        index === currentImageIndex
+                          ? "ring-2 ring-red-500 ring-offset-2 scale-105"
+                          : "hover:scale-105"
+                      }`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
                       <div className="relative overflow-hidden rounded-lg">
@@ -524,8 +606,12 @@ export default function ProductDetail() {
                       <Check className="w-5 h-5 text-green-600" />
                     </div>
                     <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">Nguyên hộp, đầy đủ phụ kiện từ nhà sản xuất</p>
-                      <p className="text-sm text-gray-600">Bảo hành pin và bộ sạc 12 tháng</p>
+                      <p className="font-semibold text-gray-900">
+                        Nguyên hộp, đầy đủ phụ kiện từ nhà sản xuất
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Bảo hành pin và bộ sạc 12 tháng
+                      </p>
                     </div>
                   </div>
 
@@ -534,8 +620,12 @@ export default function ProductDetail() {
                       <Shield className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">Bảo hành 24 tháng tại trung tâm bảo hành Chính hãng</p>
-                      <p className="text-sm text-gray-600">1 đổi 1 trong 30 ngày nếu có lỗi</p>
+                      <p className="font-semibold text-gray-900">
+                        Bảo hành 24 tháng tại trung tâm bảo hành Chính hãng
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        1 đổi 1 trong 30 ngày nếu có lỗi
+                      </p>
                     </div>
                   </div>
 
@@ -544,8 +634,12 @@ export default function ProductDetail() {
                       <Truck className="w-5 h-5 text-orange-600" />
                     </div>
                     <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">Giao hàng miễn phí toàn quốc</p>
-                      <p className="text-sm text-gray-600">Nhận hàng trong 24h tại TP.HCM, 2-3 ngày các tỉnh khác</p>
+                      <p className="font-semibold text-gray-900">
+                        Giao hàng miễn phí toàn quốc
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Nhận hàng trong 24h tại TP.HCM, 2-3 ngày các tỉnh khác
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -582,23 +676,26 @@ export default function ProductDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-baseline gap-3"> {/* Thay đổi: Chỉ giữ gap-3 để tách biệt giá mới và giá cũ */}
+                <div className="flex items-baseline gap-3">
+                  {" "}
+                  {/* Thay đổi: Chỉ giữ gap-3 để tách biệt giá mới và giá cũ */}
                   <span className="text-4xl font-bold text-red-600">
                     {formatPrice(selectedVariant?.price || 0)}
                   </span>
-
-                  {(selectedVariant && selectedVariant.discount > 0) && (
+                  {selectedVariant && selectedVariant.discount > 0 && (
                     <span className="text-xl text-gray-400 line-through">
                       {formatPrice(selectedVariant.oldPrice)}
                     </span>
                   )}
                 </div>
 
-                {(selectedVariant && selectedVariant.discount > 0) && (
+                {selectedVariant && selectedVariant.discount > 0 && (
                   <div className="text-sm mt-3">
                     Tiết kiệm:{" "}
                     <span className="font-semibold text-green-700">
-                      {formatPrice(selectedVariant.oldPrice - (selectedVariant?.price || 0))}
+                      {formatPrice(
+                        selectedVariant.oldPrice - (selectedVariant?.price || 0)
+                      )}
                     </span>
                   </div>
                 )}
@@ -620,9 +717,12 @@ export default function ProductDetail() {
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       onClick={() => {
                         const defaultSelections: { [key: string]: string } = {};
-                        Object.keys(availableVariants).forEach(variantName => {
-                          defaultSelections[variantName] = availableVariants[variantName][0];
-                        });
+                        Object.keys(availableVariants).forEach(
+                          (variantName) => {
+                            defaultSelections[variantName] =
+                              availableVariants[variantName][0];
+                          }
+                        );
                         setSelectedVariants(defaultSelections);
                       }}
                     >
@@ -633,36 +733,43 @@ export default function ProductDetail() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-8">
-                    {Object.keys(availableVariants).map((variantName, _index) => (
-                      <div key={variantName} className="space-y-4">
-                        <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                          {variantName.toUpperCase()}
-                        </h4>
+                    {Object.keys(availableVariants).map(
+                      (variantName, _index) => (
+                        <div key={variantName} className="space-y-4">
+                          <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            {variantName.toUpperCase()}
+                          </h4>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {availableVariants[variantName].map((value) => (
-                            <button
-                              key={value}
-                              className={`p-4 text-sm border rounded-xl transition-all duration-300 group ${selectedVariants[variantName] === value
-                                ? 'border-red-500 text-red-700 font-semibold shadow-md scale-105'
-                                : 'border-gray-200 hover:border-red-300 hover:bg-gray-50 text-gray-700 hover:shadow-sm hover:scale-102'
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {availableVariants[variantName].map((value) => (
+                              <button
+                                key={value}
+                                className={`p-4 text-sm border rounded-xl transition-all duration-300 group ${
+                                  selectedVariants[variantName] === value
+                                    ? "border-red-500 text-red-700 font-semibold shadow-md scale-105"
+                                    : "border-gray-200 hover:border-red-300 hover:bg-gray-50 text-gray-700 hover:shadow-sm hover:scale-102"
                                 }`}
-                              onClick={() => handleVariantSelection(variantName, value)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-left font-medium">{value}</span>
-                                {selectedVariants[variantName] === value && (
-                                  <div className="flex items-center gap-1">
-                                    <Check className="w-4 h-4 text-red-600" />
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                          ))}
+                                onClick={() =>
+                                  handleVariantSelection(variantName, value)
+                                }
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-left font-medium">
+                                    {value}
+                                  </span>
+                                  {selectedVariants[variantName] === value && (
+                                    <div className="flex items-center gap-1">
+                                      <Check className="w-4 h-4 text-red-600" />
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -670,7 +777,7 @@ export default function ProductDetail() {
 
             {/* Action Buttons */}
             <Card>
-              <CardContent >
+              <CardContent>
                 <div className="grid grid-cols-3 gap-3">
                   <Button
                     variant="outline"
@@ -686,7 +793,9 @@ export default function ProductDetail() {
                     onClick={handleBuyNow}
                   >
                     <div className="text-center">
-                      <div className="text-xl font-extrabold mb-1">MUA NGAY</div>
+                      <div className="text-xl font-extrabold mb-1">
+                        MUA NGAY
+                      </div>
                     </div>
                   </Button>
 
@@ -710,8 +819,6 @@ export default function ProductDetail() {
                     )}
                   </Button>
                 </div>
-
-
               </CardContent>
             </Card>
           </div>
@@ -725,7 +832,11 @@ export default function ProductDetail() {
                 <Settings className="w-6 h-6 text-blue-600" />
                 Thông số kỹ thuật
               </CardTitle>
-              <Button variant="ghost" size="lg" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
                 Xem tất cả <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
@@ -733,31 +844,282 @@ export default function ProductDetail() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                {attributes.slice(0, Math.ceil(attributes.length / 2)).map((attr, index) => (
-                  <div key={index} className="flex group hover:bg-gray-50 transition-colors rounded-lg">
-                    <div className="w-1/3 bg-linear-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
-                      {attr.attribute.name}
+                {attributes
+                  .slice(0, Math.ceil(attributes.length / 2))
+                  .map((attr, index) => (
+                    <div
+                      key={index}
+                      className="flex group hover:bg-gray-50 transition-colors rounded-lg"
+                    >
+                      <div className="w-1/3 bg-linear-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
+                        {attr.attribute.name}
+                      </div>
+                      <div className="w-2/3 bg-white p-4 text-gray-900 font-medium rounded-r-lg">
+                        {attr.value}
+                      </div>
                     </div>
-                    <div className="w-2/3 bg-white p-4 text-gray-900 font-medium rounded-r-lg">
-                      {attr.value}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
 
               <div className="space-y-4">
-                {attributes.slice(Math.ceil(attributes.length / 2)).map((attr, index) => (
-                  <div key={index} className="flex group hover:bg-gray-50 transition-colors rounded-lg">
-                    <div className="w-1/3 bg-linear-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
-                      {attr.attribute.name}
+                {attributes
+                  .slice(Math.ceil(attributes.length / 2))
+                  .map((attr, index) => (
+                    <div
+                      key={index}
+                      className="flex group hover:bg-gray-50 transition-colors rounded-lg"
+                    >
+                      <div className="w-1/3 bg-linear-to-r from-gray-100 to-gray-50 p-4 font-semibold text-gray-700 border-r border-gray-200 rounded-l-lg">
+                        {attr.attribute.name}
+                      </div>
+                      <div className="w-2/3 bg-white p-4 text-gray-900 font-medium rounded-r-lg">
+                        {attr.value}
+                      </div>
                     </div>
-                    <div className="w-2/3 bg-white p-4 text-gray-900 font-medium rounded-r-lg">
-                      {attr.value}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Reviews Section */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Đánh giá & nhận xét {product.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {statisticsLoading ? (
+              <div className="flex gap-8 mb-6">
+                <Skeleton className="h-32 w-48" />
+                <Skeleton className="h-32 flex-1" />
+              </div>
+            ) : statistics && statistics.totalReviews > 0 ? (
+              <>
+                {/* Rating Summary */}
+                <div className="flex gap-8 mb-6 p-6 bg-gray-50 rounded-lg">
+                  {/* Average Rating */}
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-red-600">
+                      {statistics.averageRating}
+                    </div>
+                    <div className="flex justify-center mt-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-5 h-5 ${
+                            star <= Math.round(statistics.averageRating)
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {statistics.totalReviews} đánh giá
+                    </div>
+                  </div>
+
+                  {/* Rating Distribution */}
+                  <div className="flex-1 space-y-2">
+                    {[
+                      { stars: 5, count: statistics.fiveStarCount },
+                      { stars: 4, count: statistics.fourStarCount },
+                      { stars: 3, count: statistics.threeStarCount },
+                      { stars: 2, count: statistics.twoStarCount },
+                      { stars: 1, count: statistics.oneStarCount },
+                    ].map(({ stars, count }) => (
+                      <div key={stars} className="flex items-center gap-2">
+                        <span className="w-12 text-sm text-gray-600">
+                          {stars} sao
+                        </span>
+                        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-yellow-400 rounded-full transition-all"
+                            style={{
+                              width: `${
+                                statistics.totalReviews > 0
+                                  ? (count / statistics.totalReviews) * 100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
+                        <span className="w-10 text-sm text-gray-500 text-right">
+                          {count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rating Filter Tabs */}
+                <div className="flex gap-2 mb-6 flex-wrap">
+                  <Button
+                    variant={
+                      feedbackRatingFilter === null ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setFeedbackRatingFilter(null)}
+                    className={
+                      feedbackRatingFilter === null
+                        ? "bg-red-600 hover:bg-red-700"
+                        : ""
+                    }
+                  >
+                    Tất cả ({statistics.totalReviews})
+                  </Button>
+                  {[5, 4, 3, 2, 1].map((rating) => {
+                    const counts: Record<number, number> = {
+                      5: statistics.fiveStarCount,
+                      4: statistics.fourStarCount,
+                      3: statistics.threeStarCount,
+                      2: statistics.twoStarCount,
+                      1: statistics.oneStarCount,
+                    };
+                    return (
+                      <Button
+                        key={rating}
+                        variant={
+                          feedbackRatingFilter === rating
+                            ? "default"
+                            : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setFeedbackRatingFilter(rating)}
+                        className={
+                          feedbackRatingFilter === rating
+                            ? "bg-red-600 hover:bg-red-700"
+                            : ""
+                        }
+                      >
+                        {rating}{" "}
+                        <Star className="w-3 h-3 ml-1 fill-yellow-400 text-yellow-400" />{" "}
+                        ({counts[rating]})
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {/* Feedbacks List */}
+                {feedbacksLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="p-4 border rounded-lg">
+                        <Skeleton className="h-4 w-1/4 mb-2" />
+                        <Skeleton className="h-3 w-3/4" />
+                      </div>
+                    ))}
+                  </div>
+                ) : feedbacks.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Star className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>Không có đánh giá nào với bộ lọc này</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {feedbacks.map((feedback) => (
+                      <div
+                        key={feedback.id}
+                        className="p-4 border rounded-lg hover:border-gray-300 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Avatar */}
+                          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                            <span className="text-red-600 font-semibold text-lg">
+                              {feedback.customerName
+                                ?.charAt(0)
+                                ?.toUpperCase() || <User className="w-5 h-5" />}
+                            </span>
+                          </div>
+
+                          <div className="flex-1">
+                            {/* Name and Rating */}
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-gray-800">
+                                {feedback.customerName}
+                              </span>
+                              <div className="flex">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`w-4 h-4 ${
+                                      star <= feedback.rating
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Date */}
+                            <div className="text-xs text-gray-500 mb-2">
+                              {feedback.createdAt
+                                ? new Date(
+                                    feedback.createdAt
+                                  ).toLocaleDateString("vi-VN", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })
+                                : ""}
+                            </div>
+
+                            {/* Comment */}
+                            {feedback.comment && (
+                              <p className="text-gray-700 mb-2">
+                                {feedback.comment}
+                              </p>
+                            )}
+
+                            {/* Images */}
+                            {feedback.imageUrls &&
+                              feedback.imageUrls.length > 0 && (
+                                <div className="flex gap-2 flex-wrap">
+                                  {feedback.imageUrls.map((url, index) => (
+                                    <img
+                                      key={index}
+                                      src={url}
+                                      alt={`Review image ${index + 1}`}
+                                      className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                                      onClick={() => window.open(url, "_blank")}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* View All Button */}
+                    {totalFeedbacks > 5 && (
+                      <div className="text-center pt-4">
+                        <Link to={`${PUBLIC_PATH.HOME}product/${slug}/reviews`}>
+                          <Button
+                            variant="outline"
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                          >
+                            Xem tất cả {totalFeedbacks} đánh giá
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Star className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Chưa có đánh giá nào về sản phẩm này</p>
+                <p className="text-sm">
+                  Hãy mua sản phẩm và trở thành người đầu tiên đánh giá!
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -780,7 +1142,7 @@ export default function ProductDetail() {
                     className="w-20 h-20 object-contain"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
+                      target.style.display = "none";
                     }}
                   />
                 </div>
@@ -791,8 +1153,10 @@ export default function ProductDetail() {
                     Hãy đặt câu hỏi cho chúng tôi
                   </h3>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi câu hỏi sau 22h, chúng tôi sẽ trả lời vào sáng hôm sau.
-                    Thông tin có thể thay đổi theo thời gian, vui lòng đặt câu hỏi để nhận được cập nhật mới nhất!
+                    CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi
+                    câu hỏi sau 22h, chúng tôi sẽ trả lời vào sáng hôm sau.
+                    Thông tin có thể thay đổi theo thời gian, vui lòng đặt câu
+                    hỏi để nhận được cập nhật mới nhất!
                   </p>
                 </div>
               </div>
@@ -808,7 +1172,9 @@ export default function ProductDetail() {
                 />
                 <Button
                   onClick={handleSubmitQuestion}
-                  disabled={createQuestionMutation.isLoading || !questionContent.trim()}
+                  disabled={
+                    createQuestionMutation.isLoading || !questionContent.trim()
+                  }
                   className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 h-auto self-end"
                 >
                   {createQuestionMutation.isLoading ? (

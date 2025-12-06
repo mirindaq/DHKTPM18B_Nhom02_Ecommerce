@@ -54,4 +54,60 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
             @Param("toDate") java.time.LocalDateTime toDate,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT f FROM Feedback f
+        LEFT JOIN FETCH f.customer c
+        LEFT JOIN FETCH f.productVariant pv
+        LEFT JOIN FETCH pv.product p
+        WHERE p.id = :productId
+        AND f.status = true
+        AND (:rating IS NULL OR f.rating = :rating)
+        ORDER BY f.createdAt DESC
+    """)
+    Page<Feedback> findByProductIdWithFilters(
+            @Param("productId") Long productId,
+            @Param("rating") Integer rating,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT COUNT(f) FROM Feedback f
+        JOIN f.productVariant pv
+        JOIN pv.product p
+        WHERE p.id = :productId
+        AND f.status = true
+    """)
+    Long countByProductId(@Param("productId") Long productId);
+
+    @Query("""
+        SELECT COALESCE(AVG(f.rating), 0) FROM Feedback f
+        JOIN f.productVariant pv
+        JOIN pv.product p
+        WHERE p.id = :productId
+        AND f.status = true
+    """)
+    Double getAverageRatingByProductId(@Param("productId") Long productId);
+
+    @Query("""
+        SELECT COUNT(f) FROM Feedback f
+        JOIN f.productVariant pv
+        JOIN pv.product p
+        WHERE p.id = :productId
+        AND f.status = true
+        AND f.rating = :rating
+    """)
+    Long countByProductIdAndRating(
+            @Param("productId") Long productId,
+            @Param("rating") Integer rating
+    );
+
+    @Query("""
+        SELECT f FROM Feedback f
+        WHERE f.productVariant.id IN :variantIds
+        AND f.status = true
+    """)
+    java.util.List<Feedback> findAllByProductVariantIdInAndStatusTrue(
+            @Param("variantIds") java.util.List<Long> variantIds
+    );
 }

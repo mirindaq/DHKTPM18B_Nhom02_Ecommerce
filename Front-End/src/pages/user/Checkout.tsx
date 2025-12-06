@@ -13,10 +13,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Package, Tag, Check } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Package, Tag, Check, MapPin } from "lucide-react";
 import type { CartDetailResponse } from "@/types/cart.type";
+import type { Address } from "@/types/address.type";
+import type { Province } from "@/types/province.type";
+import type { Ward } from "@/types/ward.type";
 import { toast } from "sonner";
 import { productService } from "@/services/product.service";
+import { addressService } from "@/services/address.service";
+import { provinceService } from "@/services/province.service";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useUser } from "@/context/UserContext";
 import { authService } from "@/services/auth.service";
@@ -69,6 +81,19 @@ export default function Checkout() {
     useState<VoucherAvailableResponse | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showProductListModal, setShowProductListModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+
+  // Province and Ward states for new address input
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
+    null
+  );
+  const [selectedWardId, setSelectedWardId] = useState<number | null>(null);
+  const [isEnteringNewAddress, setIsEnteringNewAddress] = useState(false);
+  const [subAddress, setSubAddress] = useState("");
   const [formData, setFormData] = useState<CheckoutFormData>({
     email: "",
     subscribeEmail: false,
@@ -106,6 +131,101 @@ export default function Checkout() {
       setIsLoadingProfile(false);
     }
   }, [user]);
+
+  // Lấy danh sách địa chỉ đã lưu
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        setIsLoadingAddresses(true);
+        const addressList = await addressService.getAddresses();
+        setAddresses(addressList);
+
+        // Tự động chọn địa chỉ mặc định nếu có
+        const defaultAddress = addressList.find(
+          (addr: Address) => addr.isDefault
+        );
+        if (defaultAddress) {
+          setFormData((prev) => ({
+            ...prev,
+            receiverName: defaultAddress.fullName,
+            receiverPhone: defaultAddress.phone,
+            receiverAddress:
+              defaultAddress.fullAddress ||
+              `${defaultAddress.subAddress}, ${
+                defaultAddress.wardName || ""
+              }, ${defaultAddress.provinceName || ""}`,
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+
+    if (user) {
+      fetchAddresses();
+    }
+  }, [user]);
+
+  // Load danh sách tỉnh/thành phố
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const data = await provinceService.getAllProvinces();
+        setProvinces(data);
+      } catch (error) {
+        console.error("Error fetching provinces:", error);
+      }
+    };
+    fetchProvinces();
+  }, []);
+
+  // Load danh sách xã/phường khi chọn tỉnh
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (selectedProvinceId) {
+        try {
+          const data = await provinceService.getWardsByProvince(
+            selectedProvinceId
+          );
+          setWards(data);
+          setSelectedWardId(null); // Reset ward khi đổi province
+        } catch (error) {
+          console.error("Error fetching wards:", error);
+        }
+      } else {
+        setWards([]);
+        setSelectedWardId(null);
+      }
+    };
+    fetchWards();
+  }, [selectedProvinceId]);
+
+  // Cập nhật receiverAddress khi chọn tỉnh/xã và nhập địa chỉ chi tiết
+  useEffect(() => {
+    if (isEnteringNewAddress && selectedWardId && subAddress) {
+      const selectedProvince = provinces.find(
+        (p) => p.id === selectedProvinceId
+      );
+      const selectedWard = wards.find((w) => w.id === selectedWardId);
+
+      if (selectedProvince && selectedWard) {
+        const fullAddress = `${subAddress}, ${selectedWard.name}, ${selectedProvince.name}`;
+        setFormData((prev) => ({
+          ...prev,
+          receiverAddress: fullAddress,
+        }));
+      }
+    }
+  }, [
+    isEnteringNewAddress,
+    selectedProvinceId,
+    selectedWardId,
+    subAddress,
+    provinces,
+    wards,
+  ]);
 
   // Lấy promotion mới nhất khi component mount
   useEffect(() => {
@@ -228,6 +348,27 @@ export default function Checkout() {
     }));
   };
 
+  // Handle chọn địa chỉ từ danh sách đã lưu
+  const handleAddressSelect = (address: Address) => {
+    const fullAddress =
+      address.fullAddress ||
+      `${address.subAddress}, ${address.wardName || ""}, ${
+        address.provinceName || ""
+      }`;
+
+    setFormData((prev) => ({
+      ...prev,
+      receiverName: address.fullName,
+      receiverPhone: address.phone,
+      receiverAddress: fullAddress,
+    }));
+    setShowAddressModal(false);
+    setIsEnteringNewAddress(false);
+    setSelectedProvinceId(null);
+    setSelectedWardId(null);
+    setSubAddress("");
+  };
+
   const handleDeliveryMethodChange = (isPickup: boolean) => {
     setFormData((prev) => ({
       ...prev,
@@ -235,6 +376,7 @@ export default function Checkout() {
       // Reset delivery fields when switching to pickup
       ...(isPickup
         ? {
+            selectedAddressId: undefined,
             receiverAddress: "",
             receiverPhone: "",
             receiverName: "",
@@ -581,67 +723,341 @@ export default function Checkout() {
                   />
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="receiverName" className="text-sm">
-                      Tên người nhận <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="receiverName"
-                      placeholder="Nhập tên người nhận"
-                      value={formData.receiverName || ""}
-                      onChange={(e) =>
-                        handleInputChange("receiverName", e.target.value)
-                      }
-                      className="mt-1"
-                    />
-                  </div>
+                <div className="space-y-4">
+                  {/* Danh sách địa chỉ đã lưu */}
+                  {isLoadingAddresses ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+                      <span className="ml-2 text-sm text-gray-500">
+                        Đang tải địa chỉ...
+                      </span>
+                    </div>
+                  ) : (
+                    addresses.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-red-600" />
+                            Địa chỉ đã lưu
+                          </Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                            onClick={() =>
+                              setShowAddressModal(!showAddressModal)
+                            }
+                          >
+                            {showAddressModal
+                              ? "Ẩn bớt"
+                              : `Xem tất cả (${addresses.length})`}
+                          </Button>
+                        </div>
 
-                  <div>
-                    <Label htmlFor="receiverPhone" className="text-sm">
-                      Số điện thoại <span className="text-red-600">*</span>
-                    </Label>
-                    <Input
-                      id="receiverPhone"
-                      placeholder="Nhập số điện thoại"
-                      value={formData.receiverPhone || ""}
-                      onChange={(e) =>
-                        handleInputChange("receiverPhone", e.target.value)
-                      }
-                      className="mt-1"
-                    />
-                  </div>
+                        {/* Hiển thị địa chỉ được chọn hoặc danh sách */}
+                        <div
+                          className={`space-y-2 ${
+                            showAddressModal
+                              ? "max-h-[250px] overflow-y-auto"
+                              : ""
+                          }`}
+                        >
+                          {(showAddressModal
+                            ? addresses
+                            : addresses
+                                .filter(
+                                  (addr) =>
+                                    addr.fullAddress ===
+                                      formData.receiverAddress ||
+                                    (addr.isDefault &&
+                                      !formData.receiverAddress)
+                                )
+                                .slice(0, 1)
+                          ).map((address) => {
+                            const isSelected =
+                              address.fullAddress ===
+                                formData.receiverAddress ||
+                              (address.isDefault && !formData.receiverAddress);
 
-                  <div>
-                    <Label htmlFor="receiverAddress" className="text-sm">
-                      Địa chỉ <span className="text-red-600">*</span>
-                    </Label>
-                    <Textarea
-                      id="receiverAddress"
-                      placeholder="Nhập địa chỉ chi tiết"
-                      value={formData.receiverAddress || ""}
-                      onChange={(e) =>
-                        handleInputChange("receiverAddress", e.target.value)
-                      }
-                      rows={2}
-                      className="mt-1"
-                    />
-                  </div>
+                            return (
+                              <div
+                                key={address.id}
+                                className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                                  isSelected
+                                    ? "border-red-500 bg-red-50"
+                                    : "border-gray-200 hover:border-red-300 hover:bg-red-50/30"
+                                }`}
+                                onClick={() => handleAddressSelect(address)}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-semibold text-sm text-gray-900">
+                                        {address.fullName}
+                                      </span>
+                                      <span className="text-gray-400">|</span>
+                                      <span className="text-sm text-gray-600">
+                                        {address.phone}
+                                      </span>
+                                      {address.isDefault && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-xs text-red-600 border-red-600"
+                                        >
+                                          Mặc định
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-600 line-clamp-2">
+                                      {address.fullAddress}
+                                    </p>
+                                  </div>
+                                  {isSelected && (
+                                    <div className="flex-shrink-0">
+                                      <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+                                        <svg
+                                          className="w-3 h-3 text-white"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={3}
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
 
-                  <div>
-                    <Label htmlFor="deliveryNote" className="text-sm">
-                      Ghi chú (nếu có)
-                    </Label>
-                    <Textarea
-                      id="deliveryNote"
-                      placeholder="Nhập ghi chú..."
-                      value={formData.note}
-                      onChange={(e) =>
-                        handleInputChange("note", e.target.value)
-                      }
-                      rows={2}
-                      className="mt-1"
-                    />
+                        {/* Nút nhập địa chỉ mới */}
+                        <div
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                            isEnteringNewAddress
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-dashed border-gray-300 hover:border-blue-300 hover:bg-blue-50/30"
+                          }`}
+                          onClick={() => {
+                            // Clear để chuyển sang nhập thủ công
+                            handleInputChange("receiverName", "");
+                            handleInputChange("receiverPhone", "");
+                            handleInputChange("receiverAddress", "");
+                            setSelectedProvinceId(null);
+                            setSelectedWardId(null);
+                            setSubAddress("");
+                            setIsEnteringNewAddress(true);
+                            setShowAddressModal(false);
+                          }}
+                        >
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                            <span className="text-sm font-medium">
+                              Nhập địa chỉ mới
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  )}
+
+                  {/* Form nhập thông tin giao hàng */}
+                  <div className="space-y-3 pt-2 border-t border-gray-100">
+                    <div>
+                      <Label htmlFor="receiverName" className="text-sm">
+                        Tên người nhận <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="receiverName"
+                        placeholder="Nhập tên người nhận"
+                        value={formData.receiverName || ""}
+                        onChange={(e) =>
+                          handleInputChange("receiverName", e.target.value)
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="receiverPhone" className="text-sm">
+                        Số điện thoại <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="receiverPhone"
+                        placeholder="Nhập số điện thoại"
+                        value={formData.receiverPhone || ""}
+                        onChange={(e) =>
+                          handleInputChange("receiverPhone", e.target.value)
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+
+                    {/* Nếu đang nhập địa chỉ mới, hiển thị select tỉnh/xã */}
+                    {isEnteringNewAddress ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-sm">
+                              Tỉnh/Thành phố{" "}
+                              <span className="text-red-600">*</span>
+                            </Label>
+                            <Select
+                              value={selectedProvinceId?.toString() || ""}
+                              onValueChange={(value) =>
+                                setSelectedProvinceId(Number(value))
+                              }
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {provinces.map((province) => (
+                                  <SelectItem
+                                    key={province.id}
+                                    value={province.id.toString()}
+                                  >
+                                    {province.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <Label className="text-sm">
+                              Quận/Huyện/Xã{" "}
+                              <span className="text-red-600">*</span>
+                            </Label>
+                            <Select
+                              value={selectedWardId?.toString() || ""}
+                              onValueChange={(value) =>
+                                setSelectedWardId(Number(value))
+                              }
+                              disabled={!selectedProvinceId}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue
+                                  placeholder={
+                                    selectedProvinceId
+                                      ? "Chọn quận/huyện/xã"
+                                      : "Chọn tỉnh trước"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {wards.map((ward) => (
+                                  <SelectItem
+                                    key={ward.id}
+                                    value={ward.id.toString()}
+                                  >
+                                    {ward.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="subAddress" className="text-sm">
+                            Địa chỉ chi tiết{" "}
+                            <span className="text-red-600">*</span>
+                          </Label>
+                          <Input
+                            id="subAddress"
+                            placeholder="Số nhà, tên đường..."
+                            value={subAddress}
+                            onChange={(e) => setSubAddress(e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+
+                        {/* Hiển thị địa chỉ đầy đủ (preview) */}
+                        {formData.receiverAddress && (
+                          <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                            <p className="text-xs text-gray-500 mb-1">
+                              Địa chỉ đầy đủ:
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              {formData.receiverAddress}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Nút quay lại chọn từ danh sách */}
+                        {addresses.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                            onClick={() => {
+                              setIsEnteringNewAddress(false);
+                              // Chọn lại địa chỉ mặc định
+                              const defaultAddress = addresses.find(
+                                (addr) => addr.isDefault
+                              );
+                              if (defaultAddress) {
+                                handleAddressSelect(defaultAddress);
+                              }
+                            }}
+                          >
+                            ← Chọn từ địa chỉ đã lưu
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <div>
+                        <Label htmlFor="receiverAddress" className="text-sm">
+                          Địa chỉ <span className="text-red-600">*</span>
+                        </Label>
+                        <Textarea
+                          id="receiverAddress"
+                          placeholder="Nhập địa chỉ chi tiết"
+                          value={formData.receiverAddress || ""}
+                          onChange={(e) =>
+                            handleInputChange("receiverAddress", e.target.value)
+                          }
+                          rows={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <Label htmlFor="deliveryNote" className="text-sm">
+                        Ghi chú (nếu có)
+                      </Label>
+                      <Textarea
+                        id="deliveryNote"
+                        placeholder="Nhập ghi chú..."
+                        value={formData.note}
+                        onChange={(e) =>
+                          handleInputChange("note", e.target.value)
+                        }
+                        rows={2}
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

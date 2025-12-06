@@ -5,8 +5,15 @@ import { useQuery } from "@/hooks/useQuery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Package,
   Calendar,
@@ -17,6 +24,8 @@ import {
   CreditCard,
   ShoppingBag,
   Eye,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import type { OrderListResponse, OrderStatus } from "@/types/order.type";
 import { PUBLIC_PATH } from "@/constants/path";
@@ -32,46 +41,54 @@ type StatusTab =
 
 export default function OrderHistory() {
   const navigate = useNavigate();
-  const pageSize = 10;
+  const pageSize = 3;
 
-  // Format date to dd/MM/yyyy for API
-  const formatDateForAPI = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
+  // Convert date from yyyy-MM-dd to dd/MM/yyyy for API
+  const formatDateForAPI = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
     return `${day}/${month}/${year}`;
   };
 
   // Initialize default dates
   const getDefaultStartDate = () => {
-    const date = new Date();
-    date.setFullYear(2020, 11, 1); // December 1, 2020
-    return formatDateForAPI(date);
+    return "2020-12-01";
   };
 
   const getDefaultEndDate = () => {
-    return formatDateForAPI(new Date());
+    const today = new Date();
+    return today.toISOString().split("T")[0];
   };
 
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<StatusTab>("ALL");
-  const [startDate, setStartDate] = useState(getDefaultStartDate());
-  const [endDate, setEndDate] = useState(getDefaultEndDate());
+  const [startDateInput, setStartDateInput] = useState(getDefaultStartDate());
+  const [endDateInput, setEndDateInput] = useState(getDefaultEndDate());
+  // State for actual filter values (only updated when filter button is clicked)
+  const [startDateFilter, setStartDateFilter] = useState(getDefaultStartDate());
+  const [endDateFilter, setEndDateFilter] = useState(getDefaultEndDate());
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(
+    null
+  );
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
 
-  // Map status tab to API status parameter (single status)
-  const getStatusParam = (statusTab: StatusTab): string | undefined => {
-    if (statusTab === "PENDING") {
-      return "PENDING";
-    } else if (statusTab === "CONFIRMED") {
-      return "PROCESSING";
-    } else if (statusTab === "DELIVERING") {
-      return "DELIVERING";
-    } else if (statusTab === "COMPLETED") {
-      return "COMPLETED";
-    } else if (statusTab === "CANCELLED") {
-      return "CANCELED";
-    }
-    return undefined; // ALL - không gửi status param
+  // Map status tab to API status parameter (multiple statuses)
+  const getStatusParam = (statusTab: StatusTab): string[] | undefined => {
+    const statusMap: Record<StatusTab, string[] | undefined> = {
+      ALL: undefined,
+      PENDING: ["PENDING", "PENDING_PAYMENT"],
+      CONFIRMED: [
+        "PROCESSING",
+        "READY_FOR_PICKUP",
+        "SHIPPED",
+        "ASSIGNED_SHIPPER",
+      ],
+      DELIVERING: ["DELIVERING"],
+      COMPLETED: ["COMPLETED"],
+      CANCELLED: ["FAILED", "CANCELED", "PAYMENT_FAILED"],
+    };
+    return statusMap[statusTab];
   };
 
   // Fetch orders using useQuery
@@ -86,16 +103,16 @@ export default function OrderHistory() {
         currentPage,
         pageSize,
         getStatusParam(activeTab),
-        startDate || undefined,
-        endDate || undefined
+        formatDateForAPI(startDateFilter) || undefined,
+        formatDateForAPI(endDateFilter) || undefined
       ),
     {
       queryKey: [
         "myOrders",
         currentPage.toString(),
         activeTab,
-        startDate,
-        endDate,
+        startDateFilter,
+        endDateFilter,
       ],
       onError: (err) => {
         console.error("Error fetching orders:", err);
@@ -129,22 +146,46 @@ export default function OrderHistory() {
   };
 
   const getStatusBadge = (status: OrderStatus) => {
-    if (["PENDING", "PENDING_PAYMENT"].includes(status)) {
+    if (status === "PENDING") {
       return (
         <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
           Chờ xác nhận
         </Badge>
       );
-    } else if (["PROCESSING", "READY_FOR_PICKUP", "SHIPPED"].includes(status)) {
+    } else if (status === "PENDING_PAYMENT") {
+      return (
+        <Badge className="bg-orange-100 text-orange-700 border-orange-300">
+          Chờ thanh toán
+        </Badge>
+      );
+    } else if (status === "PROCESSING") {
       return (
         <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-          Đã xác nhận
+          Đang xử lý
+        </Badge>
+      );
+    } else if (status === "READY_FOR_PICKUP") {
+      return (
+        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+          Sẵn sàng lấy hàng
+        </Badge>
+      );
+    } else if (status === "SHIPPED") {
+      return (
+        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+          Đã giao cho ĐVVC
+        </Badge>
+      );
+    } else if (status === "ASSIGNED_SHIPPER") {
+      return (
+        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+          Đã phân shipper
         </Badge>
       );
     } else if (status === "DELIVERING") {
       return (
         <Badge className="bg-purple-100 text-purple-700 border-purple-300">
-          Đang vận chuyển
+          Đang giao hàng
         </Badge>
       );
     } else if (status === "COMPLETED") {
@@ -153,9 +194,21 @@ export default function OrderHistory() {
           Hoàn thành
         </Badge>
       );
-    } else if (["FAILED", "CANCELED", "PAYMENT_FAILED"].includes(status)) {
+    } else if (status === "FAILED") {
+      return (
+        <Badge className="bg-red-100 text-red-700 border-red-300">
+          Giao thất bại
+        </Badge>
+      );
+    } else if (status === "CANCELED") {
       return (
         <Badge className="bg-red-100 text-red-700 border-red-300">Đã hủy</Badge>
+      );
+    } else if (status === "PAYMENT_FAILED") {
+      return (
+        <Badge className="bg-red-100 text-red-700 border-red-300">
+          Thanh toán thất bại
+        </Badge>
       );
     }
     return <Badge>{status}</Badge>;
@@ -191,29 +244,100 @@ export default function OrderHistory() {
   };
 
   const handleFilter = () => {
-    // Validate date format (dd/MM/yyyy)
-    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-    if (startDate && !dateRegex.test(startDate)) {
-      toast.error("Ngày bắt đầu không đúng định dạng (dd/MM/yyyy)");
-      return;
-    }
-    if (endDate && !dateRegex.test(endDate)) {
-      toast.error("Ngày kết thúc không đúng định dạng (dd/MM/yyyy)");
-      return;
-    }
-
+    setStartDateFilter(startDateInput);
+    setEndDateFilter(endDateInput);
     setCurrentPage(1);
-    refetchOrders();
+  };
+
+  const openCancelDialog = (orderId: number) => {
+    setOrderToCancel(orderId);
+    setCancelDialogOpen(true);
+  };
+
+  const closeCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setOrderToCancel(null);
+  };
+
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+
+    try {
+      setCancellingOrderId(orderToCancel);
+      await orderService.cancelOrder(orderToCancel);
+      toast.success("Hủy đơn hàng thành công");
+      refetchOrders();
+      closeCancelDialog();
+    } catch (error: any) {
+      console.error("Error cancelling order:", error);
+      const errorMsg =
+        error.response?.data?.message || "Không thể hủy đơn hàng";
+      toast.error(errorMsg);
+    } finally {
+      setCancellingOrderId(null);
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* Cancel Order Confirmation Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg">
+                  Xác nhận hủy đơn hàng
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  Bạn có chắc chắn muốn hủy đơn hàng này không?
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Sau khi hủy, đơn hàng sẽ không thể khôi phục lại. Nếu bạn đã thanh
+              toán, số tiền sẽ được hoàn trả theo chính sách của chúng tôi.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={closeCancelDialog}
+              disabled={cancellingOrderId !== null}
+            >
+              Không, giữ lại
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelOrder}
+              disabled={cancellingOrderId !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {cancellingOrderId !== null ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang hủy...
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Xác nhận hủy
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold mb-2">Lịch sử mua hàng</h1>
-        <p className="text-gray-600">
-          Xem và quản lý tất cả đơn hàng của bạn
-        </p>
+        <p className="text-gray-600">Xem và quản lý tất cả đơn hàng của bạn</p>
       </div>
 
       {/* Tabs */}
@@ -222,60 +346,60 @@ export default function OrderHistory() {
           <div className="flex border-b overflow-x-auto">
             <button
               onClick={() => handleTabChange("ALL")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "ALL"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Tất cả
             </button>
             <button
               onClick={() => handleTabChange("PENDING")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "PENDING"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Chờ xác nhận
             </button>
             <button
               onClick={() => handleTabChange("CONFIRMED")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "CONFIRMED"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đã xác nhận
             </button>
             <button
               onClick={() => handleTabChange("DELIVERING")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "DELIVERING"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đang vận chuyển
             </button>
             <button
               onClick={() => handleTabChange("COMPLETED")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "COMPLETED"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đã giao hàng
             </button>
             <button
               onClick={() => handleTabChange("CANCELLED")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "CANCELLED"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đã hủy
@@ -287,32 +411,27 @@ export default function OrderHistory() {
             <span className="text-sm font-medium text-gray-700">
               Lọc theo ngày:
             </span>
-            <div className="flex items-center gap-2">
-              <Input
-                type="text"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-32 h-9 text-sm"
-                placeholder="dd/MM/yyyy"
-                maxLength={10}
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={startDateInput}
+                onChange={(e) => setStartDateInput(e.target.value)}
+                className="h-10 px-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent cursor-pointer"
               />
               <span className="text-gray-500">→</span>
-              <Input
-                type="text"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-32 h-9 text-sm"
-                placeholder="dd/MM/yyyy"
-                maxLength={10}
+              <input
+                type="date"
+                value={endDateInput}
+                onChange={(e) => setEndDateInput(e.target.value)}
+                className="h-10 px-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent cursor-pointer"
               />
               <Button
                 size="sm"
-                variant="outline"
-                className="h-9"
                 onClick={handleFilter}
                 disabled={isLoading}
+                className="h-10 bg-red-600 hover:bg-red-700 text-white"
               >
-                <Calendar className="w-4 h-4 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 Lọc
               </Button>
             </div>
@@ -372,7 +491,9 @@ export default function OrderHistory() {
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 flex items-center justify-between border-b">
                   <div className="flex items-center gap-4 flex-wrap">
                     <div>
-                      <span className="text-sm text-gray-600">Mã đơn hàng:</span>
+                      <span className="text-sm text-gray-600">
+                        Mã đơn hàng:
+                      </span>
                       <span className="font-bold text-gray-900 ml-2">
                         #WN0{order.id.toString().padStart(10, "0")}
                       </span>
@@ -402,7 +523,9 @@ export default function OrderHistory() {
                               detail.productVariant?.productThumbnail ||
                               "https://via.placeholder.com/80x80?text=No+Image"
                             }
-                            alt={detail.productVariant?.productName || "Sản phẩm"}
+                            alt={
+                              detail.productVariant?.productName || "Sản phẩm"
+                            }
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -418,7 +541,9 @@ export default function OrderHistory() {
                             {detail.productVariant?.productName || "Sản phẩm"}
                           </h4>
                           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                            <span>SKU: {detail.productVariant?.sku || "N/A"}</span>
+                            <span>
+                              SKU: {detail.productVariant?.sku || "N/A"}
+                            </span>
                             {detail.productVariant?.brandName && (
                               <>
                                 <span>•</span>
@@ -428,14 +553,18 @@ export default function OrderHistory() {
                             {detail.productVariant?.categoryName && (
                               <>
                                 <span>•</span>
-                                <span>{detail.productVariant.categoryName}</span>
+                                <span>
+                                  {detail.productVariant.categoryName}
+                                </span>
                               </>
                             )}
                           </div>
                           <div className="flex items-center gap-4 text-sm">
                             <span className="text-gray-600">
                               Số lượng:{" "}
-                              <span className="font-semibold">{detail.quantity}</span>
+                              <span className="font-semibold">
+                                {detail.quantity}
+                              </span>
                             </span>
                             <span className="text-gray-600">
                               Giá:{" "}
@@ -473,7 +602,9 @@ export default function OrderHistory() {
                           </h5>
                           {!order.isPickup && (
                             <p className="text-sm text-gray-600">
-                              <span className="font-medium">{order.receiverName}</span>
+                              <span className="font-medium">
+                                {order.receiverName}
+                              </span>
                               <br />
                               <span>{order.receiverPhone}</span>
                               <br />
@@ -527,7 +658,18 @@ export default function OrderHistory() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-3">
+                    {order.status === "PENDING" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openCancelDialog(order.id)}
+                        className="border-gray-400 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-400"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Hủy đơn hàng
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -571,18 +713,13 @@ export default function OrderHistory() {
                   onClick={() => handlePageChange(page)}
                   disabled={isLoading}
                   className={
-                    page === currentPage
-                      ? "bg-red-600 hover:bg-red-700"
-                      : ""
+                    page === currentPage ? "bg-red-600 hover:bg-red-700" : ""
                   }
                 >
                   {page}
                 </Button>
               );
-            } else if (
-              page === currentPage - 2 ||
-              page === currentPage + 2
-            ) {
+            } else if (page === currentPage - 2 || page === currentPage + 2) {
               return (
                 <span key={page} className="px-2 text-gray-400">
                   ...

@@ -18,6 +18,7 @@ import Variants from "@/pages/admin/Variants";
 import Staffs from "@/pages/admin/Staff";
 import Home from "@/pages/user/Home";
 import ProductDetail from "@/pages/user/ProductDetail";
+import ProductReviews from "@/pages/user/ProductReviews";
 import Cart from "@/pages/user/Cart";
 import Checkout from "@/pages/user/Checkout";
 import Profile from "@/pages/user/Profile";
@@ -57,10 +58,17 @@ import StaffAssignDelivery from "@/pages/staff/StaffAssignDelivery";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
 import Deliveries from "@/pages/shipper/Deliveries";
 import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
+import Carts from "@/pages/admin/Carts";
 import FilterCriterias from "@/pages/admin/FilterCriterias";
 import Address from "@/pages/user/Address";
 import MyWishlist from "@/pages/user/MyWishlist";
 import CustomerChat from "@/pages/user/CustomerChat";
+import MyVouchers from "@/pages/user/MyVouchers";
+import EditProfile from "@/pages/user/EditProfile";
+import GuaranteePolicy from "@/pages/user/GuaranteePolicy";
+import TermsOfUse from "@/pages/user/TermsOfUse";
+import WarrantyPolicy from "@/pages/user/WarrantyPolicy";
+import StudentBenefits from "@/pages/user/StudentBenefits";
 import ChatManagement from "@/pages/admin/ChatManagement";
 import StaffLogin from "@/pages/auth/StaffLogin";
 import ShipperLogin from "@/pages/auth/ShipperLogin";
@@ -94,6 +102,7 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <Home /> },
         { path: "product/:slug", element: <ProductDetail /> },
+        { path: "product/:slug/reviews", element: <ProductReviews /> },
         { path: "search/:slug", element: <SearchWithCategory /> },
         { path: "search", element: <Search /> },
         {
@@ -140,6 +149,12 @@ const useRouteElements = () => {
             { path: "wishlist", element: <MyWishlist /> },
             { path: "orders", element: <OrderHistory /> },
             { path: "orders/:id", element: <OrderDetail /> },
+            { path: "vouchers", element: <MyVouchers /> },
+            { path: "edit", element: <EditProfile /> },
+            { path: "guarantee-policy", element: <GuaranteePolicy /> },
+            { path: "terms", element: <TermsOfUse /> },
+            { path: "warranty-policy", element: <WarrantyPolicy /> },
+            { path: "student-benefits", element: <StudentBenefits /> },
           ],
         },
       ],
@@ -262,6 +277,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
         { path: "/admin/feedbacks", element: <Feedbacks /> },
+        { path: ADMIN_PATH.CARTS, element: <Carts /> },
       ],
     },
 
@@ -282,6 +298,7 @@ const useRouteElements = () => {
         { path: STAFF_PATH.ASSIGN_DELIVERY, element: <StaffAssignDelivery /> },
         { path: STAFF_PATH.SELL, element: <StaffSell /> },
         { path: STAFF_PATH.PAYMENT_STATUS, element: <StaffPaymentStatus /> },
+        { path: STAFF_PATH.CARTS, element: <Carts /> },
       ],
     },
 
