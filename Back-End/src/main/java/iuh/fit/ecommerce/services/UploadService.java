@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface UploadService {
     List<String> upload(UploadRequest uploadRequest);
+    void deleteFile(String url);
 }
