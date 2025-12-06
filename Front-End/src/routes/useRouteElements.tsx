@@ -75,6 +75,8 @@ import {
 import EditPromotion from "@/pages/admin/EditPromotion";
 import AddPromotion from "@/pages/admin/AddPromotion";
 import PurchaseOrders from "@/pages/admin/PurchaseOrders";
+import AddPurchaseOrder from "@/pages/admin/AddPurchaseOrder";
+import PurchaseOrderDetail from "@/pages/admin/PurchaseOrderDetail";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -260,6 +262,8 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
         { path: "/admin/feedbacks", element: <Feedbacks /> },
         { path: ADMIN_PATH.PURCHASE_ORDERS, element: <PurchaseOrders /> },
+        { path: ADMIN_PATH.PURCHASE_ORDER_ADD, element: <AddPurchaseOrder /> },
+        { path: "/admin/purchase-orders/:id", element: <PurchaseOrderDetail /> },
       ],
     },
 

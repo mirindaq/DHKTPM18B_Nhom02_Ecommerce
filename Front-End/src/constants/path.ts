@@ -34,6 +34,8 @@ export const ADMIN_PATH = {
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
   PURCHASE_ORDERS: "/admin/purchase-orders",
+  PURCHASE_ORDER_ADD: "/admin/purchase-orders/add",
+  PURCHASE_ORDER_DETAIL: "/admin/purchase-orders/:id",
 };
 
 // Staff paths

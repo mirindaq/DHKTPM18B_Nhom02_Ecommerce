@@ -1,27 +1,22 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
-import { useQuery, useMutation } from "@/hooks";
+import { useQuery } from "@/hooks";
 import Pagination from "@/components/ui/pagination";
 import { purchaseOrderService } from "@/services/purchase-order.service";
 import type {
   PurchaseOrder,
   PurchaseOrderListResponse,
   PurchaseOrderFilter,
-  CreatePurchaseOrderRequest,
 } from "@/types/purchase-order.type";
 import {
   PurchaseOrderTable,
   PurchaseOrderFilter as PurchaseOrderFilterComponent,
-  PurchaseOrderDetailDialog,
-  CreatePurchaseOrderDialog,
 } from "@/components/admin/purchase-order";
 
 export default function PurchaseOrders() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<PurchaseOrder | null>(null);
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchParams, setSearchParams] = useState<PurchaseOrderFilter>({});
@@ -29,7 +24,6 @@ export default function PurchaseOrders() {
   const {
     data: purchaseOrdersData,
     isLoading: isLoadingPurchaseOrders,
-    refetch: refetchPurchaseOrders,
   } = useQuery<PurchaseOrderListResponse>(
     () =>
       purchaseOrderService.getPurchaseOrders(currentPage, pageSize, searchParams),
@@ -46,30 +40,12 @@ export default function PurchaseOrders() {
   const pagination = purchaseOrdersData?.data;
   const purchaseOrders = purchaseOrdersData?.data?.data || [];
 
-  // Create mutation
-  const createMutation = useMutation(
-    (request: CreatePurchaseOrderRequest) =>
-      purchaseOrderService.createPurchaseOrder(request),
-    {
-      onSuccess: () => {
-        toast.success("Tạo phiếu nhập hàng thành công");
-        refetchPurchaseOrders();
-        setIsCreateDialogOpen(false);
-      },
-      onError: (error: any) => {
-        console.error("Error creating purchase order:", error);
-        toast.error(
-          error?.response?.data?.message || "Không thể tạo phiếu nhập hàng"
-        );
-      },
-    }
-  );
-
-
+  const handleOpenAddDialog = () => {
+    navigate("/admin/purchase-orders/add");
+  };
 
   const handleViewDetail = (purchaseOrder: PurchaseOrder) => {
-    setSelectedPurchaseOrder(purchaseOrder);
-    setIsDetailDialogOpen(true);
+    navigate(`/admin/purchase-orders/${purchaseOrder.id}`);
   };
 
   const handlePageChange = (page: number) => {
@@ -106,8 +82,7 @@ export default function PurchaseOrders() {
         </div>
         <Button
           size="lg"
-          onClick={() => setIsCreateDialogOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={handleOpenAddDialog}
         >
           <Plus className="mr-2 h-4 w-4" />
           Tạo phiếu nhập hàng
@@ -156,19 +131,6 @@ export default function PurchaseOrders() {
         </div>
       )}
 
-      {/* Dialogs */}
-      <CreatePurchaseOrderDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSubmit={(data) => createMutation.mutate(data)}
-        isSubmitting={createMutation.isLoading}
-      />
-
-      <PurchaseOrderDetailDialog
-        open={isDetailDialogOpen}
-        onOpenChange={setIsDetailDialogOpen}
-        purchaseOrder={selectedPurchaseOrder}
-      />
     </div>
   );
 }
