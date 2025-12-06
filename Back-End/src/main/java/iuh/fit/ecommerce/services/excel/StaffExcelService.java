@@ -1,7 +1,9 @@
 package iuh.fit.ecommerce.services.excel;
 
+import iuh.fit.ecommerce.dtos.excel.ImportProgress;
 import iuh.fit.ecommerce.dtos.excel.ImportResult;
 import iuh.fit.ecommerce.dtos.excel.StaffExcelDTO;
+import iuh.fit.ecommerce.services.ImportProgressService;
 import iuh.fit.ecommerce.entities.Role;
 import iuh.fit.ecommerce.entities.Staff;
 import iuh.fit.ecommerce.entities.UserRole;
@@ -35,6 +37,7 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
     private final StaffRepository staffRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImportProgressService progressService;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     
@@ -243,5 +246,92 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
         
         String value = getCellValueAsString(cell).toLowerCase();
         return value.equals("true") || value.equals("1") || value.equals("yes");
+    }
+    
+    // Method with progress tracking for async import
+    @Transactional
+    public void saveDataWithProgress(List<StaffExcelDTO> dataList, String jobId) throws Exception {
+        Role staffRole = roleRepository.findByName("STAFF")
+            .orElseThrow(() -> new RuntimeException("Role STAFF not found"));
+        
+        String encodedPassword = passwordEncoder.encode("123456");
+        
+        int CHUNK_SIZE = 100;
+        int totalChunks = (dataList.size() + CHUNK_SIZE - 1) / CHUNK_SIZE;
+        long startTime = System.currentTimeMillis();
+        
+        log.info("Starting import of {} staff members in {} chunks (jobId: {})", dataList.size(), totalChunks, jobId);
+        
+        for (int i = 0; i < dataList.size(); i += CHUNK_SIZE) {
+            int end = Math.min(i + CHUNK_SIZE, dataList.size());
+            List<StaffExcelDTO> chunk = dataList.subList(i, end);
+            
+            List<Staff> staffList = new ArrayList<>();
+            
+            for (StaffExcelDTO dto : chunk) {
+                Staff staff = Staff.builder()
+                    .email(dto.getEmail())
+                    .fullName(dto.getFullName())
+                    .password(encodedPassword)
+                    .phone(dto.getPhone())
+                    .address(dto.getAddress())
+                    .dateOfBirth(dto.getDateOfBirth())
+                    .joinDate(dto.getJoinDate() != null ? dto.getJoinDate() : LocalDate.now())
+                    .leader(dto.getIsLeader() != null ? dto.getIsLeader() : false)
+                    .active(true)
+                    .workStatus(WorkStatus.ACTIVE)
+                    .build();
+                
+                staff.setUserRoles(new ArrayList<>());
+                
+                UserRole userRole = UserRole.builder()
+                    .role(staffRole)
+                    .user(staff)
+                    .build();
+                
+                staff.getUserRoles().add(userRole);
+                staffList.add(staff);
+            }
+            
+            staffRepository.saveAll(staffList);
+            
+            int currentChunk = (i / CHUNK_SIZE) + 1;
+            int processedRecords = end;
+            double percentage = (processedRecords * 100.0) / dataList.size();
+            
+            long elapsed = System.currentTimeMillis() - startTime;
+            long estimatedTotal = (long) (elapsed / percentage * 100);
+            long remaining = Math.max(0, (estimatedTotal - elapsed) / 1000);
+            
+            log.info("Processed chunk {}/{} - Progress: {:.1f}%", currentChunk, totalChunks, percentage);
+            
+            if (jobId != null) {
+                progressService.sendProgress(jobId, ImportProgress.builder()
+                    .totalRecords(dataList.size())
+                    .processedRecords(processedRecords)
+                    .currentChunk(currentChunk)
+                    .totalChunks(totalChunks)
+                    .percentage(percentage)
+                    .estimatedTimeRemaining(remaining)
+                    .status("processing")
+                    .message("Đang xử lý chunk " + currentChunk + "/" + totalChunks)
+                    .build());
+            }
+        }
+        
+        log.info("Successfully imported {} staff members", dataList.size());
+        
+        if (jobId != null) {
+            progressService.complete(jobId, ImportProgress.builder()
+                .totalRecords(dataList.size())
+                .processedRecords(dataList.size())
+                .currentChunk(totalChunks)
+                .totalChunks(totalChunks)
+                .percentage(100.0)
+                .estimatedTimeRemaining(0)
+                .status("completed")
+                .message("Import hoàn tất thành công " + dataList.size() + " nhân viên")
+                .build());
+        }
     }
 }

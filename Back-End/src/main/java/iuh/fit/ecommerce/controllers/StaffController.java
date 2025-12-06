@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.excel.ImportResult;
+import iuh.fit.ecommerce.services.ImportProgressService;
 import iuh.fit.ecommerce.dtos.request.staff.StaffAddRequest;
 import iuh.fit.ecommerce.dtos.request.staff.StaffUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
@@ -19,9 +20,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -32,6 +37,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class StaffController {
         private final StaffService staffService;
         private final StaffExcelService staffExcelService;
+        private final ImportProgressService importProgressService;
 
         @GetMapping("")
         public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<StaffResponse>>>> getStaffs(
@@ -159,6 +165,69 @@ public class StaffController {
                                         .body(resource);
                 } catch (Exception e) {
                         throw new RuntimeException("Failed to export staffs: " + e.getMessage());
+                }
+        }
+        
+        // SSE endpoint for progress tracking
+        @GetMapping("/import-progress/{jobId}")
+        public SseEmitter getImportProgress(@PathVariable String jobId) {
+                return importProgressService.createEmitter(jobId);
+        }
+        
+        // Async import endpoint
+        @PostMapping("/import-async")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ResponseSuccess<Map<String, String>>> importStaffsAsync(
+                        @RequestParam(value = "file", required = false) MultipartFile file) {
+                
+                try {
+                        if (file == null || file.isEmpty()) {
+                                throw new RuntimeException("File is null or empty! Please select a valid Excel file.");
+                        }
+                        
+                        String jobId = UUID.randomUUID().toString();
+                        
+                        // Start async import with progress tracking
+                        CompletableFuture.runAsync(() -> {
+                                try {
+                                        // Parse Excel
+                                        var dataList = staffExcelService.parseExcel(file);
+                                        ImportResult result = ImportResult.builder()
+                                                .totalRows(dataList.size())
+                                                .successCount(0)
+                                                .errorCount(0)
+                                                .errors(new java.util.ArrayList<>())
+                                                .build();
+                                        
+                                        // Validate all rows
+                                        var validData = new java.util.ArrayList<iuh.fit.ecommerce.dtos.excel.StaffExcelDTO>();
+                                        for (int i = 0; i < dataList.size(); i++) {
+                                                final int rowIndex = i + 4;
+                                                staffExcelService.validateRow(dataList.get(i), rowIndex, result);
+                                                if (!result.getErrors().stream().anyMatch(e -> e.getRowIndex() == rowIndex)) {
+                                                        validData.add(dataList.get(i));
+                                                }
+                                        }
+                                        
+                                        if (validData.isEmpty()) {
+                                                importProgressService.sendError(jobId, "No valid data to import");
+                                                return;
+                                        }
+                                        
+                                        // Save with progress tracking
+                                        staffExcelService.saveDataWithProgress(validData, jobId);
+                                        
+                                } catch (Exception e) {
+                                        importProgressService.sendError(jobId, "Import failed: " + e.getMessage());
+                                }
+                        });
+                        
+                        return ResponseEntity.ok(new ResponseSuccess<>(
+                                        OK,
+                                        "Import started",
+                                        Map.of("jobId", jobId)));
+                } catch (Exception e) {
+                        throw new RuntimeException("Failed to start import: " + e.getMessage(), e);
                 }
         }
 }
