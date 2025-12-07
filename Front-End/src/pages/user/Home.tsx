@@ -314,7 +314,7 @@ export default function Home() {
               </div>
             </div>
             <a
-              href="/sforum"
+              href="/news"
               className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors group"
             >
               Xem tất cả
