@@ -1,9 +1,7 @@
 package iuh.fit.ecommerce.services.excel;
 
 import iuh.fit.ecommerce.dtos.excel.CustomerExcelDTO;
-import iuh.fit.ecommerce.dtos.excel.ImportProgress;
 import iuh.fit.ecommerce.dtos.excel.ImportResult;
-import iuh.fit.ecommerce.services.ImportProgressService;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.entities.Role;
@@ -36,7 +34,6 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
     private final RoleRepository roleRepository;
     private final RankingRepository rankingRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ImportProgressService progressService;
     
     @Override
     public String[] getHeaders() {
@@ -215,99 +212,6 @@ public class CustomerExcelService extends BaseExcelHandler<CustomerExcelDTO> {
         } catch (Exception e) {
             log.warn("Failed to parse date: {}", dateStr);
             return null;
-        }
-    }
-    
-    // Method with progress tracking for async import
-    @Transactional
-    public void saveDataWithProgress(List<CustomerExcelDTO> dataList, String jobId) throws Exception {
-        Role customerRole = roleRepository.findByName("CUSTOMER")
-            .orElseThrow(() -> new RuntimeException("Role CUSTOMER not found"));
-        
-        Ranking defaultRanking = rankingRepository.findAll().stream()
-            .findFirst()
-            .orElse(null);
-        
-        if (defaultRanking == null) {
-            log.warn("No ranking found in database. Customers will be created without ranking.");
-        }
-        
-        String encodedPassword = passwordEncoder.encode("123456");
-        
-        int CHUNK_SIZE = 100;
-        int totalChunks = (dataList.size() + CHUNK_SIZE - 1) / CHUNK_SIZE;
-        long startTime = System.currentTimeMillis();
-        
-        log.info("Starting import of {} customers in {} chunks (jobId: {})", dataList.size(), totalChunks, jobId);
-        
-        for (int i = 0; i < dataList.size(); i += CHUNK_SIZE) {
-            int end = Math.min(i + CHUNK_SIZE, dataList.size());
-            List<CustomerExcelDTO> chunk = dataList.subList(i, end);
-            
-            List<Customer> customerList = new ArrayList<>();
-            
-            for (CustomerExcelDTO dto : chunk) {
-                Customer customer = Customer.builder()
-                    .email(dto.getEmail())
-                    .fullName(dto.getFullName())
-                    .password(encodedPassword)
-                    .phone(dto.getPhone())
-                    .dateOfBirth(dto.getDateOfBirth())
-                    .active(true)
-                    .totalSpending(0.0)
-                    .ranking(defaultRanking)
-                    .build();
-                
-                customer.setUserRoles(new ArrayList<>());
-                
-                UserRole userRole = UserRole.builder()
-                    .role(customerRole)
-                    .user(customer)
-                    .build();
-                
-                customer.getUserRoles().add(userRole);
-                customerList.add(customer);
-            }
-            
-            customerRepository.saveAll(customerList);
-            
-            int currentChunk = (i / CHUNK_SIZE) + 1;
-            int processedRecords = end;
-            double percentage = (processedRecords * 100.0) / dataList.size();
-            
-            long elapsed = System.currentTimeMillis() - startTime;
-            long estimatedTotal = (long) (elapsed / percentage * 100);
-            long remaining = Math.max(0, (estimatedTotal - elapsed) / 1000);
-            
-            log.info("Processed chunk {}/{} - Progress: {:.1f}%", currentChunk, totalChunks, percentage);
-            
-            if (jobId != null) {
-                progressService.sendProgress(jobId, ImportProgress.builder()
-                    .totalRecords(dataList.size())
-                    .processedRecords(processedRecords)
-                    .currentChunk(currentChunk)
-                    .totalChunks(totalChunks)
-                    .percentage(percentage)
-                    .estimatedTimeRemaining(remaining)
-                    .status("processing")
-                    .message("Đang xử lý chunk " + currentChunk + "/" + totalChunks)
-                    .build());
-            }
-        }
-        
-        log.info("Successfully imported {} customers", dataList.size());
-        
-        if (jobId != null) {
-            progressService.complete(jobId, ImportProgress.builder()
-                .totalRecords(dataList.size())
-                .processedRecords(dataList.size())
-                .currentChunk(totalChunks)
-                .totalChunks(totalChunks)
-                .percentage(100.0)
-                .estimatedTimeRemaining(0)
-                .status("completed")
-                .message("Import hoàn tất thành công " + dataList.size() + " khách hàng")
-                .build());
         }
     }
 }
