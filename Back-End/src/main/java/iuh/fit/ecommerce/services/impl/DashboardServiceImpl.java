@@ -2,6 +2,9 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByDayResponse;
 import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByMonthResponse;
+import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByYearResponse;
+import iuh.fit.ecommerce.dtos.response.dashboard.TopProductResponse;
+import iuh.fit.ecommerce.repositories.OrderDetailRepository;
 import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.services.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import java.util.List;
 public class DashboardServiceImpl implements DashboardService {
     
     private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
 
     @Override
     public List<RevenueByMonthResponse> getRevenueByMonth(Integer year) {
@@ -52,21 +56,57 @@ public class DashboardServiceImpl implements DashboardService {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(23, 59, 59);
         
-        List<Object[]> results = orderRepository.getRevenueByDay(start, end);
-        
-        return results.stream()
-                .map(row -> {
-                    java.sql.Date sqlDate = (java.sql.Date) row[0];
-                    LocalDate date = sqlDate.toLocalDate();
-                    Double revenue = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
-                    Long orderCount = row[2] != null ? ((Number) row[2]).longValue() : 0L;
-                    
-                    return RevenueByDayResponse.builder()
-                            .date(date)
-                            .revenue(revenue)
-                            .orderCount(orderCount)
-                            .build();
-                })
+        return orderRepository.getRevenueByDay(start, end).stream()
+                .map(projection -> RevenueByDayResponse.builder()
+                        .date(projection.getOrderDate())
+                        .revenue(projection.getRevenue())
+                        .orderCount(projection.getOrderCount())
+                        .build())
                 .toList();
+    }
+
+    @Override
+    public List<RevenueByYearResponse> getRevenueByYear(Integer year) {
+        return orderRepository.getRevenueByYear(year).stream()
+                .map(projection -> RevenueByYearResponse.builder()
+                        .year(projection.getYear())
+                        .revenue(projection.getRevenue())
+                        .orderCount(projection.getOrderCount())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getTopProductsByDay(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+        
+        return orderDetailRepository.getTopProductsByDay(start, end).stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getTopProductsByMonth(Integer year, Integer month) {
+        return orderDetailRepository.getTopProductsByMonth(year, month).stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getTopProductsByYear(Integer year) {
+        return orderDetailRepository.getTopProductsByYear(year).stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+    
+    private TopProductResponse mapToTopProductResponse(iuh.fit.ecommerce.dtos.projection.TopProductProjection projection) {
+        return TopProductResponse.builder()
+                .productId(projection.getProductId())
+                .productName(projection.getProductName())
+                .productImage(projection.getProductImage())
+                .totalQuantitySold(projection.getTotalQuantitySold())
+                .totalRevenue(projection.getTotalRevenue())
+                .build();
     }
 }
