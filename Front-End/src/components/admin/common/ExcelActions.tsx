@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, FileSpreadsheet, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Download, Upload, FileSpreadsheet, Loader2, Clock } from "lucide-react";
+import { useImportProgress } from "@/context/ImportContext";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -13,29 +14,17 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 
-interface ImportError {
-  rowIndex: number;
-  field: string;
-  message: string;
-}
-
 interface ImportResult {
   totalRows: number;
   successCount: number;
   errorCount: number;
-  errors: ImportError[];
+  errors: Array<{ rowIndex: number; field: string; message: string }>;
   message: string;
 }
 
 interface ExcelActionsProps {
   onDownloadTemplate: () => Promise<Blob>;
-  onImport: (file: File) => Promise<{ data: { jobId: string } }>;
-  onSubscribeProgress: (
-    jobId: string,
-    onProgress: (progress: any) => void,
-    onComplete: (result: any) => void,
-    onError: (error: string) => void
-  ) => EventSource;
+  onImport: (file: File) => Promise<{ data: ImportResult }>;
   onExport: () => Promise<Blob>;
   onImportSuccess?: () => void;
   templateFileName?: string;
@@ -45,32 +34,37 @@ interface ExcelActionsProps {
 export default function ExcelActions({
   onDownloadTemplate,
   onImport,
-  onSubscribeProgress,
   onExport,
   onImportSuccess,
   templateFileName = "template.xlsx",
   exportFileName = "export.xlsx",
 }: ExcelActionsProps) {
-  const [isImporting, setIsImporting] = useState(false);
+  const { 
+    importProgress: globalProgress, 
+    setImportProgress, 
+    updateProgress,
+    setImportResult,
+    setShowResultDialog,
+  } = useImportProgress();
+  
   const [isExporting, setIsExporting] = useState(false);
-  const [showResultDialog, setShowResultDialog] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [selectedFileInfo, setSelectedFileInfo] = useState<{
     name: string;
     size: number;
     rowCount: number;
   } | null>(null);
-  const [importProgress, setImportProgress] = useState(0);
-  const [importStage, setImportStage] = useState<string>("");
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
-  const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const [actualRowCount, setActualRowCount] = useState<number>(0);
-  const [processedRecords, setProcessedRecords] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingFileRef = useRef<File | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const elapsedIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Local shortcuts for easier access
+  const isImporting = globalProgress?.isImporting || false;
+  const isMinimized = globalProgress?.isMinimized || false;
+  const importProgressValue = globalProgress?.progress || 0;
+  const importStage = globalProgress?.stage || "";
+  const elapsedTime = globalProgress?.elapsedTime || 0;
 
   const downloadFile = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
@@ -169,49 +163,72 @@ export default function ExcelActions({
     if (!file) return;
 
     setShowPreviewDialog(false);
-    setIsImporting(true);
-    setImportProgress(0);
-    setImportStage("Đang đọc file...");
-    startTimeRef.current = Date.now();
+    
+    const startTime = Date.now();
+    
+    // Initialize global import state
+    setImportProgress({
+      isImporting: true,
+      isMinimized: false,
+      progress: 0,
+      stage: "Đang đọc file...",
+      fileName: selectedFileInfo?.name || file.name,
+      fileSize: selectedFileInfo?.size || file.size,
+      rowCount: selectedFileInfo?.rowCount || 0,
+      elapsedTime: 0,
+      startTime,
+    });
 
     try {
-      // Simulate progress stages
-      const progressInterval = setInterval(() => {
-        setElapsedTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      // Update elapsed time every second
+      elapsedIntervalRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        updateProgress({ elapsedTime: elapsed });
       }, 1000);
 
       // Stage 1: Reading file (0-20%)
-      setImportProgress(10);
+      updateProgress({ progress: 10 });
       await new Promise((resolve) => setTimeout(resolve, 300));
-      setImportProgress(20);
+      updateProgress({ progress: 20 });
 
       // Stage 2: Validating (20-40%)
-      setImportStage("Đang validate dữ liệu...");
-      setImportProgress(30);
+      updateProgress({ stage: "Đang validate dữ liệu...", progress: 30 });
       await new Promise((resolve) => setTimeout(resolve, 300));
-      setImportProgress(40);
+      updateProgress({ progress: 40 });
 
       // Stage 3: Importing (40-90%)
-      setImportStage("Đang lưu vào database...");
-      setImportProgress(50);
+      updateProgress({ stage: "Đang lưu vào database...", progress: 50 });
+
+      // Simulate progress while waiting for API
+      let currentProgress = 50;
+      const progressSimulator = setInterval(() => {
+        currentProgress += 2; // Increase 2% every 500ms
+        if (currentProgress < 85) {
+          updateProgress({ progress: currentProgress });
+        }
+      }, 500);
 
       const response = await onImport(file);
       
-      clearInterval(progressInterval);
+      // Stop simulators
+      clearInterval(progressSimulator);
+      if (elapsedIntervalRef.current) {
+        clearInterval(elapsedIntervalRef.current);
+      }
       
-      setImportProgress(90);
+      updateProgress({ progress: 90 });
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Stage 4: Complete (90-100%)
-      setImportStage("Hoàn tất!");
-      setImportProgress(100);
+      updateProgress({ stage: "Hoàn tất!", progress: 100 });
 
       const result = response.data;
+      
+      // Set result to global state
       setImportResult(result);
 
-      // Close loading dialog first
-      setIsImporting(false);
-      setImportStage("");
+      // Clear global import progress
+      setImportProgress(null);
       
       // Wait a bit then show result dialog
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -230,10 +247,13 @@ export default function ExcelActions({
       const err = error as { response?: { data?: { message?: string } }; message?: string };
       const errorMessage = err?.response?.data?.message || err?.message || "Import thất bại";
       toast.error(errorMessage);
-      setImportProgress(0);
-      setIsImporting(false);
-      setImportStage("");
+      
+      // Clear global import state on error
+      setImportProgress(null);
     } finally {
+      if (elapsedIntervalRef.current) {
+        clearInterval(elapsedIntervalRef.current);
+      }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -386,15 +406,20 @@ export default function ExcelActions({
       </Dialog>
 
       {/* Loading Dialog */}
-      <Dialog open={isImporting} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+      <Dialog 
+        open={isImporting && !isMinimized} 
+        onOpenChange={(open) => {
+          if (!open) updateProgress({ isMinimized: true });
+        }}
+      >
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
               Đang import dữ liệu
             </DialogTitle>
             <DialogDescription>
-              Vui lòng đợi, quá trình này có thể mất vài phút
+              Bạn có thể thu nhỏ cửa sổ này và tiếp tục làm việc
             </DialogDescription>
           </DialogHeader>
 
@@ -402,20 +427,20 @@ export default function ExcelActions({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{importStage}</span>
-                <span className="font-medium">{importProgress}%</span>
+                <span className="font-medium">{importProgressValue}%</span>
               </div>
-              <Progress value={importProgress} className="h-2" />
+              <Progress value={importProgressValue} className="h-2" />
             </div>
 
-            {selectedFileInfo && (
+            {globalProgress && (
               <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">File:</span>
-                  <span className="font-medium">{selectedFileInfo.name}</span>
+                  <span className="font-medium">{globalProgress.fileName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Số dòng ước tính:</span>
-                  <span className="font-medium">~{selectedFileInfo.rowCount.toLocaleString()}</span>
+                  <span className="font-medium">~{globalProgress.rowCount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Thời gian đã trôi qua:</span>
@@ -426,115 +451,61 @@ export default function ExcelActions({
 
             <Alert>
               <AlertDescription className="text-xs">
-                ⚡ Không đóng trang này cho đến khi hoàn tất
+                💡 Bạn có thể thu nhỏ và làm việc khác trong khi import
               </AlertDescription>
             </Alert>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Result Dialog */}
-
-      <Dialog 
-        open={showResultDialog} 
-        onOpenChange={(open) => {
-          setShowResultDialog(open);
-          if (!open) {
-            setElapsedTime(0);
-            setImportResult(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {importResult?.errorCount === 0 ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  Import thành công!
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-5 w-5 text-orange-600" />
-                  Import hoàn tất với lỗi
-                </>
-              )}
-            </DialogTitle>
-            <DialogDescription>
-              Chi tiết quá trình import dữ liệu từ file Excel
-            </DialogDescription>
-          </DialogHeader>
-
-          {importResult && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">Tổng số dòng</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {importResult.totalRows}
-                  </p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">Thành công</p>
-                  <p className="text-2xl font-bold text-green-600 flex items-center gap-1">
-                    <CheckCircle2 className="h-5 w-5" />
-                    {importResult.successCount}
-                  </p>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-gray-600 mb-1">Lỗi</p>
-                  <p className="text-2xl font-bold text-red-600 flex items-center gap-1">
-                    <XCircle className="h-5 w-5" />
-                    {importResult.errorCount}
-                  </p>
-                </div>
-              </div>
-
-              {elapsedTime > 0 && (
-                <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Thời gian thực hiện:</span>
-                    <span className="font-medium">{elapsedTime} giây</span>
-                  </div>
-                </div>
-              )}
-
-              {importResult.errors && importResult.errors.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-red-600">
-                    Chi tiết lỗi:
-                  </h4>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {importResult.errors.map((error, index) => (
-                      <Alert key={index} variant="destructive">
-                        <AlertDescription>
-                          <span className="font-semibold">
-                            Dòng {error.rowIndex}
-                          </span>{" "}
-                          - <span className="font-medium">{error.field}</span>:{" "}
-                          {error.message}
-                        </AlertDescription>
-                      </Alert>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {importResult.errorCount === 0 && (
-                <Alert className="bg-green-50 border-green-200">
-                  <AlertDescription className="text-green-800">
-                    ✓ Import thành công tất cả dữ liệu!
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
 
           <DialogFooter>
-            <Button onClick={() => setShowResultDialog(false)}>Đóng</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => updateProgress({ isMinimized: true })}
+            >
+              Thu nhỏ
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Local Minimized Notification - Only show on current page */}
+      {isImporting && isMinimized && (
+        <div 
+          className="fixed bottom-4 right-4 bg-white shadow-2xl rounded-lg p-4 border-2 border-blue-500 z-50 cursor-pointer hover:shadow-xl transition-all hover:scale-105 animate-in slide-in-from-bottom"
+          onClick={() => updateProgress({ isMinimized: false })}
+        >
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600 flex-shrink-0" />
+            <div className="flex-1 min-w-[220px]">
+              <p className="font-semibold text-sm text-gray-900">Đang import dữ liệu</p>
+              <p className="text-xs text-gray-600 mt-0.5">
+                {importStage} • {importProgressValue}%
+              </p>
+              {globalProgress && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {globalProgress.fileName}
+                </p>
+              )}
+            </div>
+            <Button 
+              size="sm" 
+              variant="ghost"
+              className="text-xs h-7 px-2 flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                updateProgress({ isMinimized: false });
+              }}
+            >
+              Xem
+            </Button>
+          </div>
+          <Progress value={importProgressValue} className="h-1.5 mt-3" />
+          <p className="text-xs text-gray-500 mt-2 text-right">
+            {elapsedTime}s đã trôi qua
+          </p>
+        </div>
+      )}
+
+      {/* Result Dialog is now global - see GlobalImportResultDialog component */}
     </>
   );
 }
