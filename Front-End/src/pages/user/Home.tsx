@@ -56,7 +56,10 @@ export default function Home() {
   const loadArticles = async () => {
     try {
       setLoadingArticles(true)
-      const response = await articleService.getArticles(1, 100)
+      // 👉 Lấy số lượng lớn hơn một chút để đảm bảo có dữ liệu
+      const response = await articleService.getArticles(1, 100, '', null, null)
+
+      // 🔽 Sắp xếp tất cả bài viết theo ngày đăng mới nhất
       const sortedArticles = response.data.data.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
@@ -311,7 +314,7 @@ export default function Home() {
               </div>
             </div>
             <a
-              href="/sforum"
+              href="/news"
               className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors group"
             >
               Xem tất cả

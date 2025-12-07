@@ -21,5 +21,8 @@ public class ArticleCategory extends BaseEntity {
 
     @Column(unique = true)
     private String slug;
+
+    @Column
+    private String image;
     
 }

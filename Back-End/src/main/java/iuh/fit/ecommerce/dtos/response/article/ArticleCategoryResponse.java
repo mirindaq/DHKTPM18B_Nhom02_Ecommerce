@@ -16,6 +16,7 @@ public class ArticleCategoryResponse {
     private Long id;
     private String title;
     private String slug;
+    private String image;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 }

@@ -42,10 +42,9 @@ import Promotions from "@/pages/admin/Promotions";
 import Vouchers from "@/pages/admin/Vouchers";
 import VoucherForm from "@/pages/admin/VoucherForm";
 import UserRegister from "@/pages/auth/UserRegister";
-import ArticleLayout from "@/layouts/ArticleLayout";
-import ArticleHomePage from "@/components/user/ArticleHomePage";
-import ArticleDetailPage from "@/components/user/ArticleDetailPage";
-import ArticleCategoryPage from "@/components/user/ArticleCategoryPage";
+import News from "@/pages/user/News";
+import NewsDetail from "@/pages/user/NewsDetail";
+import NewsCategory from "@/pages/user/NewsCategory";
 import ArticleSearch from "@/pages/user/ArticleSearch";
 import SearchWithCategory from "@/pages/user/SearchWithCategory";
 import Search from "@/pages/user/Search";
@@ -155,39 +154,17 @@ const useRouteElements = () => {
             { path: "warranty-policy", element: <WarrantyPolicy /> },
           ],
         },
+        // News/Article routes - moved to UserLayout
+        {
+          path: "news",
+          children: [
+            { index: true, element: <News /> },
+            { path: "search", element: <ArticleSearch /> },
+            { path: "article/:slug", element: <NewsDetail /> },
+            { path: "category/:slug", element: <NewsCategory /> },
+          ],
+        },
       ],
-    },
-
-    // Article routes
-    {
-      path: "/sforum",
-      element: (
-        <RoleBasedAuthWrapper>
-          <ArticleLayout />
-        </RoleBasedAuthWrapper>
-      ),
-      children: [
-        { index: true, element: <ArticleHomePage /> },
-        { path: "search", element: <ArticleSearch /> },
-      ],
-    },
-    {
-      path: "/article/:slug",
-      element: (
-        <RoleBasedAuthWrapper>
-          <ArticleLayout />
-        </RoleBasedAuthWrapper>
-      ),
-      children: [{ index: true, element: <ArticleDetailPage /> }],
-    },
-    {
-      path: "/category/:slug",
-      element: (
-        <RoleBasedAuthWrapper>
-          <ArticleLayout />
-        </RoleBasedAuthWrapper>
-      ),
-      children: [{ index: true, element: <ArticleCategoryPage /> }],
     },
 
     // Auth routes

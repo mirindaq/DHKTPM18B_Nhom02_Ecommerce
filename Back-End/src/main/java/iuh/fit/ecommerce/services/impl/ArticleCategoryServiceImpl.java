@@ -42,6 +42,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
         ArticleCategory category = articleCategoryMapper.toEntity(request);
         category.setSlug(slug);
+        category.setImage(request.getImage());
 
         ArticleCategory savedCategory = articleCategoryRepository.save(category);
         return articleCategoryMapper.toResponse(savedCategory);
@@ -77,6 +78,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
         category.setTitle(request.getTitle());
         category.setSlug(StringUtils.normalizeString(request.getTitle()));
+        category.setImage(request.getImage());
         ArticleCategory updatedCategory = articleCategoryRepository.save(category);
         return articleCategoryMapper.toResponse(updatedCategory);
     }

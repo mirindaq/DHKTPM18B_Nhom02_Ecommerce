@@ -5,12 +5,14 @@ export type ArticleCategory = {
   id: number;
   title: string;
   slug: string;
+  image?: string;
   createdAt: string;
   modifiedAt: string;
 };
 
 export type CreateArticleCategoryRequest = {
   title: string;
+  image?: string;
 };
 
 
