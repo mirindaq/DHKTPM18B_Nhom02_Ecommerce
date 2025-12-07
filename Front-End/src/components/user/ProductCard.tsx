@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import { Heart, Star, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -94,9 +94,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Badges overlay */}
         {discountPercent > 0 && (
-          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded">
+          <CustomBadge variant="error" size="sm" className="absolute top-2 left-2 text-white font-semibold">
             -{discountPercent}%
-          </Badge>
+          </CustomBadge>
         )}
 
         {/* Wishlist Button */}

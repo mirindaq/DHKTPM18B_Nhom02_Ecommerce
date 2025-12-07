@@ -1,6 +1,6 @@
 import { ShoppingCart, Trash2, Ticket, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { CustomBadge } from '@/components/ui/CustomBadge'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CartItemComponent from '@/components/staff/sell/CartItem'
@@ -125,9 +125,9 @@ export default function Cart({
                       <>
                         <Ticket className="w-4 h-4 text-green-600" />
                         <span className="text-green-700 font-medium">{selectedVoucher.code}</span>
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                        <CustomBadge variant="success" size="sm">
                           -{selectedVoucher.discount}%
-                        </Badge>
+                        </CustomBadge>
                       </>
                     ) : (
                       <>

@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import { Eye, Loader2, CheckCircle, Clock, Truck, XCircle } from "lucide-react";
 import type {
@@ -126,10 +126,10 @@ export default function DeliveryTable({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge className={`${statusInfo.color} border`}>
+                  <CustomBadge className={`${statusInfo.color} border`}>
                     <StatusIcon className="mr-1 h-3 w-3" />
                     {statusInfo.label}
-                  </Badge>
+                  </CustomBadge>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

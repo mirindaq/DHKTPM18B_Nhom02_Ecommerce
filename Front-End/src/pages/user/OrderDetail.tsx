@@ -6,7 +6,7 @@ import { uploadService } from "@/services/upload.service";
 import { useQuery } from "@/hooks/useQuery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -156,34 +156,34 @@ export default function OrderDetail() {
   const getStatusBadge = (status: OrderStatus) => {
     if (["PENDING", "PENDING_PAYMENT"].includes(status)) {
       return (
-        <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+        <CustomBadge variant="warning">
           Chờ xác nhận
-        </Badge>
+        </CustomBadge>
       );
     } else if (["PROCESSING", "READY_FOR_PICKUP", "SHIPPED"].includes(status)) {
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+        <CustomBadge variant="info">
           Đã xác nhận
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "DELIVERING") {
       return (
-        <Badge className="bg-purple-100 text-purple-700 border-purple-300">
+        <CustomBadge variant="info">
           Đang vận chuyển
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "COMPLETED") {
       return (
-        <Badge className="bg-green-100 text-green-700 border-green-300">
+        <CustomBadge variant="success">
           Hoàn thành
-        </Badge>
+        </CustomBadge>
       );
     } else if (["FAILED", "CANCELED", "PAYMENT_FAILED"].includes(status)) {
       return (
-        <Badge className="bg-red-100 text-red-700 border-red-300">Đã hủy</Badge>
+        <CustomBadge variant="error">Đã hủy</CustomBadge>
       );
     }
-    return <Badge>{status}</Badge>;
+    return <CustomBadge variant="secondary">{status}</CustomBadge>;
   };
 
   const getPaymentMethodLabel = (method: string) => {

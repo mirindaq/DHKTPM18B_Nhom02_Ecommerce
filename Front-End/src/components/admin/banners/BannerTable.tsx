@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { CustomBadge } from "@/components/ui/CustomBadge"
 import { Search, Edit, Power, PowerOff, Loader2 } from "lucide-react"
 import type { Banner } from "@/types/banner.type"
 
@@ -105,13 +105,13 @@ export default function BannerTable({
                   <TableCell className="text-gray-600">{formatDateOnly(banner.startDate)}</TableCell>
                   <TableCell className="text-gray-600">{formatDateOnly(banner.endDate)}</TableCell>
                   <TableCell>
-                    <Badge variant={banner.isActive ? "default" : "secondary"} className={
+                    <CustomBadge variant={banner.isActive ? "success" : "secondary"} className={
                       banner.isActive
                         ? "bg-green-100 text-green-800 border-green-200"
                         : "bg-gray-100 text-gray-800 border-gray-200"
                     }>
                       {banner.isActive ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">

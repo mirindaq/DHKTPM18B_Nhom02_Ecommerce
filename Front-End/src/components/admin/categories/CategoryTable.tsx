@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Search, Edit, Power, PowerOff, Loader2 } from "lucide-react";
 import type { Category } from "@/types/category.type";
 
@@ -186,8 +186,8 @@ export default function CategoryTable({
                     {formatAttributes(category.attributes)}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={category.status ? "default" : "secondary"}
+                    <CustomBadge
+                      variant={category.status ? "success" : "secondary"}
                       className={
                         category.status
                           ? "bg-green-100 text-green-800 border-green-200"
@@ -195,7 +195,7 @@ export default function CategoryTable({
                       }
                     >
                       {category.status ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell className="text-gray-600">
                     {formatDate(category.createdAt)}

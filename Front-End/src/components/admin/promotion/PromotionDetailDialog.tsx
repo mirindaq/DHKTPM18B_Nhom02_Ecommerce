@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Target, Percent, Star } from "lucide-react";
 import type { PromotionSummary } from "@/types/promotion.type";
@@ -73,9 +73,9 @@ export default function PromotionDetailDialog({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Thông tin cơ bản</span>
-                <Badge variant={promotion.active ? "default" : "secondary"}>
+                <CustomBadge variant={promotion.active ? "success" : "secondary"}>
                   {promotion.active ? "Hoạt động" : "Tạm dừng"}
-                </Badge>
+                </CustomBadge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -88,9 +88,14 @@ export default function PromotionDetailDialog({
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-gray-500" />
                   <span className="text-sm text-gray-600">Loại:</span>
-                  <Badge className={getTypeColor(promotion.promotionType)}>
+                  <CustomBadge variant={
+                    promotion.promotionType === "ORDER" ? "info" :
+                    promotion.promotionType === "PRODUCT" ? "success" :
+                    promotion.promotionType === "PRODUCT_VARIANT" ? "info" :
+                    "warning"
+                  }>
                     {getTypeLabel(promotion.promotionType)}
-                  </Badge>
+                  </CustomBadge>
                 </div>
 
                 <div className="flex items-center gap-2">

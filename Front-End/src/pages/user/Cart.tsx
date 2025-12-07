@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { cartService } from '@/services/cart.service'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
+import { CustomBadge } from '@/components/ui/CustomBadge'
 import { 
   Trash2, 
   Plus, 
@@ -290,9 +290,9 @@ export default function Cart() {
                 
                 <div className="flex items-center space-x-2 mb-3">
                   {item.discount > 0 && (
-                    <Badge variant="destructive" className="text-xs animate-pulse">
+                    <CustomBadge variant="error" size="sm" className="animate-pulse">
                       -{item.discount}%
-                    </Badge>
+                    </CustomBadge>
                   )}
                 </div>
 

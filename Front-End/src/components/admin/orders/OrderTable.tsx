@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import {
   Eye,
@@ -225,14 +225,14 @@ export default function OrderTable({
                     {formatPrice(order.finalTotalPrice)}
                   </TableCell>
                   <TableCell>
-                    <Badge className={`${statusInfo.color} border`}>
+                    <CustomBadge className={`${statusInfo.color} border`}>
                       <StatusIcon className="mr-1 h-3 w-3" />
                       {statusInfo.label}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={order.isPickup ? "default" : "secondary"}
+                    <CustomBadge
+                      variant={order.isPickup ? "info" : "secondary"}
                       className={
                         order.isPickup
                           ? "bg-blue-100 text-blue-800 border-blue-200"
@@ -240,7 +240,7 @@ export default function OrderTable({
                       }
                     >
                       {order.isPickup ? "Nhận tại quầy" : "Giao hàng"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell className="text-gray-600">
                     {formatDate(order.orderDate)}

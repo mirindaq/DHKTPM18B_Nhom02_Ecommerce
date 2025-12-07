@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   Select,
   SelectContent,
@@ -662,20 +662,25 @@ export default function PromotionDialog({
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge className={getTypeColor(selectedType)}>
+                        <CustomBadge variant={
+                          selectedType === "ORDER" ? "info" :
+                          selectedType === "PRODUCT" ? "success" :
+                          selectedType === "PRODUCT_VARIANT" ? "info" :
+                          "warning"
+                        }>
                           {selectedType === "ORDER" && "Đơn hàng"}
                           {selectedType === "PRODUCT" && "Sản phẩm"}
                           {selectedType === "PRODUCT_VARIANT" &&
                             "Biến thể sản phẩm"}
                           {selectedType === "CATEGORY" && "Danh mục"}
-                        </Badge>
-                        <Badge
+                        </CustomBadge>
+                        <CustomBadge
                           variant={
-                            form.watch("active") ? "default" : "secondary"
+                            form.watch("active") ? "success" : "secondary"
                           }
                         >
                           {form.watch("active") ? "Hoạt động" : "Tạm dừng"}
-                        </Badge>
+                        </CustomBadge>
                       </div>
                       <p className="text-sm text-gray-600">
                         {form.watch("name") || "Tên chương trình khuyến mãi"}

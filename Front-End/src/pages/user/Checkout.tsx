@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   Dialog,
   DialogContent,
@@ -609,12 +609,13 @@ export default function Checkout() {
                         {userProfile?.fullName || "Khách hàng"}
                       </span>
                       {userProfile?.rank && (
-                        <Badge
-                          variant="outline"
-                          className="bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-200 font-medium"
+                        <CustomBadge
+                          variant="warning"
+                          size="sm"
+                          className="font-medium"
                         >
                           {userProfile.rank.name}
-                        </Badge>
+                        </CustomBadge>
                       )}
                     </div>
                     {userProfile?.phone && (
@@ -800,12 +801,12 @@ export default function Checkout() {
                                         {address.phone}
                                       </span>
                                       {address.isDefault && (
-                                        <Badge
-                                          variant="outline"
-                                          className="text-xs text-red-600 border-red-600"
+                                        <CustomBadge
+                                          variant="error"
+                                          size="sm"
                                         >
                                           Mặc định
-                                        </Badge>
+                                        </CustomBadge>
                                       )}
                                     </div>
                                     <p className="text-sm text-gray-600 line-clamp-2">
@@ -1153,12 +1154,13 @@ export default function Checkout() {
                               <span className="font-bold text-base text-gray-900">
                                 {voucher.name}
                               </span>
-                              <Badge
-                                variant="outline"
-                                className="text-xs bg-red-100 text-red-700 border-red-300 font-bold"
+                              <CustomBadge
+                                variant="error"
+                                size="sm"
+                                className="font-bold"
                               >
                                 -{voucher.discount}%
-                              </Badge>
+                              </CustomBadge>
                             </div>
                             <p className="text-xs text-gray-600 mb-3 line-clamp-2 leading-relaxed">
                               {voucher.description}
@@ -1268,12 +1270,13 @@ export default function Checkout() {
                   <div className="flex justify-between text-sm">
                     <span className="flex items-center gap-2 text-amber-700 font-medium">
                       Chiết khấu {userProfile.rank.name}
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-300 font-semibold"
+                      <CustomBadge
+                        variant="warning"
+                        size="sm"
+                        className="font-semibold"
                       >
                         -{rankDiscount}%
-                      </Badge>
+                      </CustomBadge>
                     </span>
                     <span className="font-semibold text-amber-700">
                       - {formatPrice(rankDiscountAmount)}
@@ -1286,12 +1289,13 @@ export default function Checkout() {
                   <div className="flex justify-between text-sm">
                     <span className="flex items-center gap-2 text-red-600 font-medium">
                       Voucher {selectedVoucher.name}
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-red-100 text-red-700 border-red-300 font-semibold"
+                      <CustomBadge
+                        variant="error"
+                        size="sm"
+                        className="font-semibold"
                       >
                         -{selectedVoucher.discount}%
-                      </Badge>
+                      </CustomBadge>
                     </span>
                     <span className="font-semibold text-red-600">
                       - {formatPrice(voucherDiscountAmount)}
@@ -1393,12 +1397,13 @@ export default function Checkout() {
                       {userProfile?.fullName || "Khách hàng"}
                     </span>
                     {userProfile?.rank && (
-                      <Badge
-                        variant="outline"
-                        className="bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-300 text-xs font-semibold"
+                      <CustomBadge
+                        variant="warning"
+                        size="sm"
+                        className="font-semibold"
                       >
                         {userProfile.rank.name}
-                      </Badge>
+                      </CustomBadge>
                     )}
                   </div>
                 </div>
@@ -1646,12 +1651,13 @@ export default function Checkout() {
                     </h3>
                     <div className="flex items-center gap-3">
                       {item.discount > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="text-xs font-semibold px-2 py-0.5"
+                        <CustomBadge
+                          variant="error"
+                          size="sm"
+                          className="font-semibold"
                         >
                           -{item.discount}%
-                        </Badge>
+                        </CustomBadge>
                       )}
                       <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-md font-medium">
                         SL: {item.quantity}

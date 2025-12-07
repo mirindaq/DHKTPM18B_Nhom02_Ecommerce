@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   ShoppingCart,
   Search,
@@ -102,9 +102,9 @@ export default function Carts() {
               <ShoppingCart className="h-6 w-6" />
               Quản lý giỏ hàng khách hàng
             </CardTitle>
-            <Badge variant="secondary" className="text-sm">
+            <CustomBadge variant="secondary" size="sm">
               Tổng: {totalElements} giỏ hàng có sản phẩm
-            </Badge>
+            </CustomBadge>
           </div>
         </CardHeader>
         <CardContent>
@@ -176,7 +176,7 @@ export default function Carts() {
                         {cart.customerPhone || "Chưa cập nhật"}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary">{cart.totalItems}</Badge>
+                        <CustomBadge variant="secondary">{cart.totalItems}</CustomBadge>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-red-600">
                         {formatPrice(cart.totalPrice)}
@@ -297,17 +297,17 @@ export default function Carts() {
                             <div className="flex items-center gap-4 mt-1">
                               <span className="text-sm">
                                 Số lượng:{" "}
-                                <Badge variant="secondary">
+                                <CustomBadge variant="secondary">
                                   {item.quantity}
-                                </Badge>
+                                </CustomBadge>
                               </span>
                               {item.discount > 0 && (
-                                <Badge
-                                  variant="destructive"
+                                <CustomBadge
+                                  variant="error"
                                   className="text-xs"
                                 >
                                   -{item.discount}%
-                                </Badge>
+                                </CustomBadge>
                               )}
                             </div>
                           </div>

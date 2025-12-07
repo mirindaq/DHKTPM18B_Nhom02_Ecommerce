@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Search, Edit, Power, PowerOff, Loader2 } from "lucide-react";
 import type { Variant } from "@/types/variant.type";
 
@@ -177,16 +177,11 @@ export default function VariantTable({
                     {formatVariantValues(variant.variantValues)}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={variant.status ? "default" : "secondary"}
-                      className={
-                        variant.status
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
-                      }
+                    <CustomBadge
+                      variant={variant.status ? "success" : "secondary"}
                     >
                       {variant.status ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell className="text-gray-600">
                     {formatDate(variant.createdAt || "")}

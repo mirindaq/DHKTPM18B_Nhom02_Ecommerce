@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
+import { CustomBadge } from "@/components/ui/CustomBadge"
 import { Plus, RotateCcw, Trash2 } from "lucide-react"
 import type { Category, CreateCategoryRequest } from "@/types/category.type"
 
@@ -173,13 +173,13 @@ export default function CategoryForm({ category, onSubmit, onCancel, isLoading }
               <div className="space-y-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <Label className="text-sm font-medium text-green-700">Thuộc tính đang hoạt động:</Label>
-                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                  <CustomBadge variant="success" size="sm">
                     {formData.attributes.length} thuộc tính
-                  </Badge>
+                  </CustomBadge>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {formData.attributes.map((attr, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center space-x-1 bg-white text-green-700 border-green-300 shadow-sm">
+                    <CustomBadge key={index} variant="success" className="flex items-center space-x-1 bg-white shadow-sm">
                       <span>{attr.name}</span>
                       <button
                         type="button"
@@ -190,7 +190,7 @@ export default function CategoryForm({ category, onSubmit, onCancel, isLoading }
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
-                    </Badge>
+                    </CustomBadge>
                   ))}
                 </div>
               </div>
@@ -206,15 +206,15 @@ export default function CategoryForm({ category, onSubmit, onCancel, isLoading }
             <div className="space-y-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Label className="text-sm font-medium text-orange-700">Thuộc tính đã xóa (có thể khôi phục):</Label>
-                <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
+                <CustomBadge variant="warning" size="sm">
                   {allAttributes.filter(attr => !attr.status).length} thuộc tính
-                </Badge>
+                </CustomBadge>
               </div>
               <div className="flex flex-wrap gap-2">
                 {allAttributes.filter(attr => !attr.status).map((attr, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center space-x-1 bg-white text-gray-600 border-gray-300 line-through shadow-sm">
-                    <span>{attr.name}</span>
-                    <button
+                  <CustomBadge key={index} variant="secondary" className="flex items-center space-x-1 bg-white line-through shadow-sm">
+                      <span>{attr.name}</span>
+                      <button
                       type="button"
                       onClick={() => restoreAttribute(attr.name)}
                       className="ml-1 hover:text-green-500 transition-colors p-0.5 rounded hover:bg-green-50"
@@ -223,7 +223,7 @@ export default function CategoryForm({ category, onSubmit, onCancel, isLoading }
                     >
                       <RotateCcw className="h-3 w-3" />
                     </button>
-                  </Badge>
+                  </CustomBadge>
                 ))}
               </div>
             </div>

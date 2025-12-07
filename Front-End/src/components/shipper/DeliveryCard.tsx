@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Package, MapPin, Phone, User, Calendar, Clock } from "lucide-react";
@@ -61,9 +61,9 @@ export default function DeliveryCard({
               Đơn hàng #{delivery.order?.id || "-"}
             </span>
           </div>
-          <Badge className={`${statusInfo.color} border`}>
+          <CustomBadge className={`${statusInfo.color} border`}>
             {statusInfo.label}
-          </Badge>
+          </CustomBadge>
         </div>
 
         {/* Customer Info */}

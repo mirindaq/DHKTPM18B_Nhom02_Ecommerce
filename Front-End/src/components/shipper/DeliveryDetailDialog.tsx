@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type {
@@ -163,10 +163,10 @@ export default function DeliveryDetailDialog({
                 <p className="text-sm text-gray-600 mb-1">
                   Trạng thái giao hàng
                 </p>
-                <Badge className={`${statusInfo.color} border`}>
+                <CustomBadge className={`${statusInfo.color} border`}>
                   <StatusIcon className="mr-1 h-3 w-3" />
                   {statusInfo.label}
-                </Badge>
+                </CustomBadge>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Ngày được gán</p>

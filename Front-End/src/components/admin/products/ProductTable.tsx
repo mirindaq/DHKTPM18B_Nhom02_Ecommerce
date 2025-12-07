@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   Select,
   SelectContent,
@@ -96,48 +96,53 @@ export default function ProductTable({
             {hasActiveFilters && (
               <div className="flex items-center gap-2 text-xs">
                 {filters.keyword && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
                     className="bg-blue-50 text-blue-700 border-blue-200"
                   >
                     Từ khóa: {filters.keyword}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {filters.brandId && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
                     className="bg-purple-50 text-purple-700 border-purple-200"
                   >
                     Thương hiệu:{" "}
                     {brands.find((b) => b.id === filters.brandId)?.name}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {filters.categoryId && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="success"
+                    size="sm"
                     className="bg-green-50 text-green-700 border-green-200"
                   >
                     Danh mục:{" "}
                     {categories.find((c) => c.id === filters.categoryId)?.name}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {filters.status !== undefined && filters.status !== null && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="warning"
+                    size="sm"
                     className="bg-orange-50 text-orange-700 border-orange-200"
                   >
                     {filters.status ? "Hoạt động" : "Tạm dừng"}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {(filters.minPrice || filters.maxPrice) && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="error"
+                    size="sm"
                     className="bg-red-50 text-red-700 border-red-200"
                   >
                     Giá:{" "}
                     {filters.minPrice ? formatPrice(filters.minPrice) : "0"} -{" "}
                     {filters.maxPrice ? formatPrice(filters.maxPrice) : "∞"}
-                  </Badge>
+                  </CustomBadge>
                 )}
               </div>
             )}
@@ -443,8 +448,8 @@ export default function ProductTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={product.status ? "default" : "secondary"}
+                    <CustomBadge
+                      variant={product.status ? "success" : "secondary"}
                       className={
                         product.status
                           ? "bg-green-100 text-green-800 border-green-200"
@@ -452,7 +457,7 @@ export default function ProductTable({
                       }
                     >
                       {product.status ? "Hoạt động" : "Tạm dừng"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">

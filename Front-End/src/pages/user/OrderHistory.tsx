@@ -4,7 +4,7 @@ import { orderService } from "@/services/order.service";
 import { useQuery } from "@/hooks/useQuery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
@@ -148,70 +148,70 @@ export default function OrderHistory() {
   const getStatusBadge = (status: OrderStatus) => {
     if (status === "PENDING") {
       return (
-        <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+        <CustomBadge variant="warning">
           Chờ xác nhận
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "PENDING_PAYMENT") {
       return (
-        <Badge className="bg-orange-100 text-orange-700 border-orange-300">
+        <CustomBadge variant="warning">
           Chờ thanh toán
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "PROCESSING") {
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+        <CustomBadge variant="info">
           Đang xử lý
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "READY_FOR_PICKUP") {
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+        <CustomBadge variant="info">
           Sẵn sàng lấy hàng
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "SHIPPED") {
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+        <CustomBadge variant="info">
           Đã giao cho ĐVVC
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "ASSIGNED_SHIPPER") {
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+        <CustomBadge variant="info">
           Đã phân shipper
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "DELIVERING") {
       return (
-        <Badge className="bg-purple-100 text-purple-700 border-purple-300">
+        <CustomBadge variant="info">
           Đang giao hàng
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "COMPLETED") {
       return (
-        <Badge className="bg-green-100 text-green-700 border-green-300">
+        <CustomBadge variant="success">
           Hoàn thành
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "FAILED") {
       return (
-        <Badge className="bg-red-100 text-red-700 border-red-300">
+        <CustomBadge variant="error">
           Giao thất bại
-        </Badge>
+        </CustomBadge>
       );
     } else if (status === "CANCELED") {
       return (
-        <Badge className="bg-red-100 text-red-700 border-red-300">Đã hủy</Badge>
+        <CustomBadge variant="error">Đã hủy</CustomBadge>
       );
     } else if (status === "PAYMENT_FAILED") {
       return (
-        <Badge className="bg-red-100 text-red-700 border-red-300">
+        <CustomBadge variant="error">
           Thanh toán thất bại
-        </Badge>
+        </CustomBadge>
       );
     }
-    return <Badge>{status}</Badge>;
+    return <CustomBadge variant="secondary">{status}</CustomBadge>;
   };
 
   const getPaymentMethodLabel = (method: string) => {
@@ -333,16 +333,9 @@ export default function OrderHistory() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Lịch sử mua hàng</h1>
-        <p className="text-gray-600">Xem và quản lý tất cả đơn hàng của bạn</p>
-      </div>
-
       {/* Tabs */}
-      <Card>
-        <CardContent className="p-0">
+      <div>
+        <div className="p-0">
           <div className="flex border-b overflow-x-auto">
             <button
               onClick={() => handleTabChange("ALL")}
@@ -436,19 +429,19 @@ export default function OrderHistory() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Orders List */}
       {isLoading ? (
-        <Card>
+        <div>
           <CardContent className="p-12">
             <div className="flex flex-col items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
               <p className="text-gray-600">Đang tải lịch sử đơn hàng...</p>
             </div>
           </CardContent>
-        </Card>
+        </div>
       ) : ordersError ? (
         <Alert className="bg-red-50 border-red-200">
           <AlertTitle>Có lỗi xảy ra</AlertTitle>

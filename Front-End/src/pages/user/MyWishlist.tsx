@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { wishlistService } from "@/services/wishlist.service";
 import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import ConfirmDeleteDialog from "@/components/user/ConfirmDeleteDialog";
 import {
   Heart,
   Trash2,
@@ -19,6 +21,8 @@ import { toast } from "sonner";
 
 export default function MyWishlist() {
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
 
   // Fetch wishlist
   const {
@@ -62,13 +66,21 @@ export default function MyWishlist() {
 
   const handleRemoveFromWishlist = (e: React.MouseEvent, productId: number) => {
     e.stopPropagation(); // Ngăn chặn sự kiện click lan ra Card
-    
-    if (
-      !window.confirm("Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?")
-    )
-      return;
+    setProductToDelete(productId);
+    setDeleteDialogOpen(true);
+  };
 
-    removeFromWishlistMutation.mutate({ productId });
+  const handleConfirmDelete = () => {
+    if (productToDelete) {
+      removeFromWishlistMutation.mutate({ productId: productToDelete });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setProductToDelete(null);
   };
 
   const handleProductClick = (productSlug: string) => {
@@ -84,23 +96,23 @@ export default function MyWishlist() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Danh sách yêu thích</h1>
-        <p className="text-gray-600">
-          Quản lý sản phẩm yêu thích của bạn ({wishlistItems.length} sản phẩm)
-        </p>
-      </div>
-
+    <div className="space-y-6">
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={removeFromWishlistMutation.isLoading}
+        title="Xóa khỏi danh sách yêu thích"
+        description="Bạn có chắc chắn muốn xóa sản phẩm này khỏi danh sách yêu thích không?"
+        message="Sau khi xóa, sản phẩm sẽ không còn trong danh sách yêu thích của bạn. Bạn có thể thêm lại bất cứ lúc nào."
+      />
       {loading ? (
-        <Card>
-          <CardContent className="p-12">
-            <div className="flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
-              <p className="text-gray-600">Đang tải danh sách yêu thích...</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
+          <p className="text-gray-600">Đang tải danh sách yêu thích...</p>
+        </div>
       ) : wishlistError ? (
         <Alert className="bg-red-50 border-red-200">
           <AlertTitle>Có lỗi xảy ra</AlertTitle>
@@ -109,30 +121,26 @@ export default function MyWishlist() {
           </AlertDescription>
         </Alert>
       ) : wishlistItems.length === 0 ? (
-        <Card>
-          <CardContent className="p-12">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
-                <Heart className="w-8 h-8 text-red-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Chưa có sản phẩm yêu thích nào
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Hãy thêm sản phẩm vào danh sách yêu thích để dễ dàng tìm lại sau
-              </p>
-              <Button
-                onClick={() => navigate(PUBLIC_PATH.HOME)}
-                className="inline-flex items-center gap-2"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span>Tiếp tục mua sắm</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <Heart className="w-8 h-8 text-red-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Chưa có sản phẩm yêu thích nào
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Hãy thêm sản phẩm vào danh sách yêu thích để dễ dàng tìm lại sau
+          </p>
+          <Button
+            onClick={() => navigate(PUBLIC_PATH.HOME)}
+            className="inline-flex items-center gap-2"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>Tiếp tục mua sắm</span>
+          </Button>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {wishlistItems.map((item) => (
             <Card
               key={item.id}
@@ -146,22 +154,22 @@ export default function MyWishlist() {
                   size="sm"
                   onClick={(e) => handleRemoveFromWishlist(e, item.productId)}
                   disabled={removeFromWishlistMutation.isLoading}
-                  className="h-8 w-8 p-0 bg-white/90 hover:bg-red-50 text-red-600 hover:text-red-700 rounded-full shadow-sm backdrop-blur-sm"
+                  className="h-7 w-7 p-0 bg-white/90 hover:bg-red-50 text-red-600 hover:text-red-700 rounded-full shadow-sm backdrop-blur-sm"
                   title="Xóa khỏi danh sách yêu thích"
                 >
                   {removeFromWishlistMutation.isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   )}
                 </Button>
               </div>
 
               {/* Badge */}
               <div className="absolute top-2 left-2 z-10">
-                <Badge className="bg-blue-100 text-blue-600 font-bold text-xs px-2 py-1 rounded-r-lg">
+                <CustomBadge variant="info" size="sm" className="font-bold rounded-r-lg">
                   Trả góp 0%
-                </Badge>
+                </CustomBadge>
               </div>
 
               {/* Product Image */}
@@ -178,29 +186,29 @@ export default function MyWishlist() {
                 />
               </div>
 
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-3 space-y-2">
                 {/* Product Name */}
-                <h3 className="font-bold text-lg text-gray-900 line-clamp-2 min-h-[3.5rem] hover:text-red-600 transition-colors">
+                <h3 className="font-bold text-base text-gray-900 line-clamp-2 min-h-[3rem] hover:text-red-600 transition-colors">
                   {item.productName}
                 </h3>
 
                 {/* Price Section */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-red-500">
+                    <span className="text-xl font-bold text-red-500">
                       {formatPrice(item.price)}
                     </span>
                   </div>
 
                   {/* Smember Discount */}
                   <div className="bg-blue-50 rounded-md px-2 py-1">
-                    <span className="text-sm text-blue-600 font-medium">
+                    <span className="text-xs text-blue-600 font-medium">
                       Smember giảm đến {formatPrice(item.price * 0.01)}
                     </span>
                   </div>
 
                   {/* Installment Info */}
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
                     Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6 tháng
                   </p>
                 </div>
@@ -208,8 +216,8 @@ export default function MyWishlist() {
                 {/* Rating and Actions */}
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold text-sm">4.9</span>
+                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    <span className="font-bold text-xs">4.9</span>
                   </div>
                   
                   <Button
@@ -219,9 +227,9 @@ export default function MyWishlist() {
                       e.stopPropagation();
                       handleProductClick(item.productSlug);
                     }}
-                    className="bg-red-600 hover:bg-red-700 text-white"
+                    className="bg-red-600 hover:bg-red-700 text-white text-xs h-7 px-2"
                   >
-                    <ShoppingCart className="w-4 h-4 mr-1" />
+                    <ShoppingCart className="w-3 h-3 mr-1" />
                     Mua ngay
                   </Button>
                 </div>

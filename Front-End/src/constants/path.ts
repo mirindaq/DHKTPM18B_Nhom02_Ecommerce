@@ -90,7 +90,6 @@ export const USER_PATH = {
   EDIT_PROFILE: "/profile/edit",
   GUARANTEE_POLICY: "/profile/guarantee-policy",
   WARRANTY_POLICY: "/profile/warranty-policy",
-  STUDENT_BENEFITS: "/profile/student-benefits",
   TERMS: "/profile/terms",
   PAY: "/pay",
   PAY_SUCCESS: "/pay/success",

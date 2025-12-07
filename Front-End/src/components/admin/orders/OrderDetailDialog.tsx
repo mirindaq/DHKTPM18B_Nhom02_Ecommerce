@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { OrderResponse, OrderStatus } from "@/types/order.type";
@@ -160,10 +160,10 @@ export default function OrderDetailDialog({
           <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
             <div>
               <p className="text-sm text-gray-600 mb-1">Trạng thái đơn hàng</p>
-              <Badge className={`${statusInfo.color} border`}>
+              <CustomBadge className={`${statusInfo.color} border`}>
                 <StatusIcon className="mr-1 h-3 w-3" />
                 {statusInfo.label}
-              </Badge>
+              </CustomBadge>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600">Ngày đặt hàng</p>
@@ -213,8 +213,8 @@ export default function OrderDetailDialog({
             </h4>
             <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <Badge
-                  variant={order.isPickup ? "default" : "secondary"}
+                <CustomBadge
+                  variant={order.isPickup ? "info" : "secondary"}
                   className={
                     order.isPickup
                       ? "bg-blue-100 text-blue-800 border-blue-200"
@@ -222,7 +222,7 @@ export default function OrderDetailDialog({
                   }
                 >
                   {order.isPickup ? "Nhận tại quầy" : "Giao hàng tận nơi"}
-                </Badge>
+                </CustomBadge>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Người nhận</p>

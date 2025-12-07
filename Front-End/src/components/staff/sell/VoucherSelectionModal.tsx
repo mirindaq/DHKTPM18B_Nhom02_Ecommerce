@@ -1,5 +1,5 @@
 import { Check, Ticket, X } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { CustomBadge } from '@/components/ui/CustomBadge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { VoucherAvailableResponse } from '@/types/voucher.type'
@@ -64,9 +64,9 @@ export default function VoucherSelectionModal({
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-gray-900">{voucher.code}</span>
                       {isBest && (
-                        <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200">
+                        <CustomBadge variant="warning" size="sm">
                           Tốt nhất
-                        </Badge>
+                        </CustomBadge>
                       )}
                       {isSelected && (
                         <Check className="w-4 h-4 text-green-600" />

@@ -68,7 +68,6 @@ import EditProfile from "@/pages/user/EditProfile";
 import GuaranteePolicy from "@/pages/user/GuaranteePolicy";
 import TermsOfUse from "@/pages/user/TermsOfUse";
 import WarrantyPolicy from "@/pages/user/WarrantyPolicy";
-import StudentBenefits from "@/pages/user/StudentBenefits";
 import ChatManagement from "@/pages/admin/ChatManagement";
 import StaffLogin from "@/pages/auth/StaffLogin";
 import ShipperLogin from "@/pages/auth/ShipperLogin";
@@ -154,7 +153,6 @@ const useRouteElements = () => {
             { path: "guarantee-policy", element: <GuaranteePolicy /> },
             { path: "terms", element: <TermsOfUse /> },
             { path: "warranty-policy", element: <WarrantyPolicy /> },
-            { path: "student-benefits", element: <StudentBenefits /> },
           ],
         },
       ],

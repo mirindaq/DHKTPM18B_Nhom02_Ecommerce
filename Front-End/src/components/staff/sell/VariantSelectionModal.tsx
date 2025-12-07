@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { CustomBadge } from '@/components/ui/CustomBadge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Product, ProductVariantResponse } from '@/types/product.type'
 
@@ -69,9 +69,9 @@ export default function VariantSelectionModal({
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-semibold text-gray-800">{variantInfo}</span>
                         {hasDiscount && (
-                          <Badge className="bg-red-500 text-white text-xs">
+                          <CustomBadge variant="error" size="sm" className="text-white">
                             -{Math.round((1 - variant.price / variant.oldPrice) * 100)}%
-                          </Badge>
+                          </CustomBadge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -86,9 +86,9 @@ export default function VariantSelectionModal({
                       </div>
                     </div>
                     {inCart && (
-                      <Badge className="bg-green-100 text-green-700 border-green-300">
+                      <CustomBadge variant="success">
                         Trong giỏ: {inCart.quantity}
-                      </Badge>
+                      </CustomBadge>
                     )}
                   </div>
                   <div className="flex items-center justify-between text-xs">

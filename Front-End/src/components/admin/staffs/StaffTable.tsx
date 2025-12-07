@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Edit, Power, PowerOff, Loader2, Search } from "lucide-react";
 import type { Staff } from "@/types/staff.type";
 
@@ -129,12 +129,12 @@ export default function StaffTable({
                     <div className="flex flex-wrap gap-1">
                       {staff.userRole?.length ? (
                         staff.userRole.map((ur) => (
-                          <Badge
+                          <CustomBadge
                             key={ur.id}
-                            className="bg-purple-100 text-purple-800 border-purple-200"
+                            variant="info"
                           >
                             {ur.role?.name}
-                          </Badge>
+                          </CustomBadge>
                         ))
                       ) : (
                         <span className="text-gray-400 text-sm">
@@ -147,15 +147,11 @@ export default function StaffTable({
                     {formatDate(staff.joinDate)}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      className={
-                        staff.active
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
-                      }
+                    <CustomBadge
+                      variant={staff.active ? "success" : "secondary"}
                     >
                       {staff.active ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">

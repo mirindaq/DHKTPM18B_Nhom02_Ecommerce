@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -575,10 +575,10 @@ export default function ProductDetail() {
                         )}
                         {index === 0 && (
                           <div className="absolute top-2 left-2">
-                            <Badge className="bg-yellow-500 text-white text-xs">
+                            <CustomBadge variant="warning" size="sm">
                               <Star className="w-3 h-3 mr-1" />
                               Chính
-                            </Badge>
+                            </CustomBadge>
                           </div>
                         )}
                       </div>

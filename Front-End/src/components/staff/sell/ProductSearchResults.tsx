@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { CustomBadge } from '@/components/ui/CustomBadge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Product } from '@/types/product.type'
 
@@ -40,9 +40,9 @@ export default function ProductSearchResults({
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                   {firstVariant && firstVariant.oldPrice > firstVariant.price && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5">
+                    <CustomBadge variant="error" size="sm" className="absolute top-2 left-2 text-white">
                       -{Math.round((1 - firstVariant.price / firstVariant.oldPrice) * 100)}%
-                    </Badge>
+                    </CustomBadge>
                   )}
                 </div>
                 <div className="p-3 space-y-2">
@@ -59,9 +59,9 @@ export default function ProductSearchResults({
                       </span>
                     )}
                   </div>
-                  <Badge variant="outline" className="text-xs">
+                  <CustomBadge variant="secondary" size="sm">
                     {product.variants?.length || 0} biến thể
-                  </Badge>
+                  </CustomBadge>
                 </div>
               </div>
             )

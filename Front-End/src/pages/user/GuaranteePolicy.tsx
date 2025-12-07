@@ -1,8 +1,5 @@
-import { useNavigate } from "react-router";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ArrowLeft,
   Shield,
   Phone,
   Mail,
@@ -10,7 +7,6 @@ import {
   Clock,
   Wrench,
 } from "lucide-react";
-import { USER_PATH } from "@/constants/path";
 
 interface PolicyItem {
   icon: React.ReactNode;
@@ -58,28 +54,8 @@ const policyItems: PolicyItem[] = [
 ];
 
 export default function GuaranteePolicy() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(USER_PATH.PROFILE)}
-            >
-              <ArrowLeft size={20} />
-            </Button>
-            <h1 className="text-xl font-semibold">Bảo hành & Sửa chữa</h1>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="space-y-6">
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-red-600">Chính sách bảo hành</CardTitle>
@@ -134,7 +110,6 @@ export default function GuaranteePolicy() {
             </ul>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

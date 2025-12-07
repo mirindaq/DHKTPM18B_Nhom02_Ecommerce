@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Search, Edit, Power, PowerOff, Loader2 } from "lucide-react";
 import type { Brand } from "@/types/brand.type";
 
@@ -185,8 +185,8 @@ export default function BrandTable({
                     {brand.description || "Không có mô tả"}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={brand.status ? "default" : "secondary"}
+                    <CustomBadge
+                      variant={brand.status ? "success" : "secondary"}
                       className={
                         brand.status
                           ? "bg-green-100 text-green-800 border-green-200"
@@ -194,7 +194,7 @@ export default function BrandTable({
                       }
                     >
                       {brand.status ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell className="text-gray-600">
                     {formatDate(brand.createdAt)}

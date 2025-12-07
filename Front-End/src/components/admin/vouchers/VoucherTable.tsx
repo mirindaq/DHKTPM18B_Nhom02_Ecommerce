@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,10 +189,10 @@ export default function VoucherTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`${typeConfig.color} border`}>
+                    <CustomBadge className={`${typeConfig.color} border`}>
                       <TypeIcon className="mr-1 h-3 w-3" />
                       {typeConfig.label}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <div className="font-semibold text-green-600">
@@ -212,10 +212,10 @@ export default function VoucherTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`${statusConfig.color} border`}>
+                    <CustomBadge className={`${statusConfig.color} border`}>
                       <StatusIcon className="mr-1 h-3 w-3" />
                       {statusConfig.label}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

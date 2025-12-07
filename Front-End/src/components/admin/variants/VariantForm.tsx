@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
+import { CustomBadge } from "@/components/ui/CustomBadge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, RotateCcw, Trash2 } from "lucide-react"
 import { useQuery } from "@/hooks"
@@ -225,13 +225,13 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
               <div className="space-y-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <Label className="text-sm font-medium text-green-700">Giá trị variant đang hoạt động:</Label>
-                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                  <CustomBadge variant="success" size="sm">
                     {formData.variantValues.length} giá trị
-                  </Badge>
+                  </CustomBadge>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {formData.variantValues.map((value, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center space-x-1 bg-white text-green-700 border-green-300 shadow-sm">
+                    <CustomBadge key={index} variant="success" className="flex items-center space-x-1 bg-white shadow-sm">
                       <span>{value.value}</span>
                       <button
                         type="button"
@@ -242,7 +242,7 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
-                    </Badge>
+                    </CustomBadge>
                   ))}
                 </div>
               </div>
@@ -258,15 +258,15 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
             <div className="space-y-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Label className="text-sm font-medium text-orange-700">Giá trị variant đã xóa (có thể khôi phục):</Label>
-                <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
+                <CustomBadge variant="warning" size="sm">
                   {allVariantValues.filter(val => !val.status).length} giá trị
-                </Badge>
+                </CustomBadge>
               </div>
               <div className="flex flex-wrap gap-2">
                 {allVariantValues.filter(val => !val.status).map((val, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center space-x-1 bg-white text-gray-600 border-gray-300 line-through shadow-sm">
-                    <span>{val.value}</span>
-                    <button
+                  <CustomBadge key={index} variant="secondary" className="flex items-center space-x-1 bg-white line-through shadow-sm">
+                      <span>{val.value}</span>
+                      <button
                       type="button"
                       onClick={() => restoreVariantValue(val.value)}
                       className="ml-1 hover:text-green-500 transition-colors p-0.5 rounded hover:bg-green-50"
@@ -275,7 +275,7 @@ export default function VariantForm({ variant, onSubmit, onCancel, isLoading }: 
                     >
                       <RotateCcw className="h-3 w-3" />
                     </button>
-                  </Badge>
+                  </CustomBadge>
                 ))}
               </div>
             </div>

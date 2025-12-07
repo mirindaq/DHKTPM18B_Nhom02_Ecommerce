@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Ticket, Calendar, Tag, Copy, Check } from "lucide-react";
+import { Ticket, Calendar, Tag, Copy, Check } from "lucide-react";
 import { voucherService } from "@/services/voucher.service";
 import type { VoucherAvailableResponse } from "@/types/voucher.type";
 import { toast } from "sonner";
-import { USER_PATH, PUBLIC_PATH } from "@/constants/path";
+import { PUBLIC_PATH } from "@/constants/path";
 
 export default function MyVouchers() {
   const navigate = useNavigate();
@@ -50,53 +50,30 @@ export default function MyVouchers() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(USER_PATH.PROFILE)}
-            >
-              <ArrowLeft size={20} />
-            </Button>
-            <h1 className="text-xl font-semibold">Mã giảm giá của tôi</h1>
-          </div>
+    <div className="space-y-6">
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+          <p className="text-gray-600">Đang tải danh sách voucher...</p>
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {vouchers.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Ticket size={64} className="text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                Chưa có mã giảm giá
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Bạn chưa có mã giảm giá nào. Hãy mua sắm để nhận ưu đãi!
-              </p>
-              <Button
-                className="bg-red-600 hover:bg-red-700"
-                onClick={() => navigate(PUBLIC_PATH.HOME)}
-              >
-                Khám phá sản phẩm
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
+      ) : vouchers.length === 0 ? (
+        <div className="text-center py-12">
+          <Ticket size={64} className="text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            Chưa có mã giảm giá
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Bạn chưa có mã giảm giá nào. Hãy mua sắm để nhận ưu đãi!
+          </p>
+          <Button
+            className="bg-red-600 hover:bg-red-700"
+            onClick={() => navigate(PUBLIC_PATH.HOME)}
+          >
+            Khám phá sản phẩm
+          </Button>
+        </div>
+      ) : (
           <div className="grid gap-4">
             {vouchers.map((voucher, index) => (
               <Card
@@ -178,8 +155,7 @@ export default function MyVouchers() {
               </Card>
             ))}
           </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
