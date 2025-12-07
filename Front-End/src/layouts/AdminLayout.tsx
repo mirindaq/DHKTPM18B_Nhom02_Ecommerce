@@ -73,8 +73,8 @@ const navigation = [
         icon: Award,
       },
       {
-        title: "Liên kết thương hiệu",
-        href: "/admin/category-brand-assignment",
+        title: "Liên kết danh mục",
+        href: "/admin/category-assignment",
         icon: GitMerge,
       },
       {

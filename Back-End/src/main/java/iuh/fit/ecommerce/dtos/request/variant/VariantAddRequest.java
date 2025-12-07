@@ -14,8 +14,5 @@ public class VariantAddRequest {
 
     private Boolean status;
 
-    @NotNull(message = "CategoryId is not null null")
-    private Long categoryId;
-
     private List<VariantValueAddRequest> variantValues;
 }

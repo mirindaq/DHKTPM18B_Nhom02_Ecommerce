@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.services.impl;
 
 
 import iuh.fit.ecommerce.entities.Category;
+import iuh.fit.ecommerce.repositories.VariantCategoryRepository;
 import iuh.fit.ecommerce.services.CategoryService;
 import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,9 @@ public class VariantServiceImpl implements VariantService {
 
     private final VariantRepository variantRepository;
     private final VariantMapper variantMapper;
-    private final VariantValueService variantValueService; // tách logic variant value sang service riêng
+    private final VariantValueService variantValueService;
     private final CategoryService categoryService;
+    private final VariantCategoryRepository variantCategoryRepository;
 
     @Override
     public ResponseWithPagination<List<VariantResponse>> getVariants(int page, int size, String variantName) {
@@ -92,7 +94,7 @@ public class VariantServiceImpl implements VariantService {
 
     @Override
     public List<VariantResponse> getVariantsByCategory( Long id) {
-        List<Variant> variants = variantRepository.findByStatusAndCategory_Id(true,id);
+        List<Variant> variants = variantCategoryRepository.findByStatusAndCategoryId(true,id);
         return variants.stream()
                 .map(variantMapper::toResponse)
                 .toList();
@@ -100,7 +102,7 @@ public class VariantServiceImpl implements VariantService {
 
     @Override
     public List<VariantResponse> getVariantsByCategorySlug(String slug) {
-        List<Variant> variants = variantRepository.findByStatusAndCategory_Slug(true,slug);
+        List<Variant> variants = variantCategoryRepository.findByStatusAndCategorySlug(true,slug);
         return variants.stream()
                 .map(variantMapper::toResponse)
                 .toList();
@@ -113,12 +115,10 @@ public class VariantServiceImpl implements VariantService {
 
 
     private void mapVariantFields(Variant variant, VariantAddRequest request) {
-        Category category = categoryService.getCategoryEntityById(request.getCategoryId());
         variant.setName(request.getName());
-        variant.setSlug(StringUtils.normalizeString( request.getName() + category.getName()));
+        variant.setSlug(StringUtils.normalizeString( request.getName()));
         if (request.getStatus() != null) {
             variant.setStatus(request.getStatus());
         }
-        variant.setCategory(category);
     }
 }

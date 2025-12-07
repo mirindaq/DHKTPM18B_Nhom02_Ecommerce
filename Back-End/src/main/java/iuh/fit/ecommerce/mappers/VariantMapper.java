@@ -9,10 +9,5 @@ import iuh.fit.ecommerce.entities.Variant;
 public interface VariantMapper {
 
     @Mapping(source = "variantValues", target = "variantValues")
-    @Mapping(
-            source = "category",
-            target = "category",
-            qualifiedByName = "toResponseWithoutAttributes"
-    )
     VariantResponse toResponse(Variant variant);
 }

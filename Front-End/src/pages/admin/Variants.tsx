@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 import VariantDialog from "@/components/admin/variants/VariantDialog";
 import VariantTable from "@/components/admin/variants/VariantTable";
 import Pagination from "@/components/ui/pagination";
 import { useQuery, useMutation } from "@/hooks";
 import { variantService } from "@/services/variant.service";
+import { ADMIN_PATH } from "@/constants/path";
 import type {
   Variant,
   VariantListResponse,
@@ -14,6 +16,7 @@ import type {
 } from "@/types/variant.type";
 
 export default function Variants() {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -136,10 +139,20 @@ export default function Variants() {
             Quản lý các variant sản phẩm trong hệ thống
           </p>
         </div>
-        <Button onClick={handleOpenAddDialog} size="lg">
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm variant
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate(ADMIN_PATH.CATEGORY_ASSIGNMENT)}
+            size="lg"
+          >
+            <Link2 className="mr-2 h-4 w-4" />
+            Liên kết Danh mục
+          </Button>
+          <Button onClick={handleOpenAddDialog} size="lg">
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm variant
+          </Button>
+        </div>
       </div>
 
       <VariantTable
