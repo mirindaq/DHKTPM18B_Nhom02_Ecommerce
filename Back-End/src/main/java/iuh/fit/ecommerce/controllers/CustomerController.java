@@ -1,9 +1,11 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.excel.ImportResult;
+import iuh.fit.ecommerce.dtos.request.address.AddressRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
 import iuh.fit.ecommerce.dtos.request.customer.UpdatePushTokenRequest;
+import iuh.fit.ecommerce.dtos.response.address.AddressResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
@@ -176,9 +178,9 @@ public class CustomerController {
 
     
     @PostMapping("/{customerId}/addresses")
-    public ResponseEntity<ResponseSuccess<?>> addAddressForCustomer(
+    public ResponseEntity<ResponseSuccess<AddressResponse>> addAddressForCustomer(
             @PathVariable Long customerId,
-            @Valid @RequestBody iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+            @Valid @RequestBody AddressRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Add address for customer success",
@@ -186,10 +188,10 @@ public class CustomerController {
     }
 
     @PutMapping("/{customerId}/addresses/{addressId}")
-    public ResponseEntity<ResponseSuccess<?>> updateAddressForCustomer(
+    public ResponseEntity<ResponseSuccess<AddressResponse>> updateAddressForCustomer(
             @PathVariable Long customerId,
             @PathVariable Long addressId,
-            @Valid @RequestBody iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+            @Valid @RequestBody AddressRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Update address for customer success",

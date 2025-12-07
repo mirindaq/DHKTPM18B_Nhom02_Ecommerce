@@ -1,7 +1,9 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.dtos.request.address.AddressRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
+import iuh.fit.ecommerce.dtos.response.address.AddressResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
 import iuh.fit.ecommerce.entities.*;
@@ -133,10 +135,9 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setExpoPushToken(expoPushToken);
         customerRepository.save(customer);
     }
-
     @Override
     @Transactional
-    public Object addAddressForCustomer(Long customerId, iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+    public AddressResponse addAddressForCustomer(Long customerId, AddressRequest request) {
 
         getCustomerEntityById(customerId);
         return addressService.addAddress(customerId, request);
@@ -144,7 +145,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public Object updateAddressForCustomer(Long customerId, Long addressId, iuh.fit.ecommerce.dtos.request.address.AddressRequest request) {
+    public AddressResponse updateAddressForCustomer(Long customerId, Long addressId, AddressRequest request) {
 
         getCustomerEntityById(customerId);
         return addressService.updateAddress(customerId, addressId, request);
