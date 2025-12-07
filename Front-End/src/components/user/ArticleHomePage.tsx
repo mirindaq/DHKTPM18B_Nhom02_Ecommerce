@@ -24,10 +24,10 @@ const ArticleHomePage = () => {
             const categoriesResponse: ArticleCategoryListResponse = await articleCategoryService.getCategories(1, 20, '');
             setCategories(categoriesResponse.data?.data ?? []);
 
-            const featuredResponse: ArticleListResponse = await articleService.getArticles(1, 4, '', true, null, null);
+            const featuredResponse: ArticleListResponse = await articleService.getArticles(1, 4, '', null, null);
             setFeaturedArticles(featuredResponse.data?.data ?? []);
 
-            const latestResponse: ArticleListResponse = await articleService.getArticles(1, 20, '', true, null, null);
+            const latestResponse: ArticleListResponse = await articleService.getArticles(1, 20, '', null, null);
             const allLatestArticles = latestResponse.data?.data ?? [];
             
             setLatestArticles(allLatestArticles.slice(1, 4));
@@ -149,7 +149,18 @@ const ArticleHomePage = () => {
                                                 href={`/category/${category.slug}`}
                                                 className="flex-shrink-0 w-36 h-36 relative rounded-lg overflow-hidden group cursor-pointer"
                                             >
-                                                <div className={`w-full h-full ${gradientClasses}`} />
+                                                {category.image ? (
+                                                    <img
+                                                        src={category.image}
+                                                        alt={category.title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div className={`w-full h-full ${gradientClasses} ${category.image ? 'hidden' : ''}`} />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                                                 <div className="absolute bottom-0 left-0 right-0 p-3">
                                                     <span className="text-white text-sm font-semibold leading-tight line-clamp-2">

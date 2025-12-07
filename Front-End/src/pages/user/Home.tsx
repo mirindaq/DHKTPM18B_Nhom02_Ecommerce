@@ -43,7 +43,7 @@ export default function Home() {
     try {
       setLoadingArticles(true)
       // 👉 Lấy số lượng lớn hơn một chút để đảm bảo có dữ liệu
-      const response = await articleService.getArticles(1, 100)
+      const response = await articleService.getArticles(1, 100, '', null, null)
 
       // 🔽 Sắp xếp tất cả bài viết theo ngày đăng mới nhất
       const sortedArticles = response.data.data.sort(

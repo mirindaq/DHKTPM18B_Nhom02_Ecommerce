@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { uploadService } from "@/services/upload.service";
+import { toast } from "sonner";
 import type { Article, CreateArticleRequest } from "@/types/article.type";
 import type { ArticleCategoryListResponse } from "@/types/article-category.type";
 import RichTextEditor from "@/components/ui/RichTextEditor";
@@ -105,10 +106,19 @@ export default function ArticleForm({
       try {
         setIsUploading(true);
         const response = await uploadService.uploadImage([selectedThumbnailFile]);
-        const url = response?.data?.[0];
-        if (url) thumbnailUrl = url;
+        if (response?.data && response.data.length > 0) {
+          thumbnailUrl = response.data[0];
+        } else {
+          console.error("Upload ảnh thất bại: Không nhận được URL");
+          toast.error("Không thể tải ảnh lên. Vui lòng thử lại.");
+          setIsUploading(false);
+          return;
+        }
       } catch (error) {
         console.error("Upload ảnh thất bại:", error);
+        toast.error("Không thể tải ảnh lên. Vui lòng thử lại.");
+        setIsUploading(false);
+        return;
       } finally {
         setIsUploading(false);
       }

@@ -37,8 +37,8 @@ const ArticleDetailPage = () => {
                     1,
                     4,
                     '',
-                    true,
-                    articleData.category.id
+                    articleData.category.id,
+                    null
                 );
                 setRelatedArticles((relatedResponse.data?.data ?? []).filter((a: { id: number; }) => a.id !== articleData.id).slice(0, 3));
             }

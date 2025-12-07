@@ -52,7 +52,6 @@ const ArticleCategoryPage = () => {
                 currentPage,
                 10,
                 '',
-                true,
                 categoryData.id,
                 null
             );

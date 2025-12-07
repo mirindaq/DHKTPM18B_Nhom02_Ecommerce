@@ -45,7 +45,6 @@ export default function ArticleSearch() {
                 page, 
                 10, 
                 query, 
-                true, 
                 selectedCategory, 
                 null
             );
