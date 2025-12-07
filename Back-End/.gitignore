@@ -37,3 +37,8 @@ build/
 env/
 .env.*
 local.env
+
+### Logs ###
+logs/
+*.log
+LOGS_PATH_IS_UNDEFINED/

@@ -33,4 +33,29 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     // Find orders by customerId with pagination
     List<Order> findByCustomerId(Long customerId, Pageable pageable);
+    
+    //  Tính tổng doanh thu
+    @Query("SELECT COALESCE(SUM(o.finalTotalPrice), 0.0) FROM Order o WHERE o.orderDate BETWEEN :startDate AND :endDate AND o.status = 'COMPLETED'")
+    Double sumRevenueByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    //Đếm số đơn hàng
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.orderDate BETWEEN :startDate AND :endDate")
+    Long countByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+
+    //Doanh thu theo từng ngày
+    @Query(value = """
+        SELECT DATE(o.order_date) as orderDate,
+               COALESCE(SUM(o.final_total_price), 0) as revenue,
+               COUNT(*) as orderCount
+        FROM orders o
+        WHERE o.order_date BETWEEN :startDate AND :endDate
+            AND o.status = 'COMPLETED'
+        GROUP BY DATE(o.order_date)
+        ORDER BY orderDate ASC
+    """, nativeQuery = true)
+    List<Object[]> getRevenueByDay(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
 }
