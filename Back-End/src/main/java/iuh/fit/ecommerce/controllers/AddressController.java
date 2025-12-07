@@ -5,7 +5,7 @@ import iuh.fit.ecommerce.dtos.response.address.AddressResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.services.AddressService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,18 +22,18 @@ import static org.springframework.http.HttpStatus.OK;
 public class AddressController {
 
     private final AddressService addressService;
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
 
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<List<AddressResponse>>> getAddresses() {
-        Customer currentCustomer = securityUtil.getCurrentCustomer();
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
         List<AddressResponse> addresses = addressService.getAddressesByCustomer(currentCustomer.getId());
         return ResponseEntity.ok(new ResponseSuccess<>(OK, "Get addresses success", addresses));
     }
 
     @GetMapping("/{addressId}")
     public ResponseEntity<ResponseSuccess<AddressResponse>> getAddress(@PathVariable Long addressId) {
-        Customer currentCustomer = securityUtil.getCurrentCustomer();
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
         AddressResponse address = addressService.getAddressById(currentCustomer.getId(), addressId);
         return ResponseEntity.ok(new ResponseSuccess<>(OK, "Get address success", address));
     }
@@ -44,7 +44,7 @@ public class AddressController {
         System.out.println("==== Received AddressRequest ====");
         System.out.println(request);
 
-        Customer currentCustomer = securityUtil.getCurrentCustomer();
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
         AddressResponse response = addressService.addAddress(currentCustomer.getId(), request);
         return ResponseEntity.status(CREATED).body(new ResponseSuccess<>(CREATED, "Add address success", response));
     }
@@ -54,21 +54,21 @@ public class AddressController {
             @PathVariable Long addressId,
             @Valid @RequestBody AddressRequest request
     ) {
-        Customer currentCustomer = securityUtil.getCurrentCustomer();
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
         AddressResponse response = addressService.updateAddress(currentCustomer.getId(), addressId, request);
         return ResponseEntity.ok(new ResponseSuccess<>(OK, "Update address success", response));
     }
 
     @PatchMapping("/{addressId}/set-default")
     public ResponseEntity<ResponseSuccess<AddressResponse>> setDefaultAddress(@PathVariable Long addressId) {
-        Customer currentCustomer = securityUtil.getCurrentCustomer();
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
         AddressResponse response = addressService.setDefaultAddress(currentCustomer.getId(), addressId);
         return ResponseEntity.ok(new ResponseSuccess<>(OK, "Set default address success", response));
     }
 
     @DeleteMapping("/{addressId}")
     public ResponseEntity<ResponseSuccess<Void>> deleteAddress(@PathVariable Long addressId) {
-        Customer currentCustomer = securityUtil.getCurrentCustomer();
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
         addressService.deleteAddress(currentCustomer.getId(), addressId);
         return ResponseEntity.ok(new ResponseSuccess<>(OK, "Delete address success", null));
     }

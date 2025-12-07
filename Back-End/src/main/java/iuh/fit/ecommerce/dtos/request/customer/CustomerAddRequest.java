@@ -19,7 +19,6 @@ import java.util.List;
 public class CustomerAddRequest {
 
     @NotBlank(message = "Full name is required")
-
     private String fullName;
 
     @NotBlank(message = "Phone is required")

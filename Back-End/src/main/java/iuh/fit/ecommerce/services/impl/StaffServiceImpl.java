@@ -97,7 +97,8 @@ public class StaffServiceImpl implements StaffService {
         staffRepository.save(staff);
     }
 
-    private Staff getStaffEntityById(Long id) {
+    @Override
+    public Staff getStaffEntityById(Long id) {
         return staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff not found with id: " + id));
     }
@@ -159,5 +160,14 @@ public class StaffServiceImpl implements StaffService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<StaffResponse> getAllActiveStaffs() {
+        // Chỉ lấy Staff có role STAFF, không lấy SHIPPER
+        List<Staff> activeStaffs = staffRepository.findAllActiveStaffsOnly();
+        
+        return activeStaffs.stream()
+                .map(staffMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
 }

@@ -60,5 +60,10 @@ export const voucherService = {
   getAvailableVouchers: async () => {
     const response = await axiosClient.get<VoucherAvailableApiResponse>('/vouchers/available');
     return response.data.data;
+  },
+
+  getAvailableVouchersForCustomer: async (customerId: number) => {
+    const response = await axiosClient.get<VoucherAvailableApiResponse>(`/vouchers/available/${customerId}`);
+    return response.data.data;
   }
 };

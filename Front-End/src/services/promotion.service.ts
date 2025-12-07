@@ -13,7 +13,7 @@ interface GetPromotionsParams {
   type?: string;
   active?: boolean;
   startDate?: string;
-  endDate?: string;
+  priority?: number;
 }
 
 export const promotionService = {
@@ -24,7 +24,7 @@ export const promotionService = {
     type,
     active,
     startDate,
-    endDate,
+    priority,
   }: GetPromotionsParams) => {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -35,7 +35,7 @@ export const promotionService = {
     if (type) params.append("type", type);
     if (active !== undefined) params.append("active", active.toString());
     if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (priority !== undefined) params.append("priority", priority.toString());
 
     const response = await axiosClient.get<PromotionListResponse>(
       `/promotions?${params.toString()}`

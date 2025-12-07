@@ -1,6 +1,7 @@
 import axiosClient from '@/configurations/axios.config'
 import type {
   CreateProductRequest,
+  ProductFilters,
   ProductListResponse,
   ProductResponse,
   ProductVariantDescriptionResponse,
@@ -9,9 +10,21 @@ import type {
 } from '@/types/product.type'
 
 export const productService = {
-  getProducts: async (page: number = 1, size: number = 7, search: string = "") => {
+  getProducts: async (page: number = 1, size: number = 7, filters: ProductFilters = {}) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString()
+    })
+
+    if (filters.keyword) params.set('keyword', filters.keyword)
+    if (filters.brandId) params.set('brandId', filters.brandId.toString())
+    if (filters.categoryId) params.set('categoryId', filters.categoryId.toString())
+    if (filters.status !== undefined && filters.status !== null) params.set('status', filters.status.toString())
+    if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
+    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
+
     const response = await axiosClient.get<ProductListResponse>(
-      `/products?page=${page}&size=${size}&search=${search}`
+      `/products?${params.toString()}`
     )
     return response.data
   },
@@ -47,6 +60,33 @@ export const productService = {
 
   getProductsVariantPromotions: async (request: ProductVariantPromotionRequest) => {
     const response = await axiosClient.post<ProductVariantPromotionResponseApi>('/products/variants/promotions', request)
+    return response.data
+  },
+
+  searchProducts: async (categorySlug: string, page: number = 1, size: number = 8, filters: Record<string, string> = {}) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+      ...filters
+    })
+    const response = await axiosClient.get<ProductListResponse>(
+      `/products/search/${categorySlug}?${params.toString()}`
+    )
+    return response.data
+  },
+
+  searchProductsWithElasticsearch: async (query: string, page: number = 1, size: number = 12, sortBy?: string) => {
+    const params = new URLSearchParams({
+      query: query,
+      page: page.toString(),
+      size: size.toString()
+    })
+    if (sortBy) {
+      params.set('sortBy', sortBy)
+    }
+    const response = await axiosClient.get<ProductListResponse>(
+      `/products/search?${params.toString()}`
+    )
     return response.data
   }
 }

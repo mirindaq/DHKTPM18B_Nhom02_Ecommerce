@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageCircle, ChevronUp, Clock, Send, ChevronDown } from "lucide-react";
@@ -186,12 +186,13 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
                         {answer.admin ? "Quản Trị Viên" : (answer.userName || "Người dùng")}
                       </span>
                       {answer.admin && (
-                        <Badge
-                          variant="destructive"
-                          className="text-xs px-2 py-0.5 h-5"
+                        <CustomBadge
+                          variant="error"
+                          size="sm"
+                          className="h-5"
                         >
                           QTV
-                        </Badge>
+                        </CustomBadge>
                       )}
                       <div className="flex items-center gap-1 text-gray-400">
                         <Clock className="w-3 h-3" />

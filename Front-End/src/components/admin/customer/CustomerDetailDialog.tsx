@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { useQuery } from "@/hooks";
 import { customerService } from "@/services/customer.service";
 import type {
@@ -125,9 +125,9 @@ export default function CustomerDetailDialog({
                             {addr.addressName || `Địa chỉ ${idx + 1}`}
                           </span>
                           {addr.isDefault && (
-                            <Badge className="bg-blue-500 text-white hover:bg-blue-600 text-xs py-0.5 px-2">
+                            <CustomBadge variant="info" size="sm" className="text-white">
                               Mặc định
-                            </Badge>
+                            </CustomBadge>
                           )}
                         </div>
                         <div className="text-sm space-y-1">
@@ -155,15 +155,11 @@ export default function CustomerDetailDialog({
               <div className="flex items-center gap-3">
                 <Users className="h-5 w-5 text-gray-400" />{" "}
                 <span className="font-medium text-gray-600">Trạng thái:</span>
-                <Badge
-                  className={
-                    customerDetail.active
-                      ? "bg-green-100 text-green-800 hover:bg-green-200"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  }
+                <CustomBadge
+                  variant={customerDetail.active ? "success" : "secondary"}
                 >
                   {customerDetail.active ? "Hoạt động" : "Không hoạt động"}
-                </Badge>
+                </CustomBadge>
               </div>
 
               {/* Ngày sinh */}

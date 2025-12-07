@@ -18,4 +18,6 @@ public interface VariantService {
     void changeStatusVariant(Long id);
 
     List<VariantResponse> getVariantsByCategory(Long id);
+
+    List<VariantResponse> getVariantsByCategorySlug(String slug);
 }

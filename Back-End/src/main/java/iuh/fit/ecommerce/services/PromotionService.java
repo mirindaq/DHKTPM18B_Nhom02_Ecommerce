@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.services;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionAddRequest;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.dtos.response.promotion.PromotionResponse;
 import iuh.fit.ecommerce.entities.Product;
 import iuh.fit.ecommerce.entities.ProductVariant;
@@ -19,7 +20,8 @@ public interface PromotionService {
             int page, int limit,
             String name, String type,
             Boolean active,
-            LocalDate startDate, LocalDate endDate
+            LocalDate startDate,
+            Integer priority
     );
     PromotionResponse updatePromotion(Long id, PromotionUpdateRequest request);
     void deletePromotion(Long id);
@@ -31,4 +33,6 @@ public interface PromotionService {
     Map<Long, List<Promotion>>  getPromotionsGroupByVariantId(List<ProductVariant> variants, Product product);
 
     Promotion getBestPromotionForVariant(ProductVariant variant);
+
+    ProductResponse addPromotionToProductResponseByProduct(Product product);
 }

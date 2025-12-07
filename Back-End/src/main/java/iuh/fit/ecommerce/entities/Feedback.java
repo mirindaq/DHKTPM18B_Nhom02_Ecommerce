@@ -3,36 +3,48 @@ package iuh.fit.ecommerce.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "feedbacks")
+@Table(name = "feedbacks",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"order_id", "product_variant_id", "customer_id"}
+        ))
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Feedback extends BaseEntity {
 
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    private String content;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
-    @Column
-    private Double rate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_variant_id", nullable = false)
+    private ProductVariant productVariant;
 
-    @Column
-    private Boolean status;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
-    @ManyToOne
-    @JoinColumn( name = "product_id")
-    private Product product;
+    @Column(nullable = false)
+    private Integer rating; // 1-5
 
-    @ManyToOne
-    @JoinColumn( name = "user_id")
-    private User user;
+    @Column(columnDefinition = "TEXT")
+    private String comment;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean status = true; // true: hiển thị, false: ẩn
+
+    @OneToMany(mappedBy = "feedback", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<FeedbackImage> images = new ArrayList<>();
 }

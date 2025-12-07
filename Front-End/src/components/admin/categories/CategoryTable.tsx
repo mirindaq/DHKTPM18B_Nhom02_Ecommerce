@@ -1,58 +1,69 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Search, Edit, Trash2, Power, PowerOff, Loader2 } from "lucide-react"
-import type { Category } from "@/types/category.type"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { CustomBadge } from "@/components/ui/CustomBadge";
+import { Search, Edit, Power, PowerOff, Loader2 } from "lucide-react";
+import type { Category } from "@/types/category.type";
 
 interface CategoryTableProps {
-  categories: Category[]
-  onEdit: (category: Category) => void
-  onDelete: (id: number) => void
-  onToggleStatus: (id: number) => void
-  isLoading?: boolean
-  onSearch: (searchTerm: string) => void
-  currentPage?: number
-  pageSize?: number
+  categories: Category[];
+  onEdit: (category: Category) => void;
+  onDelete: (id: number) => void;
+  onToggleStatus: (id: number) => void;
+  isLoading?: boolean;
+  onSearch: (searchTerm: string) => void;
+  currentPage?: number;
+  pageSize?: number;
 }
 
 export default function CategoryTable({
   categories,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
   onToggleStatus,
   onSearch,
   isLoading,
   currentPage = 1,
-  pageSize = 7
+  pageSize = 7,
 }: CategoryTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatAttributes = (attributes: any[]) => {
-    if (!attributes || attributes.length === 0) return "Không có"
-    const attributesActive = attributes.filter(attr => attr.status)
-    return attributesActive
-      .slice(0, 3).map(attr => attr.name).join(", ") +
+    if (!attributes || attributes.length === 0) return "Không có";
+    const attributesActive = attributes.filter((attr) => attr.status);
+    return (
+      attributesActive
+        .slice(0, 3)
+        .map((attr) => attr.name)
+        .join(", ") +
       (attributesActive.length > 3 ? ` +${attributesActive.length - 3}` : "")
-  }
+    );
+  };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      onSearch(searchTerm)
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSearch(searchTerm);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -80,7 +91,11 @@ export default function CategoryTable({
         </div>
 
         <div className="text-sm text-gray-600">
-          Tổng cộng: <span className="font-semibold text-gray-900">{categories.length}</span> danh mục
+          Tổng cộng:{" "}
+          <span className="font-semibold text-gray-900">
+            {categories.length}
+          </span>{" "}
+          danh mục
         </div>
       </div>
 
@@ -89,12 +104,24 @@ export default function CategoryTable({
           <TableHeader>
             <TableRow className="bg-gray-50 hover:bg-gray-50">
               <TableHead className="font-semibold text-gray-700">STT</TableHead>
-              <TableHead className="font-semibold text-gray-700">Tên danh mục</TableHead>
-              <TableHead className="font-semibold text-gray-700">Mô tả</TableHead>
-              <TableHead className="font-semibold text-gray-700">Thuộc tính</TableHead>
-              <TableHead className="font-semibold text-gray-700">Trạng thái</TableHead>
-              <TableHead className="font-semibold text-gray-700">Ngày tạo</TableHead>
-              <TableHead className="font-semibold text-gray-700">Thao tác</TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Tên danh mục
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Mô tả
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Thuộc tính
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Trạng thái
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Ngày tạo
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Thao tác
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,23 +130,32 @@ export default function CategoryTable({
                 <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+                    <p className="text-gray-500 font-medium">
+                      Đang tải dữ liệu...
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-24 text-gray-500">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-24 text-gray-500"
+                >
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                       <Search className="h-8 w-8 text-gray-400" />
                     </div>
                     <div className="space-y-2">
                       <p className="text-lg font-medium text-gray-600">
-                        {searchTerm ? "Không tìm thấy danh mục nào" : "Chưa có danh mục nào"}
+                        {searchTerm
+                          ? "Không tìm thấy danh mục nào"
+                          : "Chưa có danh mục nào"}
                       </p>
                       <p className="text-sm text-gray-400">
-                        {searchTerm ? "Thử tìm kiếm với từ khóa khác" : "Hãy thêm danh mục đầu tiên"}
+                        {searchTerm
+                          ? "Thử tìm kiếm với từ khóa khác"
+                          : "Hãy thêm danh mục đầu tiên"}
                       </p>
                     </div>
                   </div>
@@ -127,27 +163,43 @@ export default function CategoryTable({
               </TableRow>
             ) : (
               categories.map((category, index) => (
-                <TableRow key={category.id} className="hover:bg-gray-50 transition-colors duration-200">
+                <TableRow
+                  key={category.id}
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
                   <TableCell className="text-center font-medium text-gray-600">
                     {(currentPage - 1) * pageSize + index + 1}
                   </TableCell>
-                  <TableCell className="font-semibold text-gray-900">{category.name}</TableCell>
-                  <TableCell className="text-gray-600 max-w-xs truncate" title={category.description}>
+                  <TableCell className="font-semibold text-gray-900">
+                    {category.name}
+                  </TableCell>
+                  <TableCell
+                    className="text-gray-600 max-w-xs truncate"
+                    title={category.description}
+                  >
                     {category.description || "Không có mô tả"}
                   </TableCell>
-                  <TableCell className="text-gray-600 max-w-xs" title={formatAttributes(category.attributes)}>
+                  <TableCell
+                    className="text-gray-600 max-w-xs"
+                    title={formatAttributes(category.attributes)}
+                  >
                     {formatAttributes(category.attributes)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={category.status ? "default" : "secondary"} className={
-                      category.status
-                        ? "bg-green-100 text-green-800 border-green-200"
-                        : "bg-gray-100 text-gray-800 border-gray-200"
-                    }>
+                    <CustomBadge
+                      variant={category.status ? "success" : "secondary"}
+                      className={
+                        category.status
+                          ? "bg-green-100 text-green-800 border-green-200"
+                          : "bg-gray-100 text-gray-800 border-gray-200"
+                      }
+                    >
                       {category.status ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
-                  <TableCell className="text-gray-600">{formatDate(category.createdAt)}</TableCell>
+                  <TableCell className="text-gray-600">
+                    {formatDate(category.createdAt)}
+                  </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
@@ -163,13 +215,18 @@ export default function CategoryTable({
                         variant="outline"
                         size="sm"
                         onClick={() => onToggleStatus(category.id)}
-                        className={`${category.status
-                          ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
-                          : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
-                          }`}
+                        className={`${
+                          category.status
+                            ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                            : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                        }`}
                         disabled={isLoading}
                       >
-                        {category.status ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {category.status ? (
+                          <PowerOff className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
                       </Button>
                       {/* <Button
                         variant="outline"
@@ -189,5 +246,5 @@ export default function CategoryTable({
         </Table>
       </div>
     </div>
-  )
+  );
 }

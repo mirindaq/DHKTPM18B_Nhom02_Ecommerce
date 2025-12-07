@@ -80,7 +80,7 @@ export default function Header() {
     "flex items-center space-x-1 bg-[#AC0014] hover:bg-red-700 px-3 py-2 rounded-lg text-sm";
 
   return (
-    <header className="bg-[#D70018] text-white py-2">
+    <header className="bg-gradient-to-b from-red-600 to-rose-400 text-white py-2">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2 space-x-4">
         {/* Logo */}
         <div className="flex items-center space-x-1 font-bold text-2xl tracking-tighter">
@@ -104,14 +104,30 @@ export default function Header() {
 
         {/* Thanh tìm kiếm */}
         <div className="flex-1 max-w-xl">
-          <div className="flex items-center bg-white rounded-lg px-3 py-2 text-gray-700">
+          <form 
+            className="flex items-center bg-white rounded-lg px-3 py-2 text-gray-700"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const query = formData.get('search') as string;
+              if (query && query.trim()) {
+                navigate(`${PUBLIC_PATH.HOME}search?q=${encodeURIComponent(query.trim())}`);
+              }
+            }}
+          >
             <Search size={20} className="text-gray-400" />
             <input
               type="text"
+              name="search"
               placeholder="Bạn muốn mua gì hôm nay?"
               className="flex-1 bg-transparent outline-none ml-2 text-sm placeholder-gray-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.form?.requestSubmit();
+                }
+              }}
             />
-          </div>
+          </form>
         </div>
 
         {/* Giỏ hàng */}

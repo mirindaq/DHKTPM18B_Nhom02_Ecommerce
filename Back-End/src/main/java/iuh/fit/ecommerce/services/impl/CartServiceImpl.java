@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.services.impl;
 import iuh.fit.ecommerce.dtos.request.cart.CartAddRequest;
 import iuh.fit.ecommerce.dtos.request.cart.CartUpdateQuantityRequest;
 import iuh.fit.ecommerce.dtos.response.cart.CartResponse;
+import iuh.fit.ecommerce.dtos.response.cart.CartWithCustomerResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.CartMapper;
@@ -10,17 +11,19 @@ import iuh.fit.ecommerce.repositories.CartRepository;
 import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.services.CartService;
 import iuh.fit.ecommerce.services.PromotionService;
-import iuh.fit.ecommerce.utils.SecurityUtil;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-    private final SecurityUtil securityUtil;
+    private final SecurityUtils securityUtils;
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final PromotionService promotionService;
@@ -103,7 +106,7 @@ public class CartServiceImpl implements CartService {
     }
 
     private Cart findOrCreateCartForCurrentUser() {
-        Customer customer = securityUtil.getCurrentCustomer();
+        Customer customer = securityUtils.getCurrentCustomer();
         return cartRepository.findByCustomer_Id(customer.getId())
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
@@ -143,6 +146,28 @@ public class CartServiceImpl implements CartService {
                 .mapToLong(CartDetail::getQuantity)
                 .sum();
         cart.setTotalItems(totalItems);
+    }
+
+    // Admin methods
+    @Override
+    public Page<CartWithCustomerResponse> getAllCartsWithItems(int page, int size, String keyword) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "totalItems"));
+        
+        Page<Cart> carts;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            carts = cartRepository.searchCartsByCustomer(keyword.trim(), pageable);
+        } else {
+            carts = cartRepository.findAllCartsWithItemsPaged(pageable);
+        }
+        
+        return carts.map(cartMapper::toCartWithCustomerResponse);
+    }
+
+    @Override
+    public CartWithCustomerResponse getCartByCustomerId(Long customerId) {
+        Cart cart = cartRepository.findByCustomer_Id(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for customer"));
+        return cartMapper.toCartWithCustomerResponse(cart);
     }
 
 }

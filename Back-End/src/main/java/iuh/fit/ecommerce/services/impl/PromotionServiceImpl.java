@@ -3,6 +3,8 @@ package iuh.fit.ecommerce.services.impl;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionAddRequest;
 import iuh.fit.ecommerce.dtos.request.promotion.PromotionUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
+import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
+import iuh.fit.ecommerce.dtos.response.product.ProductVariantResponse;
 import iuh.fit.ecommerce.dtos.response.promotion.PromotionResponse;
 import iuh.fit.ecommerce.entities.Product;
 import iuh.fit.ecommerce.entities.ProductVariant;
@@ -10,14 +12,17 @@ import iuh.fit.ecommerce.entities.Promotion;
 import iuh.fit.ecommerce.entities.PromotionTarget;
 import iuh.fit.ecommerce.enums.PromotionType;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
+import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.mappers.PromotionMapper;
 import iuh.fit.ecommerce.repositories.PromotionRepository;
 import iuh.fit.ecommerce.repositories.PromotionTargetRepository;
 import iuh.fit.ecommerce.services.PromotionService;
+import iuh.fit.ecommerce.specifications.PromotionSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +38,7 @@ public class PromotionServiceImpl implements PromotionService {
     private final PromotionRepository promotionRepository;
     private final PromotionTargetRepository promotionTargetRepository;
     private final PromotionMapper promotionMapper;
+    private final ProductMapper productMapper;
 
     @Override
     @Transactional
@@ -61,13 +67,25 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public ResponseWithPagination<List<PromotionResponse>> getAllPromotions(int page, int limit, String name,
                                                                             String type, Boolean active,
-                                                                            LocalDate startDate, LocalDate endDate) {
+                                                                            LocalDate startDate, Integer priority) {
         page = page > 0 ? page - 1 : page;
         Pageable pageable = PageRequest.of(page, limit);
 
-        Page<Promotion> promotionPage = promotionRepository.searchPromotions(
-                name, type, active, startDate, endDate, pageable
+        // Convert type string to PromotionType enum
+        PromotionType promotionType = null;
+        if (type != null && !type.isEmpty()) {
+            try {
+                promotionType = PromotionType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Invalid type, will be ignored
+            }
+        }
+
+        Specification<Promotion> spec = PromotionSpecification.filterPromotions(
+                name, promotionType, active, startDate, priority
         );
+
+        Page<Promotion> promotionPage = promotionRepository.findAll(spec, pageable);
 
         return ResponseWithPagination.fromPage(promotionPage, promotionMapper::toResponse);
     }
@@ -170,7 +188,38 @@ public class PromotionServiceImpl implements PromotionService {
         return promos.isEmpty() ? null : promos.get(0);
     }
 
+    @Override
+    public ProductResponse addPromotionToProductResponseByProduct(Product product) {
+        ProductResponse response = productMapper.toResponse(product);
 
+        List<ProductVariant> variants = product.getProductVariants();
+        if (variants == null || variants.isEmpty()) return response;
+
+        Map<Long, List<Promotion>>  promosByVariant = getPromotionsGroupByVariantId(variants, product);
+
+        Map<Long, ProductVariant> variantMap = variants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+
+        for (ProductVariantResponse v : response.getVariants()) {
+            ProductVariant entityVariant = variantMap.get(v.getId());
+            if (entityVariant == null) continue;
+
+            Double originalPrice = calculateOriginalPrice(entityVariant);
+            v.setOldPrice(originalPrice);
+
+            Promotion bestPromo = getBestPromotion(entityVariant, promosByVariant);
+
+            if (bestPromo != null) {
+                Double finalPrice = calculateDiscountPrice(entityVariant, bestPromo);
+                v.setPrice(finalPrice);
+                v.setDiscount(bestPromo.getDiscount());
+            } else {
+                v.setPrice(originalPrice);
+                v.setDiscount(0.0);
+            }
+        }
+        return response;
+    }
 
 
     private boolean appliesToVariant(Promotion promo, ProductVariant variant) {

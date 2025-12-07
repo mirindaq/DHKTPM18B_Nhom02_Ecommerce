@@ -5,6 +5,12 @@ import type {
   CategoryListByBrandResponse,
 } from '@/types/category-brand.type';
 import type { ResponseApi } from '@/types/responseApi.type';
+import type { Brand } from '@/types/brand.type';
+
+export interface BrandCategoryRequest {
+  categoryId: number;
+  brandId: number;
+}
 
 export const categoryBrandService = {
   getBrandsByCategoryId: async (
@@ -36,6 +42,31 @@ export const categoryBrandService = {
   setBrandsForCategory: async (request: SetBrandsForCategoryRequest) => {
     const response = await axiosClient.post<ResponseApi<void>>(
       '/category-brands/set-brands',
+      request
+    );
+    return response.data;
+  },
+
+  getBrandsByCategorySlug: async (slug: string) => {
+    const response = await axiosClient.get<ResponseApi<Brand[]>>(
+      `/category-brands/categories/slug/${slug}/brands`
+    );
+    return response.data;
+  },
+
+  // Assign a single brand to a category
+  assignBrandToCategory: async (request: BrandCategoryRequest) => {
+    const response = await axiosClient.post<ResponseApi<void>>(
+      '/category-brands/assign',
+      request
+    );
+    return response.data;
+  },
+
+  // Unassign a single brand from a category
+  unassignBrandFromCategory: async (request: BrandCategoryRequest) => {
+    const response = await axiosClient.post<ResponseApi<void>>(
+      '/category-brands/unassign',
       request
     );
     return response.data;

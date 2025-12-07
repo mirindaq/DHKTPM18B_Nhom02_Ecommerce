@@ -1,80 +1,201 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router';
-import { useUser } from '@/context/UserContext';
-import { STAFF_PATH } from '@/constants/path';
+import { Link, Outlet, useLocation } from "react-router";
+import { useUser } from "@/context/UserContext";
+import { AUTH_PATH } from "@/constants/path";
+import AuthStorageUtil from "@/utils/authStorage.util";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarInset,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  ShoppingCart,
+  Truck,
+  Settings,
+  LogOut,
+  Store,
+  MessageSquare,
+  Users,
+} from "lucide-react";
+import { STAFF_PATH } from "@/constants/path";
+import AdminChatListener from "@/components/admin/AdminChatListener";
 
-const StaffLayout: React.FC = () => {
-  const { user, logout } = useUser();
+export default function StaffLayout() {
   const location = useLocation();
+  const { logout, isLeader } = useUser();
 
-  const navigation = [
-    { name: 'Dashboard', href: STAFF_PATH.DASHBOARD, icon: '📊' },
-    { name: 'Sản phẩm', href: STAFF_PATH.PRODUCTS, icon: '📦' },
-    { name: 'Đơn hàng', href: STAFF_PATH.ORDERS, icon: '📋' },
-    { name: 'Khách hàng', href: STAFF_PATH.CUSTOMERS, icon: '👥' },
+  const handleLogout = async () => {
+    try {
+      // Lấy login path trước khi logout (vì logout sẽ clear user data)
+      const loginPath = AuthStorageUtil.getLoginPath();
+      await logout();
+      // Dùng window.location.href để đảm bảo redirect ngay lập tức
+      window.location.href = loginPath;
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback về staff login nếu có lỗi
+      window.location.href = AUTH_PATH.LOGIN_STAFF;
+    }
+  };
+
+  const isActiveRoute = (href: string) => {
+    return (
+      location.pathname === href || location.pathname.startsWith(href + "/")
+    );
+  };
+
+  // Navigation items based on role
+  const navigationItems = [
+    {
+      title: "Bán hàng",
+      icon: Store,
+      href: STAFF_PATH.SELL,
+    },
+    {
+      title: "Đơn hàng",
+      icon: ShoppingCart,
+      href: STAFF_PATH.ORDERS,
+    },
+    {
+      title: "Giỏ hàng khách",
+      icon: ShoppingCart,
+      href: STAFF_PATH.CARTS,
+    },
+    {
+      title: "Quản lý khách hàng",
+      href: STAFF_PATH.CUSTOMERS,
+      icon: Users,
+    },
+    {
+      title: "Quản lý Chat",
+      icon: MessageSquare,
+      href: STAFF_PATH.CHAT,
+    },
+    // Only show "Gán shipper" if user is a leader
+    ...(isLeader
+      ? [
+          {
+            title: "Gán shipper",
+            icon: Truck,
+            href: STAFF_PATH.ASSIGN_DELIVERY,
+          },
+        ]
+      : []),
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
-        <div className="flex h-16 items-center justify-center border-b">
-          <h1 className="text-xl font-bold text-gray-900">Staff Panel</h1>
-        </div>
-
-        <nav className="mt-8 px-4">
-          <ul className="space-y-2">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link
-                  to={item.href}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${location.pathname === item.href
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* User info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <div className="flex items-center">
-            <div className="shrink-0">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {user?.name?.charAt(0).toUpperCase()}
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full overflow-hidden">
+        <Sidebar className="border-r w-64 min-w-64 max-w-64 shrink-0 bg-gray-900">
+          <SidebarHeader>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground bg-gray-900"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gray-700 text-white">
+                <Store className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold text-white">
+                  EcommerceWWW
+                </span>
+                <span className="truncate text-xs text-gray-300">
+                  Staff Panel
                 </span>
               </div>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">Staff</p>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="mt-2 w-full text-left text-sm text-red-600 hover:text-red-800"
-          >
-            Đăng xuất
-          </button>
-        </div>
-      </div>
+            </SidebarMenuButton>
+          </SidebarHeader>
 
-      {/* Main content */}
-      <div className="pl-64">
-        <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SidebarContent className="overflow-y-auto overflow-x-hidden bg-gray-900">
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-gray-300 text-xs font-semibold uppercase tracking-wider">
+                CHỨC NĂNG
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {navigationItems.map((item) => {
+                    const isActive = isActiveRoute(item.href);
+
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          tooltip={item.title}
+                          isActive={isActive}
+                          className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${
+                            isActive ? "bg-gray-600" : ""
+                          }`}
+                        >
+                          <Link to={item.href}>
+                            <item.icon className="shrink-0 h-5 w-5" />
+                            <span className="truncate">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter className="mt-auto bg-gray-900">
+            <SidebarMenu className="space-y-1">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Cài đặt"
+                  isActive={location.pathname === "/staff/settings"}
+                  className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${
+                    location.pathname === "/staff/settings" ? "bg-gray-600" : ""
+                  }`}
+                >
+                  <Link to="/staff/settings">
+                    <Settings className="shrink-0 h-5 w-5" />
+                    <span className="truncate">Cài đặt</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Đăng xuất">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 h-12 px-4 py-3 text-white hover:bg-gray-800"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="shrink-0 h-5 w-5" />
+                    <span className="truncate">Đăng xuất</span>
+                  </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        <SidebarInset className="flex-1 w-full overflow-hidden">
+          <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 items-center gap-4 px-6">
+              <div className="flex-1"></div>
+            </div>
+          </header>
+
+          <main className="w-full p-6 overflow-y-auto">
             <Outlet />
-          </div>
-        </main>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
-  );
-};
 
-export default StaffLayout;
+      {/* Auto-connect to WebSocket for staff */}
+      <AdminChatListener />
+    </SidebarProvider>
+  );
+}

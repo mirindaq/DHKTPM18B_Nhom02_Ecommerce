@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface StaffRepository extends JpaRepository<Staff, Long> {
@@ -31,6 +32,13 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
             @Param("endDate") LocalDate endDate,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT s FROM Staff s " +
+            "JOIN s.userRoles ur " +
+            "JOIN ur.role r " +
+            "WHERE s.active = true " +
+            "AND r.name = 'STAFF'")
+    List<Staff> findAllActiveStaffsOnly();
 
     Optional<Staff> findByEmail(String email);
 }

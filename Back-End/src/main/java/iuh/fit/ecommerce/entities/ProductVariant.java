@@ -22,9 +22,6 @@ public class ProductVariant extends BaseEntity {
     private Double price;
 
     @Column
-    private Double oldPrice;
-
-    @Column
     private String sku;
 
     @Column

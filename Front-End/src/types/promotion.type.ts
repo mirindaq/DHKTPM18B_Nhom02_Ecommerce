@@ -1,6 +1,6 @@
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
 
-export type  PromotionType = "ALL" | "CATEGORY" | "BRAND" | "PRODUCT" | "PRODUCT_VARIANT";
+export type PromotionType = "ALL" | "CATEGORY" | "BRAND" | "PRODUCT" | "PRODUCT_VARIANT";
 
 export interface PromotionTarget {
   productId?: number;
@@ -19,6 +19,10 @@ export interface PromotionSummary {
   description?: string;
   startDate: string;
   endDate: string;
+  // Legacy/dialog compatibility properties
+  type?: string;
+  discountType?: "PERCENTAGE" | "FIXED_AMOUNT";
+  discountValue?: number;
 }
 
 export interface CreatePromotionRequest {
@@ -31,6 +35,11 @@ export interface CreatePromotionRequest {
   startDate: string;
   endDate: string;
   promotionTargets?: PromotionTarget[];
+  // Legacy/dialog compatibility properties
+  type?: string;
+  discountType?: "PERCENTAGE" | "FIXED_AMOUNT";
+  discountValue?: number;
+  targets?: any[];
 }
 
 export interface UpdatePromotionRequest {
@@ -44,13 +53,13 @@ export interface UpdatePromotionRequest {
   promotionTargets?: PromotionTarget[];
 }
 
-export interface PromotionResponse extends ResponseApi<PromotionSummary> {}
-export interface PromotionListResponse extends ResponseApiWithPagination<PromotionSummary[]> {}
+export interface PromotionResponse extends ResponseApi<PromotionSummary> { }
+export interface PromotionListResponse extends ResponseApiWithPagination<PromotionSummary[]> { }
 
 export interface PromotionFilter {
   name?: string;
-  promotionType?: PromotionType;
+  type?: PromotionType;
   active?: boolean;
   startDate?: string;
-  endDate?: string;
+  priority?: number;
 }

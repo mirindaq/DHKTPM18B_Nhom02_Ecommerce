@@ -1,29 +1,44 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { addressService } from "@/services/address.service";
 import { authService } from "@/services/auth.service";
 import { provinceService } from "@/services/province.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import AddressCard from "@/components/user/AddressCard";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
 import {
   MapPin,
   Plus,
-  Edit,
-  Trash2,
-  Star,
-  Phone,
   Loader2,
-  X,
   CheckCircle2,
 } from "lucide-react";
+import ConfirmDeleteDialog from "@/components/user/ConfirmDeleteDialog";
 import type { Address, CreateAddressRequest } from "@/types/address.type";
 import type { Province } from "@/types/province.type";
 import type { Ward } from "@/types/ward.type";
 
-const Address: React.FC = () => {
+export default function Address() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState<CreateAddressRequest>({
@@ -38,6 +53,8 @@ const Address: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [selectedProvince, setSelectedProvince] = useState<number | "">("");
   const [selectedWard, setSelectedWard] = useState<number | "">("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState<number | null>(null);
 
   // ✅ useQuery cho fetch addresses
   const {
@@ -317,8 +334,21 @@ const Address: React.FC = () => {
 
   // ❌ Xóa địa chỉ
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
-    deleteAddressMutation.mutate(id);
+    setAddressToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (addressToDelete) {
+      deleteAddressMutation.mutate(addressToDelete);
+      setDeleteDialogOpen(false);
+      setAddressToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setAddressToDelete(null);
   };
 
   // 🌟 Đặt mặc định
@@ -327,17 +357,21 @@ const Address: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Địa chỉ nhận hàng</h1>
-        <p className="text-gray-600">
-          Quản lý địa chỉ giao hàng của bạn ({addresses.length} địa chỉ)
-        </p>
-      </div>
-
+    <div className="space-y-6">
+      {/* Delete Address Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={deleteAddressMutation.isLoading}
+        title="Xóa địa chỉ"
+        description="Bạn có chắc chắn muốn xóa địa chỉ này không?"
+        message="Sau khi xóa, địa chỉ này sẽ không thể khôi phục lại. Bạn sẽ cần thêm lại địa chỉ nếu muốn sử dụng."
+      />
       {/* Thông báo lỗi chung */}
       {errorMessage && (
-        <Alert className="mb-6 bg-red-50 border-red-200">
+        <Alert className="bg-red-50 border-red-200">
           <AlertTitle>Có lỗi xảy ra</AlertTitle>
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
@@ -345,39 +379,28 @@ const Address: React.FC = () => {
 
       {/* Thông báo thành công */}
       {successMessage && (
-        <Alert className="mb-6 bg-green-50 border-green-200">
+        <Alert className="bg-green-50 border-green-200">
           <AlertTitle>Thành công</AlertTitle>
           <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       )}
 
       {/* Header với nút thêm */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-red-600" />
-            <span className="font-medium text-gray-900">
-              Danh sách địa chỉ
-            </span>
-          </div>
-          <Button
-            onClick={() => openModal()}
-            className="inline-flex items-center gap-2"
-          >
-            <span>Thêm địa chỉ mới</span>
-          </Button>
-        </div>
+      <div className="flex items-center justify-end">
+        <Button
+          onClick={() => openModal()}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Thêm địa chỉ mới
+        </Button>
       </div>
 
       {loading ? (
-        <Card>
-          <CardContent className="p-12">
-            <div className="flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
-              <p className="text-gray-600">Đang tải danh sách địa chỉ...</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
+          <p className="text-gray-600">Đang tải danh sách địa chỉ...</p>
+        </div>
       ) : addresses.length === 0 ? (
         <Card>
           <CardContent className="p-12">
@@ -391,131 +414,53 @@ const Address: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Thêm địa chỉ giao hàng đầu tiên của bạn để bắt đầu mua sắm
               </p>
-              <Button onClick={() => openModal()} className="inline-flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                <span>Thêm địa chỉ mới</span>
+              <Button
+                onClick={() => openModal()}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Thêm địa chỉ mới
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {addresses.map((address) => (
-            <Card
+            <AddressCard
               key={address.id}
-              className={`transition-all duration-300 hover:shadow-lg ${
-                address.isDefault
-                  ? "ring-2 ring-green-500 border-green-200 bg-green-50/30"
-                  : "hover:border-gray-300"
-              }`}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="font-semibold text-lg text-gray-900">
-                        {address.fullName}
-                      </h3>
-                      {address.isDefault && (
-                        <Badge className="bg-green-600 text-white">
-                          <Star className="w-3 h-3 mr-1 fill-white" />
-                          Mặc định
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Phone className="w-4 h-4 shrink-0" />
-                        <span>{address.phone}</span>
-                      </div>
-
-                      <div className="flex items-start gap-2 text-gray-700">
-                        <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="font-medium">{address.subAddress}</p>
-                          {address.fullAddress && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {address.fullAddress.replace(/\b[Pp]hường\s*/g, "")}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 ml-4 shrink-0">
-                    {!address.isDefault && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSetDefault(address.id)}
-                        className="inline-flex items-center gap-2"
-                        title="Đặt làm địa chỉ mặc định"
-                      >
-                        <Star className="w-4 h-4" />
-                        <span className="hidden sm:inline">Mặc định</span>
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openModal(address)}
-                      className="inline-flex items-center gap-2"
-                      title="Chỉnh sửa địa chỉ"
-                    >
-                      <Edit className="w-4 h-4" />
-                      <span className="hidden sm:inline">Sửa</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(address.id)}
-                      className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Xóa địa chỉ"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="hidden sm:inline">Xóa</span>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              address={address}
+              onEdit={openModal}
+              onDelete={handleDelete}
+              onSetDefault={handleSetDefault}
+              isDeleting={deleteAddressMutation.isLoading}
+            />
           ))}
         </div>
       )}
 
       {/* Modal thêm/sửa địa chỉ */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl font-semibold flex items-center gap-2">
-                {editingAddress ? (
-                  <>
-                    <Edit className="w-5 h-5" />
-                    Chỉnh sửa địa chỉ
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-5 h-5" />
-                    Thêm địa chỉ mới
-                  </>
-                )}
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeModal}
-                className="h-8 w-8 p-0"
-                aria-label="Close modal"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {editingAddress ? (
+                <>
+                  Chỉnh sửa địa chỉ
+                </>
+              ) : (
+                <>
+                  Thêm địa chỉ mới
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {editingAddress
+                ? "Cập nhật thông tin địa chỉ của bạn"
+                : "Thêm địa chỉ giao hàng mới vào danh sách"}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="p-6">
-
+          <div>
               {/* Lỗi validation trong modal */}
               {Object.keys(errors).length > 0 && (
                 <Alert className="mb-4 bg-red-50 border-red-200">
@@ -533,22 +478,24 @@ const Address: React.FC = () => {
               )}
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
                     Họ và tên <span className="text-red-500">*</span>
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="fullName"
                     type="text"
                     placeholder="VD: Nguyễn Văn A"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
-                      errors.fullName
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
-                    }`}
                     value={formData.fullName}
                     onChange={(e) =>
                       setFormData({ ...formData, fullName: e.target.value })
                     }
+                    className={
+                      errors.fullName
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
+                    aria-invalid={!!errors.fullName}
                   />
                   {errors.fullName && (
                     <p className="text-red-600 text-xs mt-1">
@@ -557,22 +504,24 @@ const Address: React.FC = () => {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
                     Số điện thoại <span className="text-red-500">*</span>
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="phone"
                     type="tel"
                     placeholder="VD: 0912345678"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
-                      errors.phone
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
-                    }`}
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
+                    className={
+                      errors.phone
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
+                    aria-invalid={!!errors.phone}
                   />
                   {errors.phone && (
                     <p className="text-red-600 text-xs mt-1">{errors.phone}</p>
@@ -580,22 +529,14 @@ const Address: React.FC = () => {
                 </div>
 
                 {/* Province select */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                <div className="space-y-2">
+                  <Label htmlFor="province" className="text-sm font-medium text-gray-700">
                     Tỉnh / Thành phố <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                      disabled={provincesLoading}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
-                      provincesLoading
-                        ? "bg-gray-100 cursor-not-allowed text-gray-500"
-                        : errors.provinceId
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
-                    }`}
-                    value={selectedProvince}
-                    onChange={(e) => {
-                      const id = Number(e.target.value);
+                  </Label>
+                  <Select
+                    value={selectedProvince ? String(selectedProvince) : ""}
+                    onValueChange={(value) => {
+                      const id = Number(value);
                       setSelectedProvince(id || "");
                       setSelectedWard("");
                       setErrors((prev) => {
@@ -605,18 +546,33 @@ const Address: React.FC = () => {
                         return cp;
                       });
                     }}
+                    disabled={provincesLoading}
                   >
-                    <option value="">
-                      {provincesLoading
-                        ? "Đang tải..."
-                        : "-- Chọn tỉnh / thành phố --"}
-                    </option>
-                    {provinces.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      id="province"
+                      className={
+                        errors.provinceId
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : ""
+                      }
+                      aria-invalid={!!errors.provinceId}
+                    >
+                      <SelectValue
+                        placeholder={
+                          provincesLoading
+                            ? "Đang tải..."
+                            : "-- Chọn tỉnh / thành phố --"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {provinces.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.provinceId && (
                     <p className="text-red-600 text-xs mt-1">
                       {errors.provinceId}
@@ -625,22 +581,14 @@ const Address: React.FC = () => {
                 </div>
 
                 {/* Ward select */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                <div className="space-y-2">
+                  <Label htmlFor="ward" className="text-sm font-medium text-gray-700">
                     Quận / Xã <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    disabled={!selectedProvince || wardsLoading}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
-                      !selectedProvince || wardsLoading
-                        ? "bg-gray-100 cursor-not-allowed text-gray-500"
-                        : errors.wardId
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
-                    }`}
-                    value={selectedWard}
-                    onChange={(e) => {
-                      const id = Number(e.target.value);
+                  </Label>
+                  <Select
+                    value={selectedWard ? String(selectedWard) : ""}
+                    onValueChange={(value) => {
+                      const id = Number(value);
                       setSelectedWard(id || "");
                       setErrors((prev) => {
                         const cp = { ...prev };
@@ -648,44 +596,56 @@ const Address: React.FC = () => {
                         return cp;
                       });
                     }}
+                    disabled={!selectedProvince || wardsLoading}
                   >
-                    <option value="">
-                      {wardsLoading ? (
-                        <span className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Đang tải...
-                        </span>
-                      ) : (
-                        "-- Chọn quận / xã --"
-                      )}
-                    </option>
-                    {wards.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      id="ward"
+                      className={
+                        errors.wardId
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : ""
+                      }
+                      aria-invalid={!!errors.wardId}
+                    >
+                      <SelectValue
+                        placeholder={
+                          wardsLoading
+                            ? "Đang tải..."
+                            : "-- Chọn quận / xã --"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {wards.map((w) => (
+                        <SelectItem key={w.id} value={String(w.id)}>
+                          {w.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.wardId && (
                     <p className="text-red-600 text-xs mt-1">{errors.wardId}</p>
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                <div className="space-y-2">
+                  <Label htmlFor="subAddress" className="text-sm font-medium text-gray-700">
                     Địa chỉ cụ thể <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
+                    id="subAddress"
                     placeholder="VD: Số 123, Đường Nguyễn Văn Linh"
                     rows={3}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors resize-none ${
-                      errors.subAddress
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-red-500 focus:border-red-500"
-                    }`}
                     value={formData.subAddress}
                     onChange={(e) =>
                       setFormData({ ...formData, subAddress: e.target.value })
                     }
+                    className={
+                      errors.subAddress
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
+                    aria-invalid={!!errors.subAddress}
                   />
                   {errors.subAddress && (
                     <p className="text-red-600 text-xs mt-1">
@@ -695,67 +655,62 @@ const Address: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-2 pt-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     id="isDefault"
                     checked={formData.isDefault}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setFormData({
                         ...formData,
-                        isDefault: e.target.checked,
+                        isDefault: checked === true,
                       })
                     }
-                    className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500 border-gray-300"
+                    className="border-gray-300"
                   />
-                  <label
+                  <Label
                     htmlFor="isDefault"
                     className="text-sm text-gray-700 cursor-pointer flex items-center gap-2"
                   >
-                    <Star className="w-4 h-4 text-yellow-500" />
                     Đặt làm địa chỉ mặc định
-                  </label>
+                  </Label>
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={closeModal}
-                  disabled={
-                    addAddressMutation.isLoading ||
-                    updateAddressMutation.isLoading
-                  }
-                >
-                  Hủy 
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={
-                    addAddressMutation.isLoading ||
-                    updateAddressMutation.isLoading
-                  }
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {addAddressMutation.isLoading ||
-                  updateAddressMutation.isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Đang lưu...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Lưu địa chỉ
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={closeModal}
+                disabled={
+                  addAddressMutation.isLoading ||
+                  updateAddressMutation.isLoading
+                }
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={
+                  addAddressMutation.isLoading ||
+                  updateAddressMutation.isLoading
+                }
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {addAddressMutation.isLoading ||
+                updateAddressMutation.isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Đang lưu...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Lưu địa chỉ
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
-
-export default Address;
+}

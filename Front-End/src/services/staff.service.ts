@@ -52,4 +52,10 @@ export const staffService = {
     const response = await axiosClient.get<ApiResponse<UserRole[]>>("/roles/for-admin")
     return response.data.data
   },
+
+  // Lấy danh sách staff active => trả về Staff[]
+  getAllActiveStaffs: async (): Promise<Staff[]> => {
+    const response = await axiosClient.get<ApiResponse<Staff[]>>("/staffs/active")
+    return response.data.data
+  },
 }

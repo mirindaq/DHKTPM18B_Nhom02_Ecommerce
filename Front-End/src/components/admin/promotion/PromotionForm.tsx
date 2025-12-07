@@ -2,12 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,9 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Loader2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type {
   PromotionSummary,
   CreatePromotionRequest,
@@ -42,28 +35,42 @@ import type { Category } from "@/types/category.type";
 import type { Brand } from "@/types/brand.type";
 import type { Product, ProductVariantDescription } from "@/types/product.type";
 
-const promotionSchema = z.object({
-  name: z.string().min(1, "Tên chương trình là bắt buộc"),
-  promotionType: z.enum(["ALL", "CATEGORY", "BRAND", "PRODUCT", "PRODUCT_VARIANT"]),
-  discount: z.number().min(0.01, "Giảm giá phải lớn hơn 0"),
-  description: z.string().optional(),
-  active: z.boolean(),
-  priority: z.number().min(1, "Độ ưu tiên phải từ 1-10").max(10, "Độ ưu tiên phải từ 1-10"),
-  startDate: z.string().min(1, "Ngày bắt đầu là bắt buộc"),
-  endDate: z.string().min(1, "Ngày kết thúc là bắt buộc"),
-  selectedCategoryIds: z.array(z.number()).optional(),
-  selectedBrandIds: z.array(z.number()).optional(),
-  selectedProductIds: z.array(z.number()).optional(),
-  selectedVariantIds: z.array(z.number()).optional(),
-}).refine((data) => {
-  if (data.startDate && data.endDate) {
-    return new Date(data.startDate) <= new Date(data.endDate);
-  }
-  return true;
-}, {
-  message: "Ngày kết thúc phải sau ngày bắt đầu",
-  path: ["endDate"],
-});
+const promotionSchema = z
+  .object({
+    name: z.string().min(1, "Tên chương trình là bắt buộc"),
+    promotionType: z.enum([
+      "ALL",
+      "CATEGORY",
+      "BRAND",
+      "PRODUCT",
+      "PRODUCT_VARIANT",
+    ]),
+    discount: z.number().min(0.01, "Giảm giá phải lớn hơn 0"),
+    description: z.string().optional(),
+    active: z.boolean(),
+    priority: z
+      .number()
+      .min(1, "Độ ưu tiên phải từ 1-10")
+      .max(10, "Độ ưu tiên phải từ 1-10"),
+    startDate: z.string().min(1, "Ngày bắt đầu là bắt buộc"),
+    endDate: z.string().min(1, "Ngày kết thúc là bắt buộc"),
+    selectedCategoryIds: z.array(z.number()).optional(),
+    selectedBrandIds: z.array(z.number()).optional(),
+    selectedProductIds: z.array(z.number()).optional(),
+    selectedVariantIds: z.array(z.number()).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return new Date(data.startDate) <= new Date(data.endDate);
+      }
+      return true;
+    },
+    {
+      message: "Ngày kết thúc phải sau ngày bắt đầu",
+      path: ["endDate"],
+    }
+  );
 
 type PromotionFormData = z.infer<typeof promotionSchema>;
 
@@ -82,7 +89,9 @@ export default function PromotionForm({
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [productVariants, setProductVariants] = useState<ProductVariantDescription[]>([]);
+  const [productVariants, setProductVariants] = useState<
+    ProductVariantDescription[]
+  >([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [loadingVariants, setLoadingVariants] = useState(false);
   const variantSearchRef = useRef<HTMLInputElement>(null);
@@ -137,7 +146,7 @@ export default function PromotionForm({
     if (selectedType === "PRODUCT" || selectedType === "PRODUCT_VARIANT") {
       const loadProducts = async () => {
         try {
-          const response = await productService.getProducts(1, 100, "");
+          const response = await productService.getProducts(1, 100, {});
           setProducts(response?.data.data || []);
         } catch (error) {
           console.error("Error loading products:", error);
@@ -157,10 +166,15 @@ export default function PromotionForm({
           // Load SKUs for each selected product
           for (const productId of selectedProductIds) {
             try {
-              const response = await productService.getSkusForPromotion(productId);
+              const response = await productService.getSkusForPromotion(
+                productId
+              );
               allVariants.push(...(response.data || []));
             } catch (error) {
-              console.error(`Error loading variants for product ${productId}:`, error);
+              console.error(
+                `Error loading variants for product ${productId}:`,
+                error
+              );
             }
           }
           setProductVariants(allVariants);
@@ -215,17 +229,28 @@ export default function PromotionForm({
       promotionTargets.push(
         ...data.selectedCategoryIds.map((categoryId) => ({ categoryId }))
       );
-    } else if (data.promotionType === "BRAND" && data.selectedBrandIds?.length) {
+    } else if (
+      data.promotionType === "BRAND" &&
+      data.selectedBrandIds?.length
+    ) {
       promotionTargets.push(
         ...data.selectedBrandIds.map((brandId) => ({ brandId }))
       );
-    } else if (data.promotionType === "PRODUCT" && data.selectedProductIds?.length) {
+    } else if (
+      data.promotionType === "PRODUCT" &&
+      data.selectedProductIds?.length
+    ) {
       promotionTargets.push(
         ...data.selectedProductIds.map((productId) => ({ productId }))
       );
-    } else if (data.promotionType === "PRODUCT_VARIANT" && data.selectedVariantIds?.length) {
+    } else if (
+      data.promotionType === "PRODUCT_VARIANT" &&
+      data.selectedVariantIds?.length
+    ) {
       promotionTargets.push(
-        ...data.selectedVariantIds.map((productVariantId) => ({ productVariantId }))
+        ...data.selectedVariantIds.map((productVariantId) => ({
+          productVariantId,
+        }))
       );
     }
 
@@ -238,7 +263,8 @@ export default function PromotionForm({
       priority: data.priority,
       startDate: data.startDate,
       endDate: data.endDate,
-      promotionTargets: promotionTargets.length > 0 ? promotionTargets : undefined,
+      promotionTargets:
+        promotionTargets.length > 0 ? promotionTargets : undefined,
     };
 
     onSubmit(submitData);
@@ -246,7 +272,10 @@ export default function PromotionForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="space-y-6"
+      >
         {/* Thông tin cơ bản */}
         <Card>
           <CardHeader>
@@ -274,7 +303,10 @@ export default function PromotionForm({
                 render={() => (
                   <FormItem>
                     <FormLabel>Loại khuyến mãi *</FormLabel>
-                    <Select onValueChange={handleTypeChange} value={selectedType}>
+                    <Select
+                      onValueChange={handleTypeChange}
+                      value={selectedType}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn loại" />
@@ -285,7 +317,9 @@ export default function PromotionForm({
                         <SelectItem value="CATEGORY">Danh mục</SelectItem>
                         <SelectItem value="BRAND">Thương hiệu</SelectItem>
                         <SelectItem value="PRODUCT">Sản phẩm</SelectItem>
-                        <SelectItem value="PRODUCT_VARIANT">Biến thể sản phẩm</SelectItem>
+                        <SelectItem value="PRODUCT_VARIANT">
+                          Biến thể sản phẩm
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -301,7 +335,11 @@ export default function PromotionForm({
                 <FormItem>
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Nhập mô tả..." {...field} className="min-h-[80px]" />
+                    <Textarea
+                      placeholder="Nhập mô tả..."
+                      {...field}
+                      className="min-h-[80px]"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -396,7 +434,12 @@ export default function PromotionForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Trạng thái *</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value === "true")} value={field.value.toString()}>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value === "true")
+                      }
+                      value={field.value.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn trạng thái" />
@@ -430,15 +473,21 @@ export default function PromotionForm({
                     <div className="border rounded-lg p-4">
                       <div className="space-y-2">
                         {categories.map((category) => {
-                          const isSelected = field.value?.includes(category.id) || false;
+                          const isSelected =
+                            field.value?.includes(category.id) || false;
                           return (
-                            <label key={category.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                            <label
+                              key={category.id}
+                              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                            >
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => {
                                   const newIds = isSelected
-                                    ? field.value?.filter((id) => id !== category.id) || []
+                                    ? field.value?.filter(
+                                        (id) => id !== category.id
+                                      ) || []
                                     : [...(field.value || []), category.id];
                                   field.onChange(newIds);
                                 }}
@@ -451,7 +500,9 @@ export default function PromotionForm({
                       </div>
                     </div>
                     {field.value && field.value.length > 0 && (
-                      <p className="text-sm text-gray-600 mt-2">Đã chọn {field.value.length} danh mục</p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Đã chọn {field.value.length} danh mục
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -476,15 +527,21 @@ export default function PromotionForm({
                     <div className="border rounded-lg p-4">
                       <div className="space-y-2">
                         {brands.map((brand) => {
-                          const isSelected = field.value?.includes(brand.id) || false;
+                          const isSelected =
+                            field.value?.includes(brand.id) || false;
                           return (
-                            <label key={brand.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                            <label
+                              key={brand.id}
+                              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                            >
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => {
                                   const newIds = isSelected
-                                    ? field.value?.filter((id) => id !== brand.id) || []
+                                    ? field.value?.filter(
+                                        (id) => id !== brand.id
+                                      ) || []
                                     : [...(field.value || []), brand.id];
                                   field.onChange(newIds);
                                 }}
@@ -497,7 +554,9 @@ export default function PromotionForm({
                       </div>
                     </div>
                     {field.value && field.value.length > 0 && (
-                      <p className="text-sm text-gray-600 mt-2">Đã chọn {field.value.length} thương hiệu</p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Đã chọn {field.value.length} thương hiệu
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -522,15 +581,21 @@ export default function PromotionForm({
                     <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
                       <div className="space-y-2">
                         {products.map((product) => {
-                          const isSelected = field.value?.includes(product.id) || false;
+                          const isSelected =
+                            field.value?.includes(product.id) || false;
                           return (
-                            <label key={product.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                            <label
+                              key={product.id}
+                              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                            >
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={() => {
                                   const newIds = isSelected
-                                    ? field.value?.filter((id) => id !== product.id) || []
+                                    ? field.value?.filter(
+                                        (id) => id !== product.id
+                                      ) || []
                                     : [...(field.value || []), product.id];
                                   field.onChange(newIds);
                                 }}
@@ -543,7 +608,9 @@ export default function PromotionForm({
                       </div>
                     </div>
                     {field.value && field.value.length > 0 && (
-                      <p className="text-sm text-gray-600 mt-2">Đã chọn {field.value.length} sản phẩm</p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Đã chọn {field.value.length} sản phẩm
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -564,15 +631,22 @@ export default function PromotionForm({
                 <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {products.map((product) => {
-                      const isSelected = selectedProductIds.includes(product.id);
+                      const isSelected = selectedProductIds.includes(
+                        product.id
+                      );
                       return (
-                        <label key={product.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <label
+                          key={product.id}
+                          className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                        >
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {
                               const newIds = isSelected
-                                ? selectedProductIds.filter((id) => id !== product.id)
+                                ? selectedProductIds.filter(
+                                    (id) => id !== product.id
+                                  )
                                 : [...selectedProductIds, product.id];
                               setSelectedProductIds(newIds);
                               form.setValue("selectedVariantIds", []);
@@ -586,7 +660,9 @@ export default function PromotionForm({
                   </div>
                 </div>
                 {selectedProductIds.length > 0 && (
-                  <p className="text-sm text-gray-600 mt-2">Đã chọn {selectedProductIds.length} sản phẩm</p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Đã chọn {selectedProductIds.length} sản phẩm
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -603,7 +679,9 @@ export default function PromotionForm({
                       <span>Đang tải...</span>
                     </div>
                   ) : productVariants.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">Không có biến thể nào</p>
+                    <p className="text-gray-500 text-center py-8">
+                      Không có biến thể nào
+                    </p>
                   ) : (
                     <>
                       <div className="mb-4">
@@ -611,7 +689,9 @@ export default function PromotionForm({
                           ref={variantSearchRef}
                           placeholder="Tìm kiếm biến thể (tên, SKU)..."
                           value={variantSearchValue}
-                          onChange={(e) => setVariantSearchValue(e.target.value)}
+                          onChange={(e) =>
+                            setVariantSearchValue(e.target.value)
+                          }
                           className="w-full"
                         />
                       </div>
@@ -619,9 +699,14 @@ export default function PromotionForm({
                         control={form.control}
                         name="selectedVariantIds"
                         render={({ field }) => {
-                          const filteredVariants = productVariants.filter((variant) =>
-                            variant.name.toLowerCase().includes(variantSearchValue.toLowerCase()) ||
-                            variant.sku.toLowerCase().includes(variantSearchValue.toLowerCase())
+                          const filteredVariants = productVariants.filter(
+                            (variant) =>
+                              variant.name
+                                .toLowerCase()
+                                .includes(variantSearchValue.toLowerCase()) ||
+                              variant.sku
+                                .toLowerCase()
+                                .includes(variantSearchValue.toLowerCase())
                           );
 
                           return (
@@ -630,31 +715,47 @@ export default function PromotionForm({
                                 <div className="space-y-2">
                                   {filteredVariants.length > 0 ? (
                                     filteredVariants.map((variant) => {
-                                      const isSelected = field.value?.includes(variant.id) || false;
+                                      const isSelected =
+                                        field.value?.includes(variant.id) ||
+                                        false;
                                       return (
-                                        <label key={variant.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                        <label
+                                          key={variant.id}
+                                          className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                        >
                                           <input
                                             type="checkbox"
                                             checked={isSelected}
                                             onChange={() => {
                                               const newIds = isSelected
-                                                ? field.value?.filter((id) => id !== variant.id) || []
-                                                : [...(field.value || []), variant.id];
+                                                ? field.value?.filter(
+                                                    (id) => id !== variant.id
+                                                  ) || []
+                                                : [
+                                                    ...(field.value || []),
+                                                    variant.id,
+                                                  ];
                                               field.onChange(newIds);
                                             }}
                                             className="w-4 h-4"
                                           />
-                                          <span className="text-sm">{variant.name} (SKU: {variant.sku})</span>
+                                          <span className="text-sm">
+                                            {variant.name} (SKU: {variant.sku})
+                                          </span>
                                         </label>
                                       );
                                     })
                                   ) : (
-                                    <p className="text-gray-500 text-sm text-center py-4">Không tìm thấy biến thể</p>
+                                    <p className="text-gray-500 text-sm text-center py-4">
+                                      Không tìm thấy biến thể
+                                    </p>
                                   )}
                                 </div>
                               </div>
                               {field.value && field.value.length > 0 && (
-                                <p className="text-sm text-gray-600 mt-2">Đã chọn {field.value.length} biến thể</p>
+                                <p className="text-sm text-gray-600 mt-2">
+                                  Đã chọn {field.value.length} biến thể
+                                </p>
                               )}
                               <FormMessage />
                             </FormItem>
@@ -674,14 +775,20 @@ export default function PromotionForm({
           <Button type="button" variant="outline" onClick={() => form.reset()}>
             Xóa
           </Button>
-          <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
             {isLoading ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Đang xử lý...
               </div>
+            ) : promotion ? (
+              "Cập nhật"
             ) : (
-              promotion ? "Cập nhật" : "Tạo mới"
+              "Tạo mới"
             )}
           </Button>
         </div>

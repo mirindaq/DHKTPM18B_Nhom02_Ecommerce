@@ -2,10 +2,12 @@ package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
+import iuh.fit.ecommerce.dtos.request.customer.UpdatePushTokenRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
 import iuh.fit.ecommerce.services.CustomerService;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -90,6 +92,38 @@ public class CustomerController {
                 OK,
                 "Change status customer success",
                 null
+        ));
+    }
+
+    @PutMapping("/update-push-token")
+    public ResponseEntity<ResponseSuccess<Void>> updatePushToken(
+            @Valid @RequestBody UpdatePushTokenRequest request) {
+
+        customerService.updateExpoPushToken(request.getExpoPushToken());
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Update push token successfully",
+                null
+        ));
+    }
+
+    @GetMapping("/search-by-phone")
+    public ResponseEntity<ResponseSuccess<CustomerResponse>> getCustomerByPhone(
+            @RequestParam String phone) {
+        CustomerResponse customer = customerService.getCustomerByPhone(phone);
+        
+        if (customer == null) {
+            return ResponseEntity.ok(new ResponseSuccess<>(
+                    OK,
+                    "Customer not found",
+                    null
+            ));
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get customer by phone success",
+                customer
         ));
     }
 

@@ -19,4 +19,6 @@ public interface CategoryBrandService {
     List<CategoryResponse> getCategoriesByBrandId(
             Long brandId, String categoryName
     );
+
+    List<BrandResponse> getBrandsByCategorySlug(String slug);
 }

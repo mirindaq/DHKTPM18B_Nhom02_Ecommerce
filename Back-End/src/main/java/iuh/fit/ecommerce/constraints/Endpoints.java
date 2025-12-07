@@ -9,7 +9,17 @@ public class Endpoints {
             "/api/v1/articles(?:/.*)?",
             "/api/v1/product-questions(?:/.*)?",
             "/api/v1/orders(?:/.*)?",
+            "/api/v1/banners(?:/.*)?",
             "/api/v1/addresses(?:/.*)?",
+            "/api/v1/chats(?:/.*)?",
+            "/api/v1/wishlist(?:/.*)?",
+            "/api/v1/shippers(?:/.*)?",
+            "/api/v1/delivery-assignments(?:/.*)?",
+            "/api/v1/feedbacks",
+            "/api/v1/feedbacks/check",
+            "/api/v1/feedbacks/detail",
+            "/api/v1/customers/update-push-token?"
+
     };
 }
 

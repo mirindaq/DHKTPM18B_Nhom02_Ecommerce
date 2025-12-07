@@ -28,10 +28,13 @@ public class Customer extends User {
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Address> addresses = new ArrayList<>();
-  
+
     @ToString.Exclude
     @JsonIgnore
     @OneToOne(mappedBy = "customer")
     private Cart cart;
+
+    @Column(name = "expo_push_token")
+    private String expoPushToken;
 
 }

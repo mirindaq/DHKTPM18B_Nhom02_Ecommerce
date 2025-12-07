@@ -33,4 +33,6 @@ public class OrderCreationRequest {
 
     @NotNull( message = "cartItemIds is required" )
     private List<Long> cartItemIds;
+
+    private String platform; // "web" or "mobile"
 }

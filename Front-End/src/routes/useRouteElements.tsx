@@ -18,23 +18,14 @@ import Variants from "@/pages/admin/Variants";
 import Staffs from "@/pages/admin/Staff";
 import Home from "@/pages/user/Home";
 import ProductDetail from "@/pages/user/ProductDetail";
+import ProductReviews from "@/pages/user/ProductReviews";
 import Cart from "@/pages/user/Cart";
+import Checkout from "@/pages/user/Checkout";
 import Profile from "@/pages/user/Profile";
-// import Membership from "@/pages/user/Membership";
-import AdminLayout from "@/layouts/AdminLayout";
-import UserLayout from "@/layouts/UserLayout";
-import StaffLayout from "@/layouts/StaffLayout";
-import ShipperLayout from "@/layouts/ShipperLayout";
-import StaffDashboard from "@/pages/staff/StaffDashboard";
-import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
-import ShipperOrders from "@/pages/shipper/ShipperOrders";
-import {
-  ADMIN_PATH,
-  AUTH_PATH,
-  PUBLIC_PATH,
-  STAFF_PATH,
-  SHIPPER_PATH,
-} from "@/constants/path";
+import Membership from "@/pages/user/Membership";
+import PaymentStatus from "@/pages/user/PaymentStatus";
+import OrderHistory from "@/pages/user/OrderHistory";
+import OrderDetail from "@/pages/user/OrderDetail";
 import UserLogin from "@/pages/auth/UserLogin";
 import AdminLogin from "@/pages/auth/AdminLogin";
 import AuthCallbackComponent from "@/components/auth/AuthCallbackComponent";
@@ -56,12 +47,43 @@ import ArticleHomePage from "@/components/user/ArticleHomePage";
 import ArticleDetailPage from "@/components/user/ArticleDetailPage";
 import ArticleCategoryPage from "@/components/user/ArticleCategoryPage";
 import ArticleSearch from "@/pages/user/ArticleSearch";
-
+import SearchWithCategory from "@/pages/user/SearchWithCategory";
+import Search from "@/pages/user/Search";
+import AdminLayout from "@/layouts/AdminLayout";
+import UserLayout from "@/layouts/UserLayout";
+import StaffLayout from "@/layouts/StaffLayout";
+import ShipperLayout from "@/layouts/ShipperLayout";
+import StaffDashboard from "@/pages/staff/StaffDashboard";
+import StaffAssignDelivery from "@/pages/staff/StaffAssignDelivery";
+import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
+import Deliveries from "@/pages/shipper/Deliveries";
 import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
-import Checkout from "@/pages/user/Checkout";
-import PaymentStatus from "@/pages/user/PaymentStatus";
-import AddPromotion from "@/pages/admin/AddPromotion";
+import Carts from "@/pages/admin/Carts";
+import FilterCriterias from "@/pages/admin/FilterCriterias";
+import Address from "@/pages/user/Address";
+import MyWishlist from "@/pages/user/MyWishlist";
+import CustomerChat from "@/pages/user/CustomerChat";
+import MyVouchers from "@/pages/user/MyVouchers";
+import EditProfile from "@/pages/user/EditProfile";
+import GuaranteePolicy from "@/pages/user/GuaranteePolicy";
+import TermsOfUse from "@/pages/user/TermsOfUse";
+import WarrantyPolicy from "@/pages/user/WarrantyPolicy";
+import ChatManagement from "@/pages/admin/ChatManagement";
+import StaffLogin from "@/pages/auth/StaffLogin";
+import ShipperLogin from "@/pages/auth/ShipperLogin";
+import Feedbacks from "@/pages/admin/Feedbacks";
+import {
+  ADMIN_PATH,
+  AUTH_PATH,
+  PUBLIC_PATH,
+  STAFF_PATH,
+  SHIPPER_PATH,
+} from "@/constants/path";
 import EditPromotion from "@/pages/admin/EditPromotion";
+import AddPromotion from "@/pages/admin/AddPromotion";
+import Banners from "@/pages/admin/Banner";
+import StaffSell from "@/pages/staff/StaffSell";
+import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -79,6 +101,9 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <Home /> },
         { path: "product/:slug", element: <ProductDetail /> },
+        { path: "product/:slug/reviews", element: <ProductReviews /> },
+        { path: "search/:slug", element: <SearchWithCategory /> },
+        { path: "search", element: <Search /> },
         {
           path: "cart",
           element: (
@@ -100,24 +125,40 @@ const useRouteElements = () => {
           element: <PaymentStatus />,
         },
         {
+          path: "chat",
+          element: (
+            <UserRoute>
+              <CustomerChat />
+            </UserRoute>
+          ),
+        },
+        {
           path: "profile",
           element: (
             <UserRoute>
               <Profile />
             </UserRoute>
           ),
-          // children: [
-          //   {
-          //     path: "membership",
-          //     element: <Membership />,
-          //   },
-          //   { path: "addresses", element: <AddressPage /> },
-          // ],
+          children: [
+            {
+              path: "membership",
+              element: <Membership />,
+            },
+            { path: "addresses", element: <Address /> },
+            { path: "wishlist", element: <MyWishlist /> },
+            { path: "orders", element: <OrderHistory /> },
+            { path: "orders/:id", element: <OrderDetail /> },
+            { path: "vouchers", element: <MyVouchers /> },
+            { path: "edit", element: <EditProfile /> },
+            { path: "guarantee-policy", element: <GuaranteePolicy /> },
+            { path: "terms", element: <TermsOfUse /> },
+            { path: "warranty-policy", element: <WarrantyPolicy /> },
+          ],
         },
       ],
     },
 
-    // Article routes - Sforum homepage
+    // Article routes
     {
       path: "/sforum",
       element: (
@@ -130,8 +171,6 @@ const useRouteElements = () => {
         { path: "search", element: <ArticleSearch /> },
       ],
     },
-
-    // Article detail route
     {
       path: "/article/:slug",
       element: (
@@ -141,8 +180,6 @@ const useRouteElements = () => {
       ),
       children: [{ index: true, element: <ArticleDetailPage /> }],
     },
-
-    // Article category route
     {
       path: "/category/:slug",
       element: (
@@ -179,6 +216,22 @@ const useRouteElements = () => {
       ),
     },
     {
+      path: AUTH_PATH.LOGIN_STAFF,
+      element: (
+        <RoleBasedAuthWrapper>
+          <StaffLogin />
+        </RoleBasedAuthWrapper>
+      ),
+    },
+    {
+      path: AUTH_PATH.LOGIN_SHIPPER,
+      element: (
+        <RoleBasedAuthWrapper>
+          <ShipperLogin />
+        </RoleBasedAuthWrapper>
+      ),
+    },
+    {
       path: AUTH_PATH.GOOGLE_CALLBACK,
       element: <AuthCallbackComponent />,
     },
@@ -199,6 +252,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.VARIANTS, element: <Variants /> },
         { path: ADMIN_PATH.CATEGORIES, element: <Categories /> },
         { path: ADMIN_PATH.BRANDS, element: <Brands /> },
+        { path: ADMIN_PATH.BANNERS, element: <Banners /> },
         { path: ADMIN_PATH.CUSTOMERS, element: <Customers /> },
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
@@ -210,7 +264,6 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.VOUCHERS, element: <Vouchers /> },
         { path: "/admin/vouchers/create", element: <VoucherForm /> },
         { path: "/admin/vouchers/edit/:id", element: <VoucherForm /> },
-        { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> },
         { path: ADMIN_PATH.ARTICLES, element: <Articles /> },
         { path: ADMIN_PATH.ARTICLE_ADD, element: <AddArticle /> },
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
@@ -219,6 +272,10 @@ const useRouteElements = () => {
           path: "category-brand-assignment",
           element: <CategoryBrandAssignmentPage />,
         },
+        { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
+        { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
+        { path: "/admin/feedbacks", element: <Feedbacks /> },
+        { path: ADMIN_PATH.CARTS, element: <Carts /> },
       ],
     },
 
@@ -235,6 +292,11 @@ const useRouteElements = () => {
         { path: STAFF_PATH.PRODUCTS, element: <Products /> },
         { path: STAFF_PATH.ORDERS, element: <Orders /> },
         { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
+        { path: STAFF_PATH.CHAT, element: <ChatManagement /> },
+        { path: STAFF_PATH.ASSIGN_DELIVERY, element: <StaffAssignDelivery /> },
+        { path: STAFF_PATH.SELL, element: <StaffSell /> },
+        { path: STAFF_PATH.PAYMENT_STATUS, element: <StaffPaymentStatus /> },
+        { path: STAFF_PATH.CARTS, element: <Carts /> },
       ],
     },
 
@@ -248,10 +310,10 @@ const useRouteElements = () => {
       ),
       children: [
         { index: true, element: <ShipperDashboard /> },
-        { path: SHIPPER_PATH.ORDERS, element: <ShipperOrders /> },
-        { path: SHIPPER_PATH.DELIVERIES, element: <ShipperOrders /> },
+        { path: SHIPPER_PATH.DELIVERIES, element: <Deliveries /> },
       ],
     },
+
     {
       path: "/error-401",
       element: <Error401 />,

@@ -15,6 +15,7 @@ export type Category = {
   status: boolean;
   createdAt: string;
   modifiedAt: string; 
+  slug: string;
   attributes: Attribute[];
 };
 

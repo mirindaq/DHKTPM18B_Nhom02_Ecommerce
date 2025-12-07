@@ -9,7 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Search,
   Edit,
@@ -18,9 +25,12 @@ import {
   PowerOff,
   Loader2,
   Image as ImageIcon,
-  Package
+  Package,
+  X,
 } from "lucide-react";
-import type { Product } from "@/types/product.type";
+import type { Product, ProductFilters } from "@/types/product.type";
+import type { Brand } from "@/types/brand.type";
+import type { Category } from "@/types/category.type";
 
 interface ProductTableProps {
   products: Product[];
@@ -28,9 +38,11 @@ interface ProductTableProps {
   onDelete: (id: number) => void;
   onToggleStatus: (id: number) => void;
   isLoading?: boolean;
-  onSearch: (searchTerm: string) => void;
+  onFilterChange: (filters: ProductFilters) => void;
   currentPage?: number;
   pageSize?: number;
+  brands?: Brand[];
+  categories?: Category[];
 }
 
 export default function ProductTable({
@@ -38,99 +50,333 @@ export default function ProductTable({
   onEdit,
   onDelete,
   onToggleStatus,
-  onSearch,
+  onFilterChange,
   isLoading,
   currentPage = 1,
-  pageSize = 7
+  pageSize = 7,
+  brands = [],
+  categories = [],
 }: ProductTableProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<ProductFilters>({});
 
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onSearch(searchTerm);
-    }
+  const handleFilterChange = (key: keyof ProductFilters, value: any) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value === "all" || value === "" ? null : value,
+    }));
   };
+
+  const handleSearch = () => {
+    onFilterChange(filters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    onFilterChange({});
+  };
+
+  const hasActiveFilters = Object.values(filters).some(
+    (value) => value !== null && value !== undefined && value !== ""
+  );
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
-  };
-
-  const formatDiscount = (discount: number) => {
-    return `${(discount * 100).toFixed(0)}%`;
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+      {/* Filter Section */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-700">Bộ lọc</h3>
+            {hasActiveFilters && (
+              <div className="flex items-center gap-2 text-xs">
+                {filters.keyword && (
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
+                    className="bg-blue-50 text-blue-700 border-blue-200"
+                  >
+                    Từ khóa: {filters.keyword}
+                  </CustomBadge>
+                )}
+                {filters.brandId && (
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
+                    className="bg-purple-50 text-purple-700 border-purple-200"
+                  >
+                    Thương hiệu:{" "}
+                    {brands.find((b) => b.id === filters.brandId)?.name}
+                  </CustomBadge>
+                )}
+                {filters.categoryId && (
+                  <CustomBadge
+                    variant="success"
+                    size="sm"
+                    className="bg-green-50 text-green-700 border-green-200"
+                  >
+                    Danh mục:{" "}
+                    {categories.find((c) => c.id === filters.categoryId)?.name}
+                  </CustomBadge>
+                )}
+                {filters.status !== undefined && filters.status !== null && (
+                  <CustomBadge
+                    variant="warning"
+                    size="sm"
+                    className="bg-orange-50 text-orange-700 border-orange-200"
+                  >
+                    {filters.status ? "Hoạt động" : "Tạm dừng"}
+                  </CustomBadge>
+                )}
+                {(filters.minPrice || filters.maxPrice) && (
+                  <CustomBadge
+                    variant="error"
+                    size="sm"
+                    className="bg-red-50 text-red-700 border-red-200"
+                  >
+                    Giá:{" "}
+                    {filters.minPrice ? formatPrice(filters.minPrice) : "0"} -{" "}
+                    {filters.maxPrice ? formatPrice(filters.maxPrice) : "∞"}
+                  </CustomBadge>
+                )}
+              </div>
+            )}
+          </div>
+          {hasActiveFilters && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleClearFilters}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Xóa bộ lọc
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-6 gap-3">
+          {/* Keyword */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">Từ khóa</label>
             <Input
-              placeholder="Tìm kiếm sản phẩm..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Tên hoặc SPU..."
+              value={filters.keyword || ""}
+              onChange={(e) => handleFilterChange("keyword", e.target.value)}
               disabled={isLoading}
-              onKeyDown={handleSearch}
+              className="h-9"
             />
           </div>
+
+          {/* Brand */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">
+              Thương hiệu
+            </label>
+            <Select
+              value={filters.brandId?.toString() || "all"}
+              onValueChange={(value) =>
+                handleFilterChange(
+                  "brandId",
+                  value === "all" ? null : parseInt(value)
+                )
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Chọn thương hiệu" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {brands.map((brand) => (
+                  <SelectItem key={brand.id} value={brand.id.toString()}>
+                    {brand.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Category */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">
+              Danh mục
+            </label>
+            <Select
+              value={filters.categoryId?.toString() || "all"}
+              onValueChange={(value) =>
+                handleFilterChange(
+                  "categoryId",
+                  value === "all" ? null : parseInt(value)
+                )
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Chọn danh mục" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Status */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">
+              Trạng thái
+            </label>
+            <Select
+              value={
+                filters.status === null || filters.status === undefined
+                  ? "all"
+                  : filters.status.toString()
+              }
+              onValueChange={(value) =>
+                handleFilterChange(
+                  "status",
+                  value === "all" ? null : value === "true"
+                )
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Chọn trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="true">Hoạt động</SelectItem>
+                <SelectItem value="false">Tạm dừng</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Min Price */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">Giá từ</label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={filters.minPrice || ""}
+              onChange={(e) =>
+                handleFilterChange(
+                  "minPrice",
+                  e.target.value ? parseFloat(e.target.value) : null
+                )
+              }
+              disabled={isLoading}
+              className="h-9"
+            />
+          </div>
+
+          {/* Max Price */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">Giá đến</label>
+            <Input
+              type="number"
+              placeholder="∞"
+              value={filters.maxPrice || ""}
+              onChange={(e) =>
+                handleFilterChange(
+                  "maxPrice",
+                  e.target.value ? parseFloat(e.target.value) : null
+                )
+              }
+              disabled={isLoading}
+              className="h-9"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
           <Button
-            onClick={() => onSearch(searchTerm)}
+            onClick={handleSearch}
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6"
           >
             <Search className="h-4 w-4 mr-2" />
             Tìm kiếm
           </Button>
         </div>
-
-        <div className="text-sm text-gray-600">
-          Tổng cộng: <span className="font-semibold text-gray-900">{products.length}</span> sản phẩm
-        </div>
       </div>
 
       <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
+          <div className="text-sm text-gray-600">
+            Tổng cộng:{" "}
+            <span className="font-semibold text-gray-900">
+              {products.length}
+            </span>{" "}
+            sản phẩm
+          </div>
+        </div>
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 hover:bg-gray-50">
               <TableHead className="font-semibold text-gray-700">STT</TableHead>
-              <TableHead className="font-semibold text-gray-700">Hình ảnh</TableHead>
-              <TableHead className="font-semibold text-gray-700">Tên sản phẩm</TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Hình ảnh
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Tên sản phẩm
+              </TableHead>
               <TableHead className="font-semibold text-gray-700">SPU</TableHead>
-              <TableHead className="font-semibold text-gray-700">Giá</TableHead>
-              <TableHead className="font-semibold text-gray-700">Giảm giá</TableHead>
-              <TableHead className="font-semibold text-gray-700">Tồn kho</TableHead>
-              <TableHead className="font-semibold text-gray-700">Trạng thái</TableHead>
-              <TableHead className="font-semibold text-gray-700">Thao tác</TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Giá thấp nhất
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Giá cao nhất
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Trạng thái
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
+                Thao tác
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12">
+                <TableCell colSpan={8} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+                    <p className="text-gray-500 font-medium">
+                      Đang tải dữ liệu...
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-24 text-gray-500">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-24 text-gray-500"
+                >
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                       <Package className="h-8 w-8 text-gray-400" />
                     </div>
                     <div className="space-y-2">
                       <p className="text-lg font-medium text-gray-600">
-                        {searchTerm ? "Không tìm thấy sản phẩm nào" : "Chưa có sản phẩm nào"}
+                        {hasActiveFilters
+                          ? "Không tìm thấy sản phẩm nào"
+                          : "Chưa có sản phẩm nào"}
                       </p>
                       <p className="text-sm text-gray-400">
-                        {searchTerm ? "Thử tìm kiếm với từ khóa khác" : "Hãy thêm sản phẩm đầu tiên"}
+                        {hasActiveFilters
+                          ? "Thử tìm kiếm với bộ lọc khác"
+                          : "Hãy thêm sản phẩm đầu tiên"}
                       </p>
                     </div>
                   </div>
@@ -138,7 +384,10 @@ export default function ProductTable({
               </TableRow>
             ) : (
               products.map((product, index) => (
-                <TableRow key={product.id} className="hover:bg-gray-50 transition-colors duration-200">
+                <TableRow
+                  key={product.id}
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
                   <TableCell className="text-center font-medium text-gray-600">
                     {(currentPage - 1) * pageSize + index + 1}
                   </TableCell>
@@ -157,7 +406,10 @@ export default function ProductTable({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-semibold text-gray-900 max-w-xs truncate" title={product.name}>
+                  <TableCell
+                    className="font-semibold text-gray-900 max-w-xs truncate"
+                    title={product.name}
+                  >
                     {product.name}
                   </TableCell>
                   <TableCell>
@@ -170,13 +422,10 @@ export default function ProductTable({
                       {product.variants && product.variants.length > 0 ? (
                         <>
                           <p className="font-medium text-green-600">
-                            {formatPrice(product.variants[0].price)}
+                            {formatPrice(
+                              Math.min(...product.variants.map((v) => v.price))
+                            )}
                           </p>
-                          {product.variants[0].oldPrice && (
-                            <p className="text-xs text-gray-500 line-through">
-                              {formatPrice(product.variants[0].oldPrice)}
-                            </p>
-                          )}
                         </>
                       ) : (
                         <p className="text-gray-500 text-sm">Chưa có giá</p>
@@ -184,30 +433,31 @@ export default function ProductTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {product.discount > 0 ? (
-                      <Badge variant="destructive" className="text-xs">
-                        -{formatDiscount(product.discount)}
-                      </Badge>
-                    ) : (
-                      <span className="text-gray-400 text-sm">Không</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Package className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm font-medium">
-                        {product.stock}
-                      </span>
+                    <div className="space-y-1">
+                      {product.variants && product.variants.length > 0 ? (
+                        <>
+                          <p className="font-medium text-blue-600">
+                            {formatPrice(
+                              Math.max(...product.variants.map((v) => v.price))
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-gray-500 text-sm">Chưa có giá</p>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={product.status ? "default" : "secondary"} className={
-                      product.status
-                        ? "bg-green-100 text-green-800 border-green-200"
-                        : "bg-gray-100 text-gray-800 border-gray-200"
-                    }>
+                    <CustomBadge
+                      variant={product.status ? "success" : "secondary"}
+                      className={
+                        product.status
+                          ? "bg-green-100 text-green-800 border-green-200"
+                          : "bg-gray-100 text-gray-800 border-gray-200"
+                      }
+                    >
                       {product.status ? "Hoạt động" : "Tạm dừng"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -224,13 +474,18 @@ export default function ProductTable({
                         variant="outline"
                         size="sm"
                         onClick={() => onToggleStatus(product.id)}
-                        className={`${product.status
-                          ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
-                          : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
-                          }`}
+                        className={`${
+                          product.status
+                            ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                            : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                        }`}
                         disabled={isLoading}
                       >
-                        {product.status ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                        {product.status ? (
+                          <PowerOff className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button
                         variant="outline"

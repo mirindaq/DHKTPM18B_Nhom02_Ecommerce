@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { productService } from "@/services/product.service";
 import { useQuery, useMutation } from "@/hooks";
 import { ProductForm } from "./";
-import type { CreateProductRequest, Product } from "@/types/product.type";
+import type { CreateProductRequest } from "@/types/product.type";
 
 interface ProductPageWrapperProps {
   mode: "add" | "edit";
@@ -19,8 +19,8 @@ interface ProductPageWrapperProps {
 
 export default function ProductPageWrapper({
   mode,
-  title,
-  description,
+  title: _title,
+  description: _description,
   successMessage,
   errorMessage,
   submitButtonText,
@@ -34,14 +34,11 @@ export default function ProductPageWrapper({
   const {
     data: productData,
     isLoading: isLoadingProduct,
-    error: productError
-  } = useQuery(
-    () => productService.getProductById(productId),
-    {
-      queryKey: ["product", productId.toString()],
-      enabled: mode === "edit" && !!productId
-    }
-  );
+    error: productError,
+  } = useQuery(() => productService.getProductById(productId), {
+    queryKey: ["product", productId.toString()],
+    enabled: mode === "edit" && !!productId,
+  });
 
   const product = productData?.data;
 
@@ -56,13 +53,14 @@ export default function ProductPageWrapper({
       onError: (error) => {
         console.error("Error creating product:", error);
         toast.error(errorMessage);
-      }
+      },
     }
   );
 
   // Update product mutation (chỉ cho edit mode)
   const updateProductMutation = useMutation(
-    (data: CreateProductRequest) => productService.updateProduct(productId, data),
+    (data: CreateProductRequest) =>
+      productService.updateProduct(productId, data),
     {
       onSuccess: () => {
         toast.success(successMessage);
@@ -71,7 +69,7 @@ export default function ProductPageWrapper({
       onError: (error) => {
         console.error("Error updating product:", error);
         toast.error(errorMessage);
-      }
+      },
     }
   );
 
@@ -130,38 +128,14 @@ export default function ProductPageWrapper({
     );
   }
 
-  const isLoading = isSubmitting || 
-    (mode === "add" ? createProductMutation.isLoading : updateProductMutation.isLoading);
+  const isLoading =
+    isSubmitting ||
+    (mode === "add"
+      ? createProductMutation.isLoading
+      : updateProductMutation.isLoading);
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate("/admin/products")}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Quay lại</span>
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">
-            {title}
-          </h1>
-          <p className="text-base text-gray-600">
-            {mode === "edit" && product ? (
-              <>
-                {description}: <span className="font-medium">{product.name}</span>
-              </>
-            ) : (
-              description
-            )}
-          </p>
-        </div>
-      </div>
-
       {/* Form */}
       <div>
         <ProductForm

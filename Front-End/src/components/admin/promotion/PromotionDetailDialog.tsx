@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Target, Percent, Star } from "lucide-react";
 import type { PromotionSummary } from "@/types/promotion.type";
@@ -43,10 +43,8 @@ export default function PromotionDetailDialog({
   };
 
   const getDiscountText = (promotion: PromotionSummary) => {
-    if (promotion.discountType === "PERCENTAGE") {
-      return `${promotion.discountValue}%`;
-    }
-    return `${promotion.discountValue.toLocaleString()}đ`;
+    // Since discount is percentage, just show as percentage
+    return `${promotion.discount}%`;
   };
 
   const formatDate = (dateString: string) => {
@@ -58,7 +56,6 @@ export default function PromotionDetailDialog({
       minute: "2-digit",
     });
   };
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,9 +73,9 @@ export default function PromotionDetailDialog({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Thông tin cơ bản</span>
-                <Badge variant={promotion.active ? "default" : "secondary"}>
+                <CustomBadge variant={promotion.active ? "success" : "secondary"}>
                   {promotion.active ? "Hoạt động" : "Tạm dừng"}
-                </Badge>
+                </CustomBadge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -91,9 +88,14 @@ export default function PromotionDetailDialog({
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-gray-500" />
                   <span className="text-sm text-gray-600">Loại:</span>
-                  <Badge className={getTypeColor(promotion.type)}>
-                    {getTypeLabel(promotion.type)}
-                  </Badge>
+                  <CustomBadge variant={
+                    promotion.promotionType === "ORDER" ? "info" :
+                    promotion.promotionType === "PRODUCT" ? "success" :
+                    promotion.promotionType === "PRODUCT_VARIANT" ? "info" :
+                    "warning"
+                  }>
+                    {getTypeLabel(promotion.promotionType)}
+                  </CustomBadge>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -115,12 +117,16 @@ export default function PromotionDetailDialog({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Đối tượng áp dụng</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Đối tượng áp dụng
+                  </label>
                   <p className="text-sm">Tất cả sản phẩm</p>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Độ ưu tiên</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Độ ưu tiên
+                  </label>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 text-yellow-500" />
                     <span className="text-sm">{promotion.priority}</span>
@@ -141,17 +147,20 @@ export default function PromotionDetailDialog({
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Ngày bắt đầu</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Ngày bắt đầu
+                  </label>
                   <p className="text-sm">{formatDate(promotion.startDate)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Ngày kết thúc</label>
+                  <label className="text-sm font-medium text-gray-600">
+                    Ngày kết thúc
+                  </label>
                   <p className="text-sm">{formatDate(promotion.endDate)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-
         </div>
       </DialogContent>
     </Dialog>

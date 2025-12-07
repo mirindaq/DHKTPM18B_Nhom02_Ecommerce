@@ -1,5 +1,3 @@
-import { Skeleton } from '@/components/ui/skeleton'
-
 export default function CartItemSkeleton() {
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 animate-pulse">
@@ -14,10 +12,10 @@ export default function CartItemSkeleton() {
         <div className="flex-1 min-w-0">
           {/* Product name skeleton */}
           <div className="h-5 bg-gray-200 rounded mb-2 w-3/4"></div>
-          
+
           {/* SKU skeleton */}
           <div className="h-4 bg-gray-200 rounded mb-2 w-1/3"></div>
-          
+
           {/* Badge skeleton */}
           <div className="h-6 bg-gray-200 rounded w-16 mb-3"></div>
 
@@ -47,7 +45,7 @@ export default function CartItemSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function CartSummarySkeleton() {
@@ -58,12 +56,12 @@ export function CartSummarySkeleton() {
           <div className="h-6 bg-gray-200 rounded w-24 mb-2"></div>
           <div className="h-4 bg-gray-200 rounded w-32"></div>
         </div>
-        
+
         <div className="text-right">
           <div className="h-8 bg-gray-200 rounded w-32 mb-2"></div>
           <div className="h-12 bg-gray-200 rounded w-full"></div>
         </div>
       </div>
     </div>
-  )
+  );
 }
