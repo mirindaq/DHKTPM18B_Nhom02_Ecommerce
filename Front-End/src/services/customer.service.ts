@@ -163,6 +163,7 @@ export const customerService = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 300000, // 5 minutes for large files
     });
     return response.data;
   },
