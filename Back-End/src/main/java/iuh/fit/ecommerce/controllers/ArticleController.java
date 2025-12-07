@@ -55,7 +55,23 @@ public class ArticleController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticles(
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticlesForCustomer(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "7") int limit,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) LocalDate createdDate) {
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get Articles success",
+                articleService.getAllArticlesForCustomer(page, limit, title, categoryId, createdDate)
+        ));
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticlesForAdmin(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "7") int limit,
             @RequestParam(required = false) Boolean status,
@@ -63,17 +79,10 @@ public class ArticleController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) LocalDate createdDate) {
 
-        // Check if user is ADMIN or STAFF
-        boolean isAdminOrStaff = articleService.isAdminOrStaff();
-        
-        // If not ADMIN/STAFF, ignore status and createdDate params
-        Boolean finalStatus = isAdminOrStaff ? status : null;
-        LocalDate finalCreatedDate = isAdminOrStaff ? createdDate : null;
-
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Articles success",
-                articleService.getAllArticles(page, limit, finalStatus, title, categoryId, finalCreatedDate)
+                articleService.getAllArticlesForAdmin(page, limit, status, title, categoryId, createdDate)
         ));
     }
 
