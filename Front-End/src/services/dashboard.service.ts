@@ -1,0 +1,102 @@
+import axiosClient from '@/configurations/axios.config';
+import type {
+  RevenueByMonthResponse,
+  RevenueByDayResponse,
+  RevenueByYearResponse,
+  TopProductResponse,
+  DashboardApiResponse,
+  ComparisonResponse
+} from '@/types/dashboard.type';
+
+export const dashboardService = {
+  // Doanh thu theo tháng
+  getRevenueByMonth: async (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<RevenueByMonthResponse[]>>(
+      `/dashboard/revenue-by-month${queryString}`
+    );
+    return response.data;
+  },
+
+  // Doanh thu theo ngày
+  getRevenueByDay: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<RevenueByDayResponse[]>>(
+      `/dashboard/revenue-by-day${queryString}`
+    );
+    return response.data;
+  },
+
+  // Doanh thu theo năm
+  getRevenueByYear: async (year?: number) => {
+    const params = year ? `?year=${year}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<RevenueByYearResponse[]>>(
+      `/dashboard/revenue-by-year${params}`
+    );
+    return response.data;
+  },
+
+  // Top sản phẩm theo ngày
+  getTopProductsByDay: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
+      `/dashboard/top-products-by-day${queryString}`
+    );
+    return response.data;
+  },
+
+  // Top sản phẩm theo tháng
+  getTopProductsByMonth: async (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
+      `/dashboard/top-products-by-month${queryString}`
+    );
+    return response.data;
+  },
+
+  // Top sản phẩm theo năm
+  getTopProductsByYear: async (year?: number) => {
+    const params = year ? `?year=${year}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
+      `/dashboard/top-products-by-year${params}`
+    );
+    return response.data;
+  }
+};
+
+  // So sánh doanh thu
+  compareRevenue: async (
+    timeType: string,
+    startDate1: string,
+    endDate1: string,
+    startDate2: string,
+    endDate2: string
+  ) => {
+    const params = new URLSearchParams();
+    params.append('timeType', timeType);
+    params.append('startDate1', startDate1);
+    params.append('endDate1', endDate1);
+    params.append('startDate2', startDate2);
+    params.append('endDate2', endDate2);
+    
+    const response = await axiosClient.get<DashboardApiResponse<ComparisonResponse>>(
+      `/dashboard/compare-revenue?${params.toString()}`
+    );
+    return response.data;
+  }

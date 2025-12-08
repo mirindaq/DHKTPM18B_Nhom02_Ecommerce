@@ -1,10 +1,7 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
-import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByDayResponse;
-import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByMonthResponse;
-import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByYearResponse;
-import iuh.fit.ecommerce.dtos.response.dashboard.TopProductResponse;
+import iuh.fit.ecommerce.dtos.response.dashboard.*;
 import iuh.fit.ecommerce.services.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,10 +25,12 @@ public class DashboardController {
     /**
      * Lấy doanh thu theo từng tháng trong năm
      * @param year Năm cần xem (mặc định: năm hiện tại)
+     * @param month Tháng cụ thể (optional, null = tất cả 12 tháng)
      */
     @GetMapping("/revenue-by-month")
     public ResponseEntity<ResponseSuccess<List<RevenueByMonthResponse>>> getRevenueByMonth(
-            @RequestParam(required = false) Integer year) {
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
         
         if (year == null) {
             year = LocalDate.now().getYear();
@@ -40,7 +39,7 @@ public class DashboardController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get revenue by month success",
-                dashboardService.getRevenueByMonth(year)));
+                dashboardService.getRevenueByMonth(year, month)));
     }
     
     /**
@@ -141,5 +140,27 @@ public class DashboardController {
                 OK,
                 "Get top products by year success",
                 dashboardService.getTopProductsByYear(year)));
+    }
+    
+    /**
+     * So sánh doanh thu giữa 2 kỳ
+     * @param timeType Loại thời gian: day, month, year
+     * @param startDate1 Ngày bắt đầu kỳ 1
+     * @param endDate1 Ngày kết thúc kỳ 1
+     * @param startDate2 Ngày bắt đầu kỳ 2
+     * @param endDate2 Ngày kết thúc kỳ 2
+     */
+    @GetMapping("/compare-revenue")
+    public ResponseEntity<ResponseSuccess<ComparisonResponse>> compareRevenue(
+            @RequestParam String timeType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate2,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate2) {
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Compare revenue success",
+                dashboardService.compareRevenue(timeType, startDate1, endDate1, startDate2, endDate2)));
     }
 }
