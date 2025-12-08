@@ -383,27 +383,62 @@ public class DashboardController {
     }
     
     /**
-     * Export dashboard to Excel (4 sheets: Revenue, Voucher, Promotion, Products)
-     * @param startDate Ngày bắt đầu
-     * @param endDate Ngày kết thúc
+     * Export dashboard to Excel (5 sheets: Summary, Revenue, Voucher, Promotion, Products)
+     * @param timeType Loại thời gian: day (mặc định), month, year
+     * @param startDate Ngày bắt đầu (cho day)
+     * @param endDate Ngày kết thúc (cho day)
+     * @param year Năm (cho month và year)
+     * @param month Tháng (cho month, optional)
      */
     @GetMapping("/export-excel")
     public ResponseEntity<org.springframework.core.io.Resource> exportDashboardExcel(
+            @RequestParam(required = false, defaultValue = "day") String timeType,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
         
         try {
-            if (startDate == null) {
-                startDate = LocalDate.now().minusDays(30);
-            }
-            if (endDate == null) {
-                endDate = LocalDate.now();
+            LocalDate start;
+            LocalDate end;
+            String filename;
+            
+            switch (timeType.toLowerCase()) {
+                case "month":
+                    // Export theo tháng
+                    if (year == null) year = LocalDate.now().getYear();
+                    if (month == null) month = LocalDate.now().getMonthValue();
+                    
+                    start = LocalDate.of(year, month, 1);
+                    end = start.withDayOfMonth(start.lengthOfMonth());
+                    filename = String.format("Dashboard_Report_%d_Thang_%d.xlsx", year, month);
+                    break;
+                    
+                case "year":
+                    // Export theo năm
+                    if (year == null) year = LocalDate.now().getYear();
+                    
+                    start = LocalDate.of(year, 1, 1);
+                    end = LocalDate.of(year, 12, 31);
+                    filename = String.format("Dashboard_Report_Nam_%d.xlsx", year);
+                    break;
+                    
+                default: // "day"
+                    // Export theo khoảng ngày
+                    if (startDate == null) {
+                        startDate = LocalDate.now().minusDays(30);
+                    }
+                    if (endDate == null) {
+                        endDate = LocalDate.now();
+                    }
+                    start = startDate;
+                    end = endDate;
+                    filename = String.format("Dashboard_Report_%s_to_%s.xlsx", 
+                            start.toString(), end.toString());
+                    break;
             }
             
-            byte[] excelData = dashboardExcelService.exportDashboard(startDate, endDate);
-            
-            String filename = String.format("Dashboard_Report_%s_to_%s.xlsx", 
-                    startDate.toString(), endDate.toString());
+            byte[] excelData = dashboardExcelService.exportDashboard(start, end);
             
             org.springframework.core.io.ByteArrayResource resource = 
                     new org.springframework.core.io.ByteArrayResource(excelData);

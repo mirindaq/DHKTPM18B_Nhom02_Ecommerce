@@ -4,13 +4,19 @@ import PromotionStatsCards from '@/components/dashboard/promotion/PromotionStats
 import TopPromotionsTable from '@/components/dashboard/promotion/TopPromotionsTable'
 import PromotionFilterSection from '@/components/dashboard/promotion/PromotionFilterSection'
 import PromotionComparisonModal from '@/components/dashboard/promotion/PromotionComparisonModal'
+import ExcelActions from '@/components/admin/common/ExcelActions'
 import { promotionService } from '@/services/promotion.service'
+import { dashboardService } from '@/services/dashboard.service'
 import type { TopPromotionResponse } from '@/types/voucher-promotion.type'
 
 export default function PromotionAnalytics() {
   const [topPromotions, setTopPromotions] = useState<TopPromotionResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [showComparison, setShowComparison] = useState(false)
+  const [dateRange, setDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  })
 
   // Mock stats - sẽ thay bằng API thực
   const stats = {
@@ -39,24 +45,32 @@ export default function PromotionAnalytics() {
     const startDate = thirtyDaysAgo.toISOString().split('T')[0]
     const endDate = now.toISOString().split('T')[0]
     
+    setDateRange({ startDate, endDate })
     fetchData(startDate, endDate)
   }, [])
 
   const handleFilterChange = (startDate: string, endDate: string) => {
+    setDateRange({ startDate, endDate })
     fetchData(startDate, endDate)
   }
 
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-purple-50 rounded-lg">
-          <Tag className="h-8 w-8 text-purple-600" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-purple-50 rounded-lg">
+            <Tag className="h-8 w-8 text-purple-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Thống kê Promotion</h1>
+            <p className="text-gray-600">Phân tích hiệu quả chương trình khuyến mãi</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Thống kê Promotion</h1>
-          <p className="text-gray-600">Phân tích hiệu quả chương trình khuyến mãi</p>
-        </div>
+        <ExcelActions
+          onExport={() => dashboardService.exportExcel(dateRange.startDate, dateRange.endDate)}
+          exportFileName="promotion_analytics.xlsx"
+        />
       </div>
 
       {/* Filter Section */}

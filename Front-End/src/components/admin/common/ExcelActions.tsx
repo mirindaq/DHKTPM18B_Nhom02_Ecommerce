@@ -23,9 +23,9 @@ interface ImportResult {
 }
 
 interface ExcelActionsProps {
-  onDownloadTemplate: () => Promise<Blob>;
-  onImport: (file: File) => Promise<{ data: ImportResult }>;
-  onExport: () => Promise<Blob>;
+  onDownloadTemplate?: () => Promise<Blob>;
+  onImport?: (file: File) => Promise<{ data: ImportResult }>;
+  onExport?: () => Promise<Blob>;
   onImportSuccess?: () => void;
   templateFileName?: string;
   exportFileName?: string;
@@ -78,6 +78,7 @@ export default function ExcelActions({
   };
 
   const handleDownloadTemplate = async () => {
+    if (!onDownloadTemplate) return;
     try {
       const blob = await onDownloadTemplate();
       downloadFile(blob, templateFileName);
@@ -160,7 +161,7 @@ export default function ExcelActions({
 
   const handleConfirmImport = async () => {
     const file = pendingFileRef.current;
-    if (!file) return;
+    if (!file || !onImport) return;
 
     setShowPreviewDialog(false);
     
@@ -262,6 +263,7 @@ export default function ExcelActions({
   };
 
   const handleExport = async () => {
+    if (!onExport) return;
     setIsExporting(true);
     try {
       const blob = await onExport();
@@ -281,55 +283,63 @@ export default function ExcelActions({
   return (
     <>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Tải Template
-        </Button>
+        {onDownloadTemplate && (
+          <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Tải Template
+          </Button>
+        )}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isImporting || isExporting}
-        >
-          {isImporting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang import...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Import Excel
-            </>
-          )}
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+        {onImport && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting || isExporting}
+            >
+              {isImporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang import...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Excel
+                </>
+              )}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </>
+        )}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExport}
-          disabled={isExporting || isImporting}
-        >
-          {isExporting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang export...
-            </>
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Export Excel
-            </>
-          )}
-        </Button>
+        {onExport && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={isExporting || isImporting}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang export...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Export Excel
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Preview Dialog */}

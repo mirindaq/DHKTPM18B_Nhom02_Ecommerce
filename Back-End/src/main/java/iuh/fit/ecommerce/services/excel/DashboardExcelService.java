@@ -1,9 +1,6 @@
 package iuh.fit.ecommerce.services.excel;
 
 import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByDayResponse;
-import iuh.fit.ecommerce.dtos.response.dashboard.TopProductResponse;
-import iuh.fit.ecommerce.dtos.response.dashboard.TopVoucherResponse;
-import iuh.fit.ecommerce.dtos.response.dashboard.TopPromotionResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.entities.PromotionUsage;
 import iuh.fit.ecommerce.entities.VoucherUsageHistory;
@@ -44,19 +41,19 @@ public class DashboardExcelService {
         CellStyle currencyStyle = createCurrencyStyle(workbook);
         CellStyle numberStyle = createNumberStyle(workbook);
         
-        // Sheet 1: Summary Statistics
+        // Sheet 1: Tổng quan
         createSummarySheet(workbook, startDate, endDate, headerStyle, currencyStyle, numberStyle);
         
-        // Sheet 2: Revenue Detail
+        // Sheet 2: Chi tiết doanh thu
         createRevenueSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
         
-        // Sheet 3: Voucher Usage
+        // Sheet 3: Chi tiết Voucher
         createVoucherSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
         
-        // Sheet 4: Customer Promotions
+        // Sheet 4: Chi tiết Promotion
         createPromotionSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
         
-        // Sheet 5: Products
+        // Sheet 5: Danh sách sản phẩm
         createProductSheet(workbook, headerStyle, currencyStyle, numberStyle);
         
         // Write to bytes
@@ -69,7 +66,7 @@ public class DashboardExcelService {
     
     private void createSummarySheet(Workbook workbook, LocalDate startDate, LocalDate endDate,
                                      CellStyle headerStyle, CellStyle currencyStyle, CellStyle numberStyle) {
-        Sheet sheet = workbook.createSheet("Summary Statistics");
+        Sheet sheet = workbook.createSheet("Overall");
         
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(23, 59, 59);
@@ -84,16 +81,12 @@ public class DashboardExcelService {
         Long voucherUsageCount = voucherUsageHistoryRepository.countVoucherUsageByDateRange(start, end);
         Long promotionUsageCount = promotionUsageRepository.countPromotionUsageByDateRange(start, end);
         
-        List<TopProductResponse> topProducts = dashboardService.getTopProductsByDay(startDate, endDate);
-        List<TopVoucherResponse> topVouchers = dashboardService.getTopVouchersByDay(startDate, endDate);
-        List<TopPromotionResponse> topPromotions = dashboardService.getTopPromotionsByDay(startDate, endDate);
-        
         int rowNum = 0;
         
         // Title
         Row titleRow = sheet.createRow(rowNum++);
         Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("DASHBOARD SUMMARY REPORT");
+        titleCell.setCellValue("BÁO CÁO TỔNG QUAN DASHBOARD");
         titleCell.setCellStyle(headerStyle);
         sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 2));
         
@@ -101,31 +94,41 @@ public class DashboardExcelService {
         
         // Period
         Row periodRow = sheet.createRow(rowNum++);
-        periodRow.createCell(0).setCellValue("Report Period:");
-        periodRow.createCell(1).setCellValue(startDate + " to " + endDate);
+        periodRow.createCell(0).setCellValue("Kỳ báo cáo:");
+        periodRow.createCell(1).setCellValue(startDate + " đến " + endDate);
+        
+        // Export info
+        Row exportTimeRow = sheet.createRow(rowNum++);
+        exportTimeRow.createCell(0).setCellValue("Thời gian lập:");
+        exportTimeRow.createCell(1).setCellValue(java.time.LocalDateTime.now().format(
+            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+        
+        Row exportByRow = sheet.createRow(rowNum++);
+        exportByRow.createCell(0).setCellValue("Người lập:");
+        exportByRow.createCell(1).setCellValue("Hệ thống"); // Có thể customize để lấy tên user thực tế
         
         rowNum++; // Empty row
         
         // Revenue Section
         Row revenueTitleRow = sheet.createRow(rowNum++);
         Cell revenueTitleCell = revenueTitleRow.createCell(0);
-        revenueTitleCell.setCellValue("REVENUE STATISTICS");
+        revenueTitleCell.setCellValue("THỐNG KÊ DOANH THU");
         revenueTitleCell.setCellStyle(headerStyle);
         
         Row totalRevenueRow = sheet.createRow(rowNum++);
-        totalRevenueRow.createCell(0).setCellValue("Total Revenue:");
+        totalRevenueRow.createCell(0).setCellValue("Tổng doanh thu:");
         Cell totalRevenueCell = totalRevenueRow.createCell(1);
         totalRevenueCell.setCellValue(totalRevenue);
         totalRevenueCell.setCellStyle(currencyStyle);
         
         Row totalOrdersRow = sheet.createRow(rowNum++);
-        totalOrdersRow.createCell(0).setCellValue("Total Orders:");
+        totalOrdersRow.createCell(0).setCellValue("Tổng đơn hàng:");
         Cell totalOrdersCell = totalOrdersRow.createCell(1);
         totalOrdersCell.setCellValue(totalOrders);
         totalOrdersCell.setCellStyle(numberStyle);
         
         Row avgOrderRow = sheet.createRow(rowNum++);
-        avgOrderRow.createCell(0).setCellValue("Average Order Value:");
+        avgOrderRow.createCell(0).setCellValue("Giá trị đơn hàng trung bình:");
         Cell avgOrderCell = avgOrderRow.createCell(1);
         avgOrderCell.setCellValue(totalOrders > 0 ? totalRevenue / totalOrders : 0);
         avgOrderCell.setCellStyle(currencyStyle);
@@ -135,117 +138,48 @@ public class DashboardExcelService {
         // Discount Section
         Row discountTitleRow = sheet.createRow(rowNum++);
         Cell discountTitleCell = discountTitleRow.createCell(0);
-        discountTitleCell.setCellValue("DISCOUNT STATISTICS");
+        discountTitleCell.setCellValue("THỐNG KÊ GIẢM GIÁ");
         discountTitleCell.setCellStyle(headerStyle);
         
         Row voucherDiscountRow = sheet.createRow(rowNum++);
-        voucherDiscountRow.createCell(0).setCellValue("Total Voucher Discount:");
+        voucherDiscountRow.createCell(0).setCellValue("Tổng giảm giá từ Voucher:");
         Cell voucherDiscountCell = voucherDiscountRow.createCell(1);
         voucherDiscountCell.setCellValue(voucherDiscount != null ? voucherDiscount : 0);
         voucherDiscountCell.setCellStyle(currencyStyle);
         
         Row voucherCountRow = sheet.createRow(rowNum++);
-        voucherCountRow.createCell(0).setCellValue("Voucher Usage Count:");
+        voucherCountRow.createCell(0).setCellValue("Số lượt sử dụng Voucher:");
         Cell voucherCountCell = voucherCountRow.createCell(1);
         voucherCountCell.setCellValue(voucherUsageCount != null ? voucherUsageCount : 0);
         voucherCountCell.setCellStyle(numberStyle);
         
         Row promotionDiscountRow = sheet.createRow(rowNum++);
-        promotionDiscountRow.createCell(0).setCellValue("Total Promotion Discount:");
+        promotionDiscountRow.createCell(0).setCellValue("Tổng giảm giá từ Promotion:");
         Cell promotionDiscountCell = promotionDiscountRow.createCell(1);
         promotionDiscountCell.setCellValue(promotionDiscount != null ? promotionDiscount : 0);
         promotionDiscountCell.setCellStyle(currencyStyle);
         
         Row promotionCountRow = sheet.createRow(rowNum++);
-        promotionCountRow.createCell(0).setCellValue("Promotion Usage Count:");
+        promotionCountRow.createCell(0).setCellValue("Số lượt sử dụng Promotion:");
         Cell promotionCountCell = promotionCountRow.createCell(1);
         promotionCountCell.setCellValue(promotionUsageCount != null ? promotionUsageCount : 0);
         promotionCountCell.setCellStyle(numberStyle);
         
         Row totalDiscountRow = sheet.createRow(rowNum++);
-        totalDiscountRow.createCell(0).setCellValue("Total Discount:");
+        totalDiscountRow.createCell(0).setCellValue("Tổng giảm giá:");
         Cell totalDiscountCell = totalDiscountRow.createCell(1);
         double totalDiscount = (voucherDiscount != null ? voucherDiscount : 0) + (promotionDiscount != null ? promotionDiscount : 0);
         totalDiscountCell.setCellValue(totalDiscount);
         totalDiscountCell.setCellStyle(currencyStyle);
         
         Row netRevenueRow = sheet.createRow(rowNum++);
-        netRevenueRow.createCell(0).setCellValue("Net Revenue:");
+        netRevenueRow.createCell(0).setCellValue("Doanh thu thuần:");
         Cell netRevenueCell = netRevenueRow.createCell(1);
         netRevenueCell.setCellValue(totalRevenue - totalDiscount);
         netRevenueCell.setCellStyle(currencyStyle);
         
-        rowNum++; // Empty row
-        
-        // Top Products
-        Row topProductsTitleRow = sheet.createRow(rowNum++);
-        Cell topProductsTitleCell = topProductsTitleRow.createCell(0);
-        topProductsTitleCell.setCellValue("TOP 5 PRODUCTS");
-        topProductsTitleCell.setCellStyle(headerStyle);
-        
-        Row topProductsHeaderRow = sheet.createRow(rowNum++);
-        topProductsHeaderRow.createCell(0).setCellValue("Product Name");
-        topProductsHeaderRow.createCell(1).setCellValue("Quantity Sold");
-        topProductsHeaderRow.createCell(2).setCellValue("Revenue");
-        
-        for (TopProductResponse product : topProducts) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(product.getProductName());
-            Cell qtyCell = row.createCell(1);
-            qtyCell.setCellValue(product.getTotalQuantitySold());
-            qtyCell.setCellStyle(numberStyle);
-            Cell revenueCell = row.createCell(2);
-            revenueCell.setCellValue(product.getTotalRevenue());
-            revenueCell.setCellStyle(currencyStyle);
-        }
-        
-        rowNum++; // Empty row
-        
-        // Top Vouchers
-        Row topVouchersTitleRow = sheet.createRow(rowNum++);
-        Cell topVouchersTitleCell = topVouchersTitleRow.createCell(0);
-        topVouchersTitleCell.setCellValue("TOP 5 VOUCHERS");
-        topVouchersTitleCell.setCellStyle(headerStyle);
-        
-        Row topVouchersHeaderRow = sheet.createRow(rowNum++);
-        topVouchersHeaderRow.createCell(0).setCellValue("Voucher Code");
-        topVouchersHeaderRow.createCell(1).setCellValue("Usage Count");
-        topVouchersHeaderRow.createCell(2).setCellValue("Total Discount");
-        
-        for (TopVoucherResponse voucher : topVouchers) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(voucher.getVoucherCode());
-            Cell countCell = row.createCell(1);
-            countCell.setCellValue(voucher.getUsageCount());
-            countCell.setCellStyle(numberStyle);
-            Cell discountCell = row.createCell(2);
-            discountCell.setCellValue(voucher.getTotalDiscountAmount());
-            discountCell.setCellStyle(currencyStyle);
-        }
-        
-        rowNum++; // Empty row
-        
-        // Top Promotions
-        Row topPromotionsTitleRow = sheet.createRow(rowNum++);
-        Cell topPromotionsTitleCell = topPromotionsTitleRow.createCell(0);
-        topPromotionsTitleCell.setCellValue("TOP 5 PROMOTIONS");
-        topPromotionsTitleCell.setCellStyle(headerStyle);
-        
-        Row topPromotionsHeaderRow = sheet.createRow(rowNum++);
-        topPromotionsHeaderRow.createCell(0).setCellValue("Promotion Name");
-        topPromotionsHeaderRow.createCell(1).setCellValue("Usage Count");
-        topPromotionsHeaderRow.createCell(2).setCellValue("Total Discount");
-        
-        for (TopPromotionResponse promotion : topPromotions) {
-            Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(promotion.getPromotionName());
-            Cell countCell = row.createCell(1);
-            countCell.setCellValue(promotion.getUsageCount());
-            countCell.setCellStyle(numberStyle);
-            Cell discountCell = row.createCell(2);
-            discountCell.setCellValue(promotion.getTotalDiscountAmount());
-            discountCell.setCellStyle(currencyStyle);
-        }
+        // Bỏ Top Products, Top Vouchers, Top Promotions khỏi Summary sheet
+        // Các thông tin này sẽ có trong các sheet riêng
         
         // Auto-size columns
         for (int i = 0; i < 3; i++) {
@@ -257,11 +191,11 @@ public class DashboardExcelService {
     private void createRevenueSheet(Workbook workbook, LocalDate startDate, LocalDate endDate,
                                      CellStyle headerStyle, CellStyle dateStyle, 
                                      CellStyle currencyStyle, CellStyle numberStyle) {
-        Sheet sheet = workbook.createSheet("Revenue Detail");
+        Sheet sheet = workbook.createSheet("Chi tiết doanh thu");
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Date", "Total Revenue", "Total Orders", "Avg Order Value", "Total Discount", "Net Revenue"};
+        String[] headers = {"Ngày", "Tổng doanh thu", "Tổng đơn hàng", "Giá trị TB/đơn", "Tổng giảm giá", "Doanh thu thuần"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -322,7 +256,7 @@ public class DashboardExcelService {
         // Total row
         Row totalRow = sheet.createRow(rowNum);
         Cell totalLabelCell = totalRow.createCell(0);
-        totalLabelCell.setCellValue("TOTAL");
+        totalLabelCell.setCellValue("TỔNG CỘNG");
         totalLabelCell.setCellStyle(headerStyle);
         
         Cell totalRevenueCell = totalRow.createCell(1);
@@ -355,13 +289,13 @@ public class DashboardExcelService {
     private void createVoucherSheet(Workbook workbook, LocalDate startDate, LocalDate endDate,
                                      CellStyle headerStyle, CellStyle dateStyle, 
                                      CellStyle currencyStyle, CellStyle numberStyle) {
-        Sheet sheet = workbook.createSheet("Voucher Usage Detail");
+        Sheet sheet = workbook.createSheet("Chi tiết Voucher");
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Order ID", "Order Date", "Customer Name", "Customer Phone", 
-                           "Voucher Code", "Voucher Name", "Discount Type", "Discount Amount", 
-                           "Order Total", "Final Total"};
+        String[] headers = {"Mã Voucher", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại", 
+                           "Code Voucher", "Tên Voucher", "Loại giảm giá", "Số tiền giảm", 
+                           "Tổng đơn hàng", "Thành tiền"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -382,37 +316,42 @@ public class DashboardExcelService {
         for (VoucherUsageHistory usage : usageHistories) {
             Row row = sheet.createRow(rowNum++);
             
+            // Voucher ID
+            Cell voucherIdCell = row.createCell(0);
+            voucherIdCell.setCellValue(usage.getVoucher().getId());
+            voucherIdCell.setCellStyle(numberStyle);
+            
             // Order ID
-            Cell orderIdCell = row.createCell(0);
+            Cell orderIdCell = row.createCell(1);
             orderIdCell.setCellValue(usage.getOrder().getId());
             orderIdCell.setCellStyle(numberStyle);
             
             // Order Date
-            Cell dateCell = row.createCell(1);
+            Cell dateCell = row.createCell(2);
             dateCell.setCellValue(Date.from(usage.getOrder().getOrderDate().atZone(ZoneId.systemDefault()).toInstant()));
             dateCell.setCellStyle(dateStyle);
             
             // Customer info
-            row.createCell(2).setCellValue(usage.getOrder().getCustomer().getFullName());
-            row.createCell(3).setCellValue(usage.getOrder().getCustomer().getPhone());
+            row.createCell(3).setCellValue(usage.getOrder().getCustomer().getFullName());
+            row.createCell(4).setCellValue(usage.getOrder().getCustomer().getPhone());
             
             // Voucher info
-            row.createCell(4).setCellValue(usage.getVoucher().getCode());
-            row.createCell(5).setCellValue(usage.getVoucher().getName());
-            row.createCell(6).setCellValue(usage.getVoucher().getVoucherType().name());
+            row.createCell(5).setCellValue(usage.getVoucher().getCode());
+            row.createCell(6).setCellValue(usage.getVoucher().getName());
+            row.createCell(7).setCellValue(usage.getVoucher().getVoucherType().name());
             
             // Discount amount
-            Cell discountCell = row.createCell(7);
+            Cell discountCell = row.createCell(8);
             discountCell.setCellValue(usage.getDiscountAmount() != null ? usage.getDiscountAmount() : 0);
             discountCell.setCellStyle(currencyStyle);
             
             // Order total
-            Cell orderTotalCell = row.createCell(8);
+            Cell orderTotalCell = row.createCell(9);
             orderTotalCell.setCellValue(usage.getOrder().getTotalPrice());
             orderTotalCell.setCellStyle(currencyStyle);
             
             // Final total
-            Cell finalTotalCell = row.createCell(9);
+            Cell finalTotalCell = row.createCell(10);
             finalTotalCell.setCellValue(usage.getOrder().getFinalTotalPrice());
             finalTotalCell.setCellStyle(currencyStyle);
             
@@ -424,18 +363,18 @@ public class DashboardExcelService {
         // Total row
         Row totalRow = sheet.createRow(rowNum);
         Cell totalLabelCell = totalRow.createCell(0);
-        totalLabelCell.setCellValue("TOTAL");
+        totalLabelCell.setCellValue("TỔNG CỘNG");
         totalLabelCell.setCellStyle(headerStyle);
         
-        Cell totalDiscountCell = totalRow.createCell(7);
+        Cell totalDiscountCell = totalRow.createCell(8);
         totalDiscountCell.setCellValue(totalDiscount);
         totalDiscountCell.setCellStyle(currencyStyle);
         
-        Cell totalOrderCell = totalRow.createCell(8);
+        Cell totalOrderCell = totalRow.createCell(9);
         totalOrderCell.setCellValue(totalOrderValue);
         totalOrderCell.setCellStyle(currencyStyle);
         
-        Cell totalFinalCell = totalRow.createCell(9);
+        Cell totalFinalCell = totalRow.createCell(10);
         totalFinalCell.setCellValue(totalFinalValue);
         totalFinalCell.setCellStyle(currencyStyle);
         
@@ -449,13 +388,13 @@ public class DashboardExcelService {
     private void createPromotionSheet(Workbook workbook, LocalDate startDate, LocalDate endDate,
                                        CellStyle headerStyle, CellStyle dateStyle, 
                                        CellStyle currencyStyle, CellStyle numberStyle) {
-        Sheet sheet = workbook.createSheet("Promotion Usage Detail");
+        Sheet sheet = workbook.createSheet("Chi tiết Promotion");
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Order ID", "Order Date", "Customer Name", "Customer Phone", 
-                           "Promotion Name", "Promotion Type", "Discount Amount", 
-                           "Order Total", "Final Total", "Payment Method", "Status"};
+        String[] headers = {"Mã Promotion", "Mã khuyến mãi", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại", 
+                           "Tên Promotion", "Loại Promotion", "Số tiền giảm", 
+                           "Tổng đơn hàng", "Thành tiền", "Phương thức thanh toán", "Trạng thái"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -475,45 +414,54 @@ public class DashboardExcelService {
         for (PromotionUsage usage : usageList) {
             Row row = sheet.createRow(rowNum++);
             
+            // Promotion ID
+            Cell promotionIdCell = row.createCell(0);
+            promotionIdCell.setCellValue(usage.getPromotion().getId());
+            promotionIdCell.setCellStyle(numberStyle);
+            
+            // Promotion Code (generated from name)
+            String promotionCode = generatePromotionCode(usage.getPromotion().getName());
+            row.createCell(1).setCellValue(promotionCode);
+            
             // Order ID
-            Cell orderIdCell = row.createCell(0);
+            Cell orderIdCell = row.createCell(2);
             orderIdCell.setCellValue(usage.getOrder().getId());
             orderIdCell.setCellStyle(numberStyle);
             
             // Order Date
-            Cell dateCell = row.createCell(1);
+            Cell dateCell = row.createCell(3);
             dateCell.setCellValue(Date.from(usage.getOrder().getOrderDate().atZone(ZoneId.systemDefault()).toInstant()));
             dateCell.setCellStyle(dateStyle);
             
             // Customer info
-            row.createCell(2).setCellValue(usage.getOrder().getCustomer().getFullName());
-            row.createCell(3).setCellValue(usage.getOrder().getCustomer().getPhone());
+            row.createCell(4).setCellValue(usage.getOrder().getCustomer().getFullName());
+            row.createCell(5).setCellValue(usage.getOrder().getCustomer().getPhone());
             
             // Promotion info
-            row.createCell(4).setCellValue(usage.getPromotion().getName());
-            row.createCell(5).setCellValue(usage.getPromotion().getPromotionType().name());
+            row.createCell(6).setCellValue(usage.getPromotion().getName());
+            row.createCell(7).setCellValue(usage.getPromotion().getPromotionType().name());
             
             // Discount amount
-            Cell discountCell = row.createCell(6);
+            Cell discountCell = row.createCell(8);
             discountCell.setCellValue(usage.getDiscountAmount() != null ? usage.getDiscountAmount() : 0);
             discountCell.setCellStyle(currencyStyle);
             
             // Order total
-            Cell orderTotalCell = row.createCell(7);
+            Cell orderTotalCell = row.createCell(9);
             orderTotalCell.setCellValue(usage.getOrder().getTotalPrice());
             orderTotalCell.setCellStyle(currencyStyle);
             
             // Final total
-            Cell finalTotalCell = row.createCell(8);
+            Cell finalTotalCell = row.createCell(10);
             finalTotalCell.setCellValue(usage.getOrder().getFinalTotalPrice());
             finalTotalCell.setCellStyle(currencyStyle);
             
             // Payment method
-            row.createCell(9).setCellValue(usage.getOrder().getPaymentMethod() != null ? 
+            row.createCell(11).setCellValue(usage.getOrder().getPaymentMethod() != null ? 
                     usage.getOrder().getPaymentMethod().name() : "");
             
             // Status
-            row.createCell(10).setCellValue(usage.getOrder().getStatus() != null ? 
+            row.createCell(12).setCellValue(usage.getOrder().getStatus() != null ? 
                     usage.getOrder().getStatus().name() : "");
             
             totalDiscount += (usage.getDiscountAmount() != null ? usage.getDiscountAmount() : 0);
@@ -524,18 +472,18 @@ public class DashboardExcelService {
         // Total row
         Row totalRow = sheet.createRow(rowNum);
         Cell totalLabelCell = totalRow.createCell(0);
-        totalLabelCell.setCellValue("TOTAL");
+        totalLabelCell.setCellValue("TỔNG CỘNG");
         totalLabelCell.setCellStyle(headerStyle);
         
-        Cell totalDiscountCell = totalRow.createCell(6);
+        Cell totalDiscountCell = totalRow.createCell(8);
         totalDiscountCell.setCellValue(totalDiscount);
         totalDiscountCell.setCellStyle(currencyStyle);
         
-        Cell totalOrderCell = totalRow.createCell(7);
+        Cell totalOrderCell = totalRow.createCell(9);
         totalOrderCell.setCellValue(totalOrderValue);
         totalOrderCell.setCellStyle(currencyStyle);
         
-        Cell totalFinalCell = totalRow.createCell(8);
+        Cell totalFinalCell = totalRow.createCell(10);
         totalFinalCell.setCellValue(totalFinalValue);
         totalFinalCell.setCellStyle(currencyStyle);
         
@@ -548,11 +496,11 @@ public class DashboardExcelService {
     
     private void createProductSheet(Workbook workbook, CellStyle headerStyle, 
                                      CellStyle currencyStyle, CellStyle numberStyle) {
-        Sheet sheet = workbook.createSheet("Products");
+        Sheet sheet = workbook.createSheet("Danh sách sản phẩm");
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Product ID", "Product Name", "SPU", "Stock", "Status"};
+        String[] headers = {"Mã sản phẩm", "Tên sản phẩm", "SPU", "Tồn kho", "Trạng thái"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -578,7 +526,7 @@ public class DashboardExcelService {
             stockCell.setCellValue(product.getStock() != null ? product.getStock() : 0);
             stockCell.setCellStyle(numberStyle);
             
-            row.createCell(4).setCellValue(product.isStatus() ? "Active" : "Inactive");
+            row.createCell(4).setCellValue(product.isStatus() ? "Hoạt động" : "Ngừng hoạt động");
         }
         
         // Auto-size columns
@@ -623,5 +571,50 @@ public class DashboardExcelService {
         CreationHelper createHelper = workbook.getCreationHelper();
         style.setDataFormat(createHelper.createDataFormat().getFormat("#,##0"));
         return style;
+    }
+    
+    /**
+     * Generate promotion code from promotion name
+     * Example: "Black Friday 2024" -> "BF2024"
+     */
+    private String generatePromotionCode(String promotionName) {
+        if (promotionName == null || promotionName.isEmpty()) {
+            return "PROMO";
+        }
+        
+        // Remove special characters and split by space
+        String[] words = promotionName.toUpperCase()
+                .replaceAll("[^A-Z0-9\\s]", "")
+                .split("\\s+");
+        
+        StringBuilder code = new StringBuilder();
+        
+        // Take first letter of each word (max 4 letters) + numbers
+        int letterCount = 0;
+        StringBuilder numbers = new StringBuilder();
+        
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            
+            // Check if word is a number
+            if (word.matches("\\d+")) {
+                numbers.append(word);
+            } else if (letterCount < 4) {
+                code.append(word.charAt(0));
+                letterCount++;
+            }
+        }
+        
+        // Append numbers at the end
+        code.append(numbers);
+        
+        // If code is too short, use first 6 chars of name
+        if (code.length() < 3) {
+            return promotionName.toUpperCase()
+                    .replaceAll("[^A-Z0-9]", "")
+                    .substring(0, Math.min(6, promotionName.length()));
+        }
+        
+        return code.toString();
     }
 }

@@ -25,7 +25,7 @@ export default function FilterSection({ onFilter, onCompareToggle, compareMode }
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [year, setYear] = useState(new Date().getFullYear())
-  const [month, setMonth] = useState(new Date().getMonth() + 1)
+  const [month, setMonth] = useState<number | undefined>(new Date().getMonth() + 1)
 
   const handleFilter = () => {
     onFilter({
@@ -88,11 +88,12 @@ export default function FilterSection({ onFilter, onCompareToggle, compareMode }
           <>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Tháng</label>
-              <Select value={month.toString()} onValueChange={(value) => setMonth(Number(value))}>
+              <Select value={month?.toString() || 'all'} onValueChange={(value) => setMonth(value === 'all' ? undefined : Number(value))}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                     <SelectItem key={m} value={m.toString()}>
                       Tháng {m}

@@ -4,7 +4,9 @@ import VoucherStatsCards from '@/components/dashboard/voucher/VoucherStatsCards'
 import TopVouchersTable from '@/components/dashboard/voucher/TopVouchersTable'
 import VoucherFilterSection from '@/components/dashboard/voucher/VoucherFilterSection'
 import VoucherComparisonModal from '@/components/dashboard/voucher/VoucherComparisonModal'
+import ExcelActions from '@/components/admin/common/ExcelActions'
 import { voucherService } from '@/services/voucher.service'
+import { dashboardService } from '@/services/dashboard.service'
 import type { TopVoucherResponse } from '@/types/voucher-promotion.type'
 
 export default function VoucherAnalytics() {
@@ -55,14 +57,20 @@ export default function VoucherAnalytics() {
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-blue-50 rounded-lg">
-          <Ticket className="h-8 w-8 text-blue-600" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <Ticket className="h-8 w-8 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Thống kê Voucher</h1>
+            <p className="text-gray-600">Phân tích hiệu quả sử dụng voucher</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Thống kê Voucher</h1>
-          <p className="text-gray-600">Phân tích hiệu quả sử dụng voucher</p>
-        </div>
+        <ExcelActions
+          onExport={() => dashboardService.exportExcel(dateRange.startDate, dateRange.endDate)}
+          exportFileName="voucher_analytics.xlsx"
+        />
       </div>
 
       {/* Filter Section */}

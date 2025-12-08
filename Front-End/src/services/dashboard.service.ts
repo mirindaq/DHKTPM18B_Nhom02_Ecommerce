@@ -112,5 +112,18 @@ export const dashboardService = {
       `/dashboard/stats${queryString}`
     );
     return response.data;
+  },
+
+  // Export Excel
+  exportExcel: async (startDate?: string, endDate?: string): Promise<Blob> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get(`/dashboard/export-excel${queryString}`, {
+      responseType: 'blob',
+    });
+    return response.data;
   }
 };
