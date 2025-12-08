@@ -38,6 +38,8 @@ import {
   Filter,
   MessageSquare,
   Star,
+  PackagePlus,
+  Truck,
 } from "lucide-react";
 import AdminChatListener from "@/components/admin/AdminChatListener";
 
@@ -95,9 +97,16 @@ const navigation = [
         icon: ShoppingCart,
       },
       {
+        title: "Nhập hàng",
+        href: "/admin/purchase-orders",
+        icon: PackagePlus,
+
+      },
+      {
         title: "Giỏ hàng khách",
         href: "/admin/carts",
         icon: ShoppingCart,
+
       },
     ],
   },
@@ -139,6 +148,11 @@ const navigation = [
         icon: UserCheck,
       },
       {
+        title: "Nhà cung cấp",
+        icon: Truck,
+        href: "/admin/suppliers",
+      },
+      {
         title: "Quản lý Chat",
         href: "/admin/chats",
         icon: MessageSquare,
@@ -166,6 +180,11 @@ const navigation = [
     title: "Quản lý đánh giá",
     icon: Star,
     href: "/admin/feedbacks",
+  },
+  {
+    title: "Quản lý Bình luận",
+    icon: MessageSquare,
+    href: "/admin/product-questions",
   },
   {
     title: "Báo cáo & Thống kê",
@@ -274,9 +293,8 @@ export default function AdminLayout() {
                             <SidebarMenuButton
                               tooltip={item.title}
                               isActive={isSubmenuActive}
-                              className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${
-                                isSubmenuActive ? "bg-gray-600" : ""
-                              }`}
+                              className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${isSubmenuActive ? "bg-gray-600" : ""
+                                }`}
                               onClick={() => toggleSubmenu(item.title)}
                             >
                               <item.icon className="shrink-0 h-5 w-5" />
@@ -302,9 +320,8 @@ export default function AdminLayout() {
                                       asChild
                                       tooltip={subItem.title}
                                       isActive={isActive}
-                                      className={`h-10 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white ${
-                                        isActive ? "bg-gray-600 text-white" : ""
-                                      }`}
+                                      className={`h-10 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white ${isActive ? "bg-gray-600 text-white" : ""
+                                        }`}
                                     >
                                       <Link to={subItem.href}>
                                         <subItem.icon className="h-4 w-4 shrink-0" />
@@ -331,9 +348,8 @@ export default function AdminLayout() {
                             asChild
                             tooltip={item.title}
                             isActive={isActive}
-                            className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${
-                              isActive ? "bg-gray-600" : ""
-                            }`}
+                            className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${isActive ? "bg-gray-600" : ""
+                              }`}
                           >
                             <Link to={item.href || "/admin"}>
                               <item.icon className="shrink-0 h-5 w-5" />
@@ -356,9 +372,8 @@ export default function AdminLayout() {
                   asChild
                   tooltip="Cài đặt"
                   isActive={location.pathname === "/admin/settings"}
-                  className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${
-                    location.pathname === "/admin/settings" ? "bg-gray-600" : ""
-                  }`}
+                  className={`h-12 px-4 py-3 text-white hover:bg-gray-800 ${location.pathname === "/admin/settings" ? "bg-gray-600" : ""
+                    }`}
                 >
                   <Link to="/admin/settings">
                     <Settings className="shrink-0 h-5 w-5" />

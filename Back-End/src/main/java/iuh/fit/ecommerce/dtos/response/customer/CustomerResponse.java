@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.customer;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import iuh.fit.ecommerce.dtos.response.address.AddressResponse;
 import iuh.fit.ecommerce.entities.Customer;
 import lombok.*;
@@ -21,6 +22,8 @@ public class CustomerResponse {
     private String email;
     private String avatar;
     private boolean active;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
     private Double totalSpending;

@@ -30,3 +30,44 @@ export type ProductQuestionAnswerAddRequest = {
 
 export type ProductQuestionResponse = ResponseApi<ProductQuestion>;
 export type ProductQuestionListResponse = ResponseApiWithPagination<ProductQuestion[]>;
+
+//
+// === PHẦN MỚI - THÊM VÀO CUỐI FILE ===
+// Trả về câu hỏi kèm thông tin sản phẩm cho bảng admin
+export interface ProductQuestionWithProduct extends ProductQuestion {
+  productId: number;
+  productName: string;
+  productSlug: string;
+  productImage?: string;
+  updatedAt?: string;
+}
+
+export interface AdminProductQuestionListResponse {
+  status: number;
+  message: string;
+  data: {
+    limit: number;
+    page: number;
+    totalItem: number;
+    totalPage: number;
+    data: ProductQuestionWithProduct[];
+  };
+}
+
+export interface ProductQuestionUpdateStatusRequest {
+  status: boolean;
+}
+
+export interface ProductQuestionAnswerUpdateStatusRequest {
+  status: boolean;
+}
+
+export interface ProductQuestionFilters {
+  status?: boolean | "all";
+  search?: string;
+  productId?: number;
+  page?: number;
+  size?: number;
+  sortBy?: "createdAt" | "updatedAt";
+  sortOrder?: "asc" | "desc";
+}

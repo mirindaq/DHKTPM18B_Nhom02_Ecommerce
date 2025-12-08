@@ -2,9 +2,11 @@ package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.productQuestion.ProductQuestionAddRequest;
 import iuh.fit.ecommerce.dtos.request.productQuestion.ProductQuestionAnswerAddRequest;
+import iuh.fit.ecommerce.dtos.request.productQuestion.ProductQuestionUpdateStatusRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.productQuestion.ProductQuestionResponse;
+import iuh.fit.ecommerce.dtos.response.productQuestion.ProductQuestionWithProductResponse;
 import iuh.fit.ecommerce.services.ProductQuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

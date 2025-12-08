@@ -12,7 +12,6 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-@Builder
 public class RegisterRequest {
     @NotBlank(message = "Full name is required")
     private String fullName;

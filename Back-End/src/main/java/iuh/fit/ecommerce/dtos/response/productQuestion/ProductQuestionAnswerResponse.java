@@ -3,6 +3,8 @@ package iuh.fit.ecommerce.dtos.response.productQuestion;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class ProductQuestionAnswerResponse {
@@ -11,4 +13,5 @@ public class ProductQuestionAnswerResponse {
     private String content;
     private Boolean status;
     private Boolean admin;
+    private LocalDateTime createdAt;
 }

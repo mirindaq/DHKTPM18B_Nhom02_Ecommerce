@@ -71,19 +71,21 @@ export default function Dashboard() {
   return (
     <div className="space-y-3 p-2">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          Dashboard
+        </h1>
         <p className="text-lg text-gray-600">
           Tổng quan về hoạt động kinh doanh của bạn
         </p>
       </div>
-
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat) => (
           <Card key={stat.title} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <div className={`p-3 rounded-xl ${stat.bgColor} ${stat.borderColor} border`}>
+                <div
+                  className={`p-3 rounded-xl ${stat.bgColor} ${stat.borderColor} border`}
+                >
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
                 <div className="flex items-center space-x-1">
@@ -97,7 +99,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {stat.title}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-sm text-gray-500">{stat.description}</p>
               </div>
@@ -106,59 +110,121 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4 hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900">Doanh thu theo tháng</CardTitle>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Doanh thu theo tháng
+            </CardTitle>
             <CardDescription className="text-gray-600">
               Biểu đồ doanh thu trong 12 tháng gần đây
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="h-[250px] flex items-center justify-center text-gray-400 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-200">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p className="text-base font-medium text-gray-500">Biểu đồ doanh thu</p>
-                <p className="text-sm text-gray-400">Sử dụng thư viện biểu đồ như Recharts</p>
-              </div>
+            <div className="h-[300px] w-full">
+              {revenueData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  Chưa có dữ liệu doanh thu
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={revenueData}
+                    margin={{ top: 10, right: 30, left: 10, bottom: 5 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="blackGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop offset="0%" stopColor="#000000" stopOpacity={1} />
+                        <stop
+                          offset="100%"
+                          stopColor="#000000"
+                          stopOpacity={0.2}
+                        />
+                      </linearGradient>
+                    </defs>
+
+                    <XAxis
+                      dataKey="name"
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `${value / 1000000}M`}
+                    />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ fill: "transparent" }}
+                    />
+                    <Bar
+                      dataKey="revenue"
+                      fill="url(#blackGradient)"
+                      barSize={30}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="col-span-3 hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-gray-900">Đơn hàng gần đây</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Đơn hàng hoàn thành gần đây
+            </CardTitle>
             <CardDescription className="text-gray-600">
-              Những đơn hàng mới nhất
+              {recentOrders.length > 0
+                ? `${recentOrders.length} đơn hàng mới nhất`
+                : "Chưa có đơn hàng nào"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none text-gray-900">
-                      Đơn hàng #{1000 + i}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Khách hàng {i}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-gray-900">
-                      ₫{(500000 + i * 100000).toLocaleString('vi-VN')}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {new Date().toLocaleDateString('vi-VN')}
-                    </div>
-                  </div>
+              {recentOrders.length === 0 ? (
+                <div className="text-center py-4 text-gray-500 italic">
+                  Không có dữ liệu
                 </div>
-              ))}
+              ) : (
+                recentOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none text-gray-900">
+                        Đơn hàng #{order.id}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {order.receiverName || "Khách lẻ"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(order.finalTotalPrice)}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {formatDate(order.orderDate)}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

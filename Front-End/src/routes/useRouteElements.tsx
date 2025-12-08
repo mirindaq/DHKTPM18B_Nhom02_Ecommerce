@@ -73,6 +73,7 @@ import ChatManagement from "@/pages/admin/ChatManagement";
 import StaffLogin from "@/pages/auth/StaffLogin";
 import ShipperLogin from "@/pages/auth/ShipperLogin";
 import Feedbacks from "@/pages/admin/Feedbacks";
+import AdminProductQuestionsPage from "@/pages/admin/ProductQuestionsPage";
 import {
   ADMIN_PATH,
   AUTH_PATH,
@@ -82,9 +83,13 @@ import {
 } from "@/constants/path";
 import EditPromotion from "@/pages/admin/EditPromotion";
 import AddPromotion from "@/pages/admin/AddPromotion";
+import PurchaseOrders from "@/pages/admin/PurchaseOrders";
+import AddPurchaseOrder from "@/pages/admin/AddPurchaseOrder";
+import PurchaseOrderDetail from "@/pages/admin/PurchaseOrderDetail";
 import Banners from "@/pages/admin/Banner";
 import StaffSell from "@/pages/staff/StaffSell";
 import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
+import Suppliers from "@/pages/admin/Suppliers";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -233,6 +238,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.BRANDS, element: <Brands /> },
         { path: ADMIN_PATH.BANNERS, element: <Banners /> },
         { path: ADMIN_PATH.CUSTOMERS, element: <Customers /> },
+        { path: ADMIN_PATH.SUPPLIERS, element: <Suppliers /> },
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
@@ -256,6 +262,13 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
         { path: "/admin/feedbacks", element: <Feedbacks /> },
+        {
+          path: "/admin/product-questions",
+          element: <AdminProductQuestionsPage />,
+        },
+        { path: ADMIN_PATH.PURCHASE_ORDERS, element: <PurchaseOrders /> },
+        { path: ADMIN_PATH.PURCHASE_ORDER_ADD, element: <AddPurchaseOrder /> },
+        { path: "/admin/purchase-orders/:id", element: <PurchaseOrderDetail /> },
         { path: ADMIN_PATH.CARTS, element: <Carts /> },
       ],
     },

@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.dtos.request.categoryBrand.SetBrandsForCategoryRequest; // <-- THÊM
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.brand.BrandResponse;
@@ -19,6 +20,8 @@ import iuh.fit.ecommerce.repositories.CategoryRepository;
 import iuh.fit.ecommerce.services.CategoryBrandService;
 import iuh.fit.ecommerce.services.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +44,7 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.CATEGORY_BRAND_CACHE, allEntries = true)
     public void setBrandsForCategory(SetBrandsForCategoryRequest request) {
         Category category = categoryService.getCategoryEntityById(request.getCategoryId());
 
@@ -69,6 +73,7 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
 
 
     @Override
+    @Cacheable(value = CacheConfig.CATEGORY_BRAND_CACHE, key = "'category:' + #categoryId + ':brandName:' + (#brandName != null ? #brandName : 'all')")
     public List<BrandResponse> getBrandsByCategoryId(
             Long categoryId, String brandName
     ) {
@@ -85,6 +90,7 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CATEGORY_BRAND_CACHE, key = "'brand:' + #brandId + ':categoryName:' + (#categoryName != null ? #categoryName : 'all')")
     public List<CategoryResponse> getCategoriesByBrandId(
             Long brandId, String categoryName
     ) {
@@ -100,6 +106,7 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CATEGORY_BRAND_CACHE, key = "'category-slug:' + #slug")
     public List<BrandResponse> getBrandsByCategorySlug(String slug) {
         List<Brand> brands = categoryBrandRepository.findBrandsByCategorySlug(slug);
         return brands.stream().map(brandMapper::toResponse).collect(Collectors.toList());

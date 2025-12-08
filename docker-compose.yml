@@ -50,6 +50,8 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_started
+      redis:
+        condition: service_healthy
     restart: always
     volumes:
       - /home/ubuntu/EcommerceMobile/uploads:/app/uploads
@@ -184,6 +186,26 @@ services:
       - loki
     networks:
       - ecommerce-network
+  
+  redis:
+    image: redis:latest
+    container_name: ecommerce-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - "6380:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
 networks:
   ecommerce-network:
@@ -203,3 +225,5 @@ volumes:
     name: ecommerce-grafana-data
   loki_data:
     name: ecommerce-loki-data
+  redis_data:
+    name: ecommerce-redis-data

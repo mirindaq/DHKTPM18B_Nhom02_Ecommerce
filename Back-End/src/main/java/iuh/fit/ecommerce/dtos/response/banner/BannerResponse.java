@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.banner;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -17,7 +18,12 @@ public class BannerResponse {
     private String description;
     private String linkUrl;
     private Boolean isActive;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+    
     private Long staffId;
 }
