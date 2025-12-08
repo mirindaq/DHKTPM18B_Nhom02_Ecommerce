@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.promotion;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import iuh.fit.ecommerce.enums.PromotionType;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +20,12 @@ public class PromotionResponse {
     private Boolean active;
     private Integer priority;
     private String description;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+    
     private List<PromotionTargetResponse> promotionTargets;
 }
