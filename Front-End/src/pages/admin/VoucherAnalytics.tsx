@@ -91,9 +91,9 @@ export default function VoucherAnalytics() {
       year: values.year,
       month: values.month
     }
-    
+
     setCurrentFilter({ type: values.timeType, params })
-    
+
     if (values.timeType === 'day' && values.startDate && values.endDate) {
       fetchDataByDay(values.startDate, values.endDate)
     } else if (values.timeType === 'month' && values.year && values.month) {

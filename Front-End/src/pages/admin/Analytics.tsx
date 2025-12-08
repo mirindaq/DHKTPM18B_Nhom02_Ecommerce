@@ -6,6 +6,7 @@ import StatsCards from '@/components/dashboard/StatsCards'
 import RevenueCard from '@/components/dashboard/RevenueCard'
 import TopProductsCard from '@/components/dashboard/TopProductsCard'
 import CompareSection, { type CompareParams } from '@/components/dashboard/CompareSection'
+import ExcelActions from '@/components/admin/common/ExcelActions'
 import { BarChart3 } from 'lucide-react'
 
 export default function Analytics() {
@@ -34,9 +35,12 @@ export default function Analytics() {
         setRevenueData(revenueResponse.data)
         setTopProducts(productsResponse.data)
       } else if (values.timeType === 'month') {
+        // Nếu month = undefined (chọn "Tất cả"), gọi API year
         const [revenueResponse, productsResponse] = await Promise.all([
           dashboardService.getRevenueByMonth(values.year, values.month),
-          dashboardService.getTopProductsByMonth(values.year, values.month)
+          values.month === undefined 
+            ? dashboardService.getTopProductsByYear(values.year)
+            : dashboardService.getTopProductsByMonth(values.year, values.month)
         ])
         setRevenueData(revenueResponse.data)
         setTopProducts(productsResponse.data)
@@ -104,14 +108,41 @@ export default function Analytics() {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <BarChart3 className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-600 rounded-lg">
+              <BarChart3 className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Thống kê & Phân tích</h1>
+              <p className="text-sm text-gray-600">Theo dõi hiệu suất kinh doanh và xu hướng thị trường</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Thống kê & Phân tích</h1>
-            <p className="text-sm text-gray-600">Theo dõi hiệu suất kinh doanh và xu hướng thị trường</p>
-          </div>
+          <ExcelActions
+            onExport={() => {
+              // Determine parameters based on current filter
+              if (currentFilter.timeType === 'day') {
+                return dashboardService.exportExcel(currentFilter.startDate, currentFilter.endDate)
+              } else {
+                // For month/year, convert to date range
+                const year = currentFilter.year || new Date().getFullYear()
+                const month = currentFilter.month || 1
+                
+                if (currentFilter.timeType === 'month') {
+                  const start = `${year}-${String(month).padStart(2, '0')}-01`
+                  const lastDay = new Date(year, month, 0).getDate()
+                  const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+                  return dashboardService.exportExcel(start, end)
+                } else {
+                  // year
+                  const start = `${year}-01-01`
+                  const end = `${year}-12-31`
+                  return dashboardService.exportExcel(start, end)
+                }
+              }
+            }}
+            exportFileName="dashboard_analytics.xlsx"
+          />
         </div>
       </div>
 

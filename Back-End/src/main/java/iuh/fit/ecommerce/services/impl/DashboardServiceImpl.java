@@ -4,12 +4,14 @@ import iuh.fit.ecommerce.dtos.projection.TopProductProjection;
 import iuh.fit.ecommerce.dtos.projection.TopPromotionProjection;
 import iuh.fit.ecommerce.dtos.projection.TopVoucherProjection;
 import iuh.fit.ecommerce.dtos.response.dashboard.*;
+import iuh.fit.ecommerce.entities.OrderDetail;
 import iuh.fit.ecommerce.entities.PromotionUsage;
 import iuh.fit.ecommerce.repositories.OrderDetailRepository;
 import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.repositories.PromotionUsageRepository;
 import iuh.fit.ecommerce.repositories.VoucherUsageHistoryRepository;
 import iuh.fit.ecommerce.services.DashboardService;
+import iuh.fit.ecommerce.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final OrderDetailRepository orderDetailRepository;
     private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
     private final PromotionUsageRepository promotionUsageRepository;
+    private final ProductService productService;
 
     @Override
     public List<RevenueByMonthResponse> getRevenueByMonth(Integer year, Integer month) {
@@ -706,6 +709,136 @@ public class DashboardServiceImpl implements DashboardService {
                 .totalDiscountAmount(totalDiscount)
                 .orders(orders)
                 .build();
+    }
+
+    @Override
+    public List<TopProductResponse> getAllProductsByDay(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        log.info("Getting all products by day from {} to {}", start, end);
+        var projections = orderDetailRepository.getAllProductsByDay(start, end);
+        log.info("Found {} product projections", projections.size());
+
+        return projections.stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getAllProductsByMonth(Integer year, Integer month) {
+        log.info("Getting all products by month: {}/{}", month, year);
+        var projections = orderDetailRepository.getAllProductsByMonth(year, month);
+        log.info("Found {} product projections", projections.size());
+
+        return projections.stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getAllProductsByYear(Integer year) {
+        log.info("Getting all products by year: {}", year);
+        var projections = orderDetailRepository.getAllProductsByYear(year);
+        log.info("Found {} product projections", projections.size());
+
+        return projections.stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public ProductDetailResponse getProductDetail(Long productId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        log.info("Getting product detail for productId: {} from {} to {}", productId, start, end);
+        
+        // Lấy danh sách order details của sản phẩm trong khoảng thời gian
+        List<OrderDetail> orderDetails = 
+                orderDetailRepository.findOrderDetailsByProductAndDateRange(productId, start, end);
+        
+        if (orderDetails.isEmpty()) {
+            // Nếu không có order, vẫn trả về thông tin sản phẩm
+            var product = productService.getProductById(productId);
+            
+            return ProductDetailResponse.builder()
+                    .productId(productId)
+                    .productName(product.getName())
+                    .productImage(product.getThumbnail())
+                    .totalQuantitySold(0L)
+                    .totalRevenue(0.0)
+                    .orders(List.of())
+                    .build();
+        }
+
+        // Lấy thông tin sản phẩm từ order detail đầu tiên
+        var product = orderDetails.get(0).getProductVariant().getProduct();
+
+        // Map sang response
+        List<ProductOrderDetailResponse> orders = orderDetails.stream()
+                .map(od -> {
+                    var order = od.getOrder();
+                    return ProductOrderDetailResponse.builder()
+                            .orderId(order.getId())
+                            .orderCode("ORD-" + order.getId())
+                            .orderDate(order.getOrderDate())
+                            .customerName(order.getCustomer().getFullName())
+                            .quantityOrdered(od.getQuantity())
+                            .unitPrice(od.getPrice())
+                            .totalPrice(od.getFinalPrice())
+                            .build();
+                })
+                .toList();
+
+        // Tính tổng
+        Long totalQuantity = orders.stream()
+                .mapToLong(ProductOrderDetailResponse::getQuantityOrdered)
+                .sum();
+        Double totalRevenue = orders.stream()
+                .mapToDouble(ProductOrderDetailResponse::getTotalPrice)
+                .sum();
+
+        log.info("Found {} orders for product {}", orders.size(), productId);
+
+        return ProductDetailResponse.builder()
+                .productId(productId)
+                .productName(product.getName())
+                .productImage(product.getThumbnail())
+                .totalQuantitySold(totalQuantity)
+                .totalRevenue(totalRevenue)
+                .orders(orders)
+                .build();
+    }
+
+    @Override
+    public List<OrderSummaryResponse> getOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        log.info("Getting orders by date range from {} to {}", start, end);
+        
+        var orders = orderRepository.findByOrderDateBetweenAndStatus(
+                start, 
+                end, 
+                iuh.fit.ecommerce.enums.OrderStatus.COMPLETED
+        );
+        
+        log.info("Found {} orders", orders.size());
+
+        return orders.stream()
+                .map(order -> OrderSummaryResponse.builder()
+                        .orderId(order.getId())
+                        .orderCode("ORD-" + order.getId())
+                        .orderDate(order.getOrderDate())
+                        .customerName(order.getCustomer().getFullName())
+                        .customerPhone(order.getCustomer().getPhone())
+                        .totalPrice(order.getTotalPrice())
+                        .finalTotalPrice(order.getFinalTotalPrice())
+                        .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod().name() : "")
+                        .status(order.getStatus() != null ? order.getStatus().name() : "")
+                        .build())
+                .toList();
     }
 
 }

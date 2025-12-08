@@ -393,45 +393,74 @@ public class DashboardController {
             @PathVariable Long voucherId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
+
         if (startDate == null) {
             startDate = LocalDate.now().minusDays(30);
         }
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get voucher detail success",
                 dashboardService.getVoucherDetail(voucherId, startDate, endDate)));
     }
-    
+
     /**
      * Export dashboard to Excel (4 sheets: Revenue, Voucher, Promotion, Products)
      * @param startDate Ngày bắt đầu
      * @param endDate Ngày kết thúc
-     * @param type Loại export: all (mặc định), voucher, promotion, revenue, product
      */
     @GetMapping("/export-excel")
     public ResponseEntity<org.springframework.core.io.Resource> exportDashboardExcel(
+            @RequestParam(required = false, defaultValue = "day") String timeType,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false, defaultValue = "all") String type) {
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
         
         try {
-            if (startDate == null) {
-                startDate = LocalDate.now().minusDays(30);
-            }
-            if (endDate == null) {
-                endDate = LocalDate.now();
+            LocalDate start;
+            LocalDate end;
+            String filename;
+
+            switch (timeType.toLowerCase()) {
+                case "month":
+                    // Export theo tháng
+                    if (year == null) year = LocalDate.now().getYear();
+                    if (month == null) month = LocalDate.now().getMonthValue();
+
+                    start = LocalDate.of(year, month, 1);
+                    end = start.withDayOfMonth(start.lengthOfMonth());
+                    filename = String.format("Dashboard_Report_%d_Thang_%d.xlsx", year, month);
+                    break;
+
+                case "year":
+                    // Export theo năm
+                    if (year == null) year = LocalDate.now().getYear();
+
+                    start = LocalDate.of(year, 1, 1);
+                    end = LocalDate.of(year, 12, 31);
+                    filename = String.format("Dashboard_Report_Nam_%d.xlsx", year);
+                    break;
+
+                default: // "day"
+                    // Export theo khoảng ngày
+                    if (startDate == null) {
+                        startDate = LocalDate.now().minusDays(30);
+                    }
+                    if (endDate == null) {
+                        endDate = LocalDate.now();
+                    }
+                    start = startDate;
+                    end = endDate;
+                    filename = String.format("Dashboard_Report_%s_to_%s.xlsx",
+                            start.toString(), end.toString());
+                    break;
             }
             
-            byte[] excelData = dashboardExcelService.exportDashboard(startDate, endDate, type);
-            
-            String filename = String.format("Dashboard_%s_Report_%s_to_%s.xlsx", 
-                    type.substring(0, 1).toUpperCase() + type.substring(1),
-                    startDate.toString(), endDate.toString());
+            byte[] excelData = dashboardExcelService.exportDashboard(start, end);
             
             org.springframework.core.io.ByteArrayResource resource = 
                     new org.springframework.core.io.ByteArrayResource(excelData);
@@ -447,7 +476,7 @@ public class DashboardController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
+
     /**
      * Tất cả voucher được sử dụng theo ngày (không giới hạn top 5)
      * @param startDate Ngày bắt đầu
@@ -457,20 +486,20 @@ public class DashboardController {
     public ResponseEntity<ResponseSuccess<List<TopVoucherResponse>>> getAllVouchersByDay(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
+
         if (startDate == null) {
             startDate = LocalDate.now().minusDays(30);
         }
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all vouchers by day success",
                 dashboardService.getAllVouchersByDay(startDate, endDate)));
     }
-    
+
     /**
      * Tất cả voucher được sử dụng theo tháng (không giới hạn top 5)
      * @param year Năm
@@ -480,20 +509,20 @@ public class DashboardController {
     public ResponseEntity<ResponseSuccess<List<TopVoucherResponse>>> getAllVouchersByMonth(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
-        
+
         if (year == null) {
             year = LocalDate.now().getYear();
         }
         if (month == null) {
             month = LocalDate.now().getMonthValue();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all vouchers by month success",
                 dashboardService.getAllVouchersByMonth(year, month)));
     }
-    
+
     /**
      * Tất cả voucher được sử dụng theo năm (không giới hạn top 5)
      * @param year Năm
@@ -501,17 +530,17 @@ public class DashboardController {
     @GetMapping("/all-vouchers-by-year")
     public ResponseEntity<ResponseSuccess<List<TopVoucherResponse>>> getAllVouchersByYear(
             @RequestParam(required = false) Integer year) {
-        
+
         if (year == null) {
             year = LocalDate.now().getYear();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all vouchers by year success",
                 dashboardService.getAllVouchersByYear(year)));
     }
-    
+
     /**
      * Tất cả promotion được sử dụng theo ngày (không giới hạn top 5)
      * @param startDate Ngày bắt đầu
@@ -521,20 +550,20 @@ public class DashboardController {
     public ResponseEntity<ResponseSuccess<List<TopPromotionResponse>>> getAllPromotionsByDay(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
+
         if (startDate == null) {
             startDate = LocalDate.now().minusDays(30);
         }
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all promotions by day success",
                 dashboardService.getAllPromotionsByDay(startDate, endDate)));
     }
-    
+
     /**
      * Tất cả promotion được sử dụng theo tháng (không giới hạn top 5)
      * @param year Năm
@@ -544,20 +573,20 @@ public class DashboardController {
     public ResponseEntity<ResponseSuccess<List<TopPromotionResponse>>> getAllPromotionsByMonth(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
-        
+
         if (year == null) {
             year = LocalDate.now().getYear();
         }
         if (month == null) {
             month = LocalDate.now().getMonthValue();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all promotions by month success",
                 dashboardService.getAllPromotionsByMonth(year, month)));
     }
-    
+
     /**
      * Tất cả promotion được sử dụng theo năm (không giới hạn top 5)
      * @param year Năm
@@ -565,17 +594,17 @@ public class DashboardController {
     @GetMapping("/all-promotions-by-year")
     public ResponseEntity<ResponseSuccess<List<TopPromotionResponse>>> getAllPromotionsByYear(
             @RequestParam(required = false) Integer year) {
-        
+
         if (year == null) {
             year = LocalDate.now().getYear();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get all promotions by year success",
                 dashboardService.getAllPromotionsByYear(year)));
     }
-    
+
     /**
      * Chi tiết promotion với danh sách đơn hàng
      * @param promotionId ID promotion
@@ -587,17 +616,129 @@ public class DashboardController {
             @PathVariable Long promotionId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
+
         if (startDate == null) {
             startDate = LocalDate.now().minusDays(30);
         }
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        
+
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get promotion detail success",
                 dashboardService.getPromotionDetail(promotionId, startDate, endDate)));
+    }
+
+    /**
+     * Tất cả sản phẩm bán chạy theo ngày (không giới hạn top 5)
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/all-products-by-day")
+    public ResponseEntity<ResponseSuccess<List<TopProductResponse>>> getAllProductsByDay(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all products by day success",
+                dashboardService.getAllProductsByDay(startDate, endDate)));
+    }
+
+    /**
+     * Tất cả sản phẩm bán chạy theo tháng (không giới hạn top 5)
+     * @param year Năm
+     * @param month Tháng
+     */
+    @GetMapping("/all-products-by-month")
+    public ResponseEntity<ResponseSuccess<List<TopProductResponse>>> getAllProductsByMonth(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+        if (month == null) {
+            month = LocalDate.now().getMonthValue();
+        }
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all products by month success",
+                dashboardService.getAllProductsByMonth(year, month)));
+    }
+
+    /**
+     * Tất cả sản phẩm bán chạy theo năm (không giới hạn top 5)
+     * @param year Năm
+     */
+    @GetMapping("/all-products-by-year")
+    public ResponseEntity<ResponseSuccess<List<TopProductResponse>>> getAllProductsByYear(
+            @RequestParam(required = false) Integer year) {
+
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get all products by year success",
+                dashboardService.getAllProductsByYear(year)));
+    }
+
+    /**
+     * Chi tiết sản phẩm với danh sách đơn hàng
+     * @param productId ID sản phẩm
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/product-detail/{productId}")
+    public ResponseEntity<ResponseSuccess<ProductDetailResponse>> getProductDetail(
+            @PathVariable Long productId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get product detail success",
+                dashboardService.getProductDetail(productId, startDate, endDate)));
+    }
+
+    /**
+     * Danh sách đơn hàng theo khoảng thời gian
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/orders-by-date-range")
+    public ResponseEntity<ResponseSuccess<List<OrderSummaryResponse>>> getOrdersByDateRange(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get orders by date range success",
+                dashboardService.getOrdersByDateRange(startDate, endDate)));
     }
 }

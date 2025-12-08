@@ -76,4 +76,18 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
         ORDER BY year_value ASC
     """, nativeQuery = true)
     List<RevenueByYearProjection> getRevenueByYear(@Param("year") Integer year);
+    
+    // Tìm đơn hàng theo khoảng thời gian và trạng thái
+    @Query("""
+        SELECT o FROM Order o
+        JOIN FETCH o.customer
+        WHERE o.orderDate BETWEEN :startDate AND :endDate
+            AND o.status = :status
+        ORDER BY o.orderDate DESC
+    """)
+    List<Order> findByOrderDateBetweenAndStatus(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        @Param("status") OrderStatus status
+    );
 }

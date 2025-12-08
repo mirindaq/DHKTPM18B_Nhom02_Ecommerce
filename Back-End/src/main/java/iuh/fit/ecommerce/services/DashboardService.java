@@ -69,4 +69,15 @@ public interface DashboardService {
     
     // Chi tiết promotion với danh sách đơn hàng
     PromotionDetailResponse getPromotionDetail(Long promotionId, LocalDate startDate, LocalDate endDate);
+    
+    // ALL products (không giới hạn top 5)
+    List<TopProductResponse> getAllProductsByDay(LocalDate startDate, LocalDate endDate);
+    List<TopProductResponse> getAllProductsByMonth(Integer year, Integer month);
+    List<TopProductResponse> getAllProductsByYear(Integer year);
+    
+    // Chi tiết sản phẩm với danh sách đơn hàng
+    ProductDetailResponse getProductDetail(Long productId, LocalDate startDate, LocalDate endDate);
+    
+    // Danh sách đơn hàng theo khoảng thời gian
+    List<OrderSummaryResponse> getOrdersByDateRange(LocalDate startDate, LocalDate endDate);
 }

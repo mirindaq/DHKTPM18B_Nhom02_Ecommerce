@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Tag, Download } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
+import { Tag } from 'lucide-react'
 import PromotionStatsCards from '@/components/dashboard/promotion/PromotionStatsCards'
 import TopPromotionsChart from '@/components/dashboard/promotion/TopPromotionsChart'
 import AllPromotionsModal from '@/components/dashboard/promotion/AllPromotionsModal'
@@ -91,7 +90,7 @@ export default function PromotionAnalytics() {
     }
     
     setCurrentFilter({ type: values.timeType, params })
-    
+
     if (values.timeType === 'day' && values.startDate && values.endDate) {
       fetchDataByDay(values.startDate, values.endDate)
     } else if (values.timeType === 'month' && values.year && values.month) {
