@@ -9,12 +9,10 @@ import { useUser } from '@/context/UserContext'
 import { USER_PATH, PUBLIC_PATH } from '@/constants/path'
 import { 
   Loader2, 
-  Zap, 
   Gift, 
-  RefreshCcw, 
-  CreditCard,
   Truck,
   Shield,
+  RefreshCcw,
   Headphones,
   ChevronRight,
   Package,
@@ -35,12 +33,12 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useUser()
   const navigate = useNavigate()
 
-  // Fetch top 2 categories
+  // Fetch all categories
   const {
     data: categoriesData,
     isLoading: loadingCategories,
   } = useQuery<CategoryListResponse>(
-    () => categoryService.getCategories(1, 10),
+    () => categoryService.getAllCategoriesSimple(),
     {
       queryKey: ['categories', 'home'],
     }
@@ -48,9 +46,14 @@ export default function Home() {
 
   useEffect(() => {
     if (categoriesData?.data?.data) {
-      setTopCategories(categoriesData.data.data.slice(0, 2))
+      // Lấy tất cả categories có status = true
+      const activeCategories = categoriesData.data.data.filter(cat => cat.status)
+      setTopCategories(activeCategories)
     }
   }, [categoriesData])
+
+  // Lấy top 2 categories để hiển thị sản phẩm
+  const top2Categories = topCategories.slice(0, 2)
 
 
   const loadArticles = async () => {
@@ -87,32 +90,12 @@ export default function Home() {
 
 
 
-  // Quick service links data
-  const quickServices = [
-    { icon: Zap, label: 'Deal HOT', color: 'from-red-500 to-orange-500', bgColor: 'bg-red-50' },
-    { icon: Gift, label: 'Ưu đãi thành viên', color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-50' },
-    { icon: RefreshCcw, label: 'Thu cũ đổi mới', color: 'from-green-500 to-emerald-500', bgColor: 'bg-green-50' },
-    { icon: CreditCard, label: 'Trả góp 0%', color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-50' },
-  ]
-
   // Trust badges data
   const trustBadges = [
     { icon: Truck, title: 'Giao hàng miễn phí', desc: 'Đơn từ 300k' },
     { icon: Shield, title: 'Bảo hành chính hãng', desc: '12-24 tháng' },
     { icon: RefreshCcw, title: 'Đổi trả dễ dàng', desc: '30 ngày miễn phí' },
     { icon: Headphones, title: 'Hỗ trợ 24/7', desc: 'Tư vấn nhiệt tình' },
-  ]
-
-  // Side banners for each category
-  const categoryBanners = [
-    [
-      { image: '', title: 'Giảm đến 30%', subtitle: 'Trợ giá lên đời', buttonText: 'MUA NGAY', gradient: 'from-blue-600 via-blue-700 to-indigo-800' },
-      { image: '', title: 'S-Student', subtitle: 'Giảm thêm 7%', buttonText: 'XEM NGAY', gradient: 'from-purple-600 via-purple-700 to-pink-600' }
-    ],
-    [
-      { image: '', title: 'Trợ giá 4 Triệu', subtitle: 'Thu cũ đổi mới', buttonText: 'MUA NGAY', gradient: 'from-emerald-600 via-teal-600 to-cyan-700' },
-      { image: '', title: 'Trả góp 0%', subtitle: 'Lãi suất 0% 15 tháng', buttonText: 'XEM NGAY', gradient: 'from-orange-500 via-red-500 to-pink-500' }
-    ]
   ]
 
   return (
@@ -243,43 +226,70 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Services */}
-      <section className="container mx-auto px-4 max-w-7xl -mt-2 relative z-10">
-        <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {quickServices.map((service, index) => (
-              <button
-                key={index}
-                className={`flex items-center gap-3 p-3 md:p-4 rounded-xl ${service.bgColor} hover:shadow-md transition-all group`}
-              >
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${service.color} flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}>
-                  <service.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <span className="font-semibold text-sm md:text-base text-gray-800">{service.label}</span>
-              </button>
-            ))}
+      {/* Categories Grid Section */}
+      <section className="container mx-auto px-4 max-w-7xl mt-8">
+        <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800">Danh mục sản phẩm</h2>
+                <p className="text-sm text-gray-500">Khám phá các danh mục</p>
+              </div>
+            </div>
           </div>
+
+          {loadingCategories ? (
+            <div className="flex justify-center items-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+          ) : topCategories.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+              {topCategories.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`${PUBLIC_PATH.HOME}search?category=${category.slug}`}
+                  className="group flex items-center gap-3 p-3 md:p-4 rounded-xl bg-white border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50 group-hover:scale-105 transition-transform duration-300">
+                    <img
+                      src={category.image || "/assets/avatar.jpg"}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/assets/avatar.jpg";
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm md:text-base font-medium text-gray-700 group-hover:text-red-600 transition-colors flex-1 line-clamp-2">
+                    {category.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <p>Chưa có danh mục nào</p>
+            </div>
+          )}
         </div>
       </section>
 
-
       <div className="container mx-auto px-4 max-w-7xl mt-8">
-        {/* Category Product Sections - Like CellphoneS */}
+        {/* Category Product Sections - Hiển thị sản phẩm theo category */}
         {loadingCategories ? (
-          <div className="flex justify-center items-center py-16">
+          <div className="flex justify-center items-center py-16 mb-8">
             <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           </div>
         ) : (
-          topCategories.map((category, index) => (
+          top2Categories.map((category) => (
             <CategoryProductSection 
               key={category.id}
               category={category}
-              sideBanners={categoryBanners[index] || categoryBanners[0]}
             />
           ))
         )}
-
-
 
         {/* Trust Badges */}
         <section className="mb-8">

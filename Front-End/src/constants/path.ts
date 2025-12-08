@@ -31,7 +31,7 @@ export const ADMIN_PATH = {
   ARTICLE_ADD: "/admin/articles/add",
   ARTICLE_CATEGORIES: "/admin/article-categories",
   BANNERS: "/admin/banners",
-  CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
+  CATEGORY_ASSIGNMENT: "/admin/category-assignment",
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
   CARTS: "/admin/carts",

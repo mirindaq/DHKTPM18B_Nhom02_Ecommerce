@@ -14,7 +14,4 @@ public interface VariantRepository extends JpaRepository<Variant, Long> {
 
     List<Variant> findByStatus(Boolean status);
 
-    List<Variant> findByStatusAndCategory_Id(Boolean status, Long categoryId);
-
-    List<Variant> findByStatusAndCategory_Slug(Boolean status, String categorySlug);
 }

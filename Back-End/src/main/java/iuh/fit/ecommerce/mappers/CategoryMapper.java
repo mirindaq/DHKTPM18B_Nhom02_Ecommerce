@@ -11,7 +11,4 @@ public interface CategoryMapper {
 //    @Mapping(target = "attributes", source = "attributes", qualifiedByName = "mapActiveAttributes")
     CategoryResponse toResponse(Category category);
 
-    @Named("toResponseWithoutAttributes")
-    @Mapping(target = "attributes", ignore = true)
-    CategoryResponse toResponseWithoutAttributes(Category category);
 }

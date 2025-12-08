@@ -56,7 +56,7 @@ import StaffDashboard from "@/pages/staff/StaffDashboard";
 import StaffAssignDelivery from "@/pages/staff/StaffAssignDelivery";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
 import Deliveries from "@/pages/shipper/Deliveries";
-import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
+import CategoryAssignmentPage from "@/pages/admin/CategoryAssignment";
 import Carts from "@/pages/admin/Carts";
 import FilterCriterias from "@/pages/admin/FilterCriterias";
 import Address from "@/pages/user/Address";
@@ -246,8 +246,8 @@ const useRouteElements = () => {
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
         {
-          path: "category-brand-assignment",
-          element: <CategoryBrandAssignmentPage />,
+          path: "category-assignment",
+          element: <CategoryAssignmentPage />,
         },
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
