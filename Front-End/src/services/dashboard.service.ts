@@ -125,5 +125,21 @@ export const dashboardService = {
       responseType: 'blob',
     });
     return response.data;
+  },
+
+  // Statistics API - Dashboard overview
+  getStatisticsDashboard: async () => {
+    const response = await axiosClient.get<DashboardApiResponse<any>>(
+      '/statistics/dashboard'
+    );
+    return response.data;
+  },
+
+  // Statistics API - Monthly revenue
+  getStatisticsMonthlyRevenue: async () => {
+    const response = await axiosClient.get<DashboardApiResponse<any[]>>(
+      '/statistics/monthly-revenue'
+    );
+    return response.data;
   }
 };

@@ -1,73 +1,172 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3, Package, ShoppingCart, Users, DollarSign, TrendingUp, TrendingDown } from "lucide-react"
+import { Package, ShoppingCart, Users, DollarSign, TrendingUp, TrendingDown } from "lucide-react"
 import { useEffect, useState } from "react"
 import { dashboardService } from "@/services/dashboard.service"
-import type { DashboardStatsResponse } from "@/types/dashboard.type"
+import { orderService } from "@/services/order.service"
+import type { OrderResponse } from "@/types/order.type"
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+
+interface StatisticsData {
+  revenue: {
+    current: number;
+    previous: number;
+    percentChange: number;
+    trend: "up" | "down";
+  };
+  orders: {
+    current: number;
+    previous: number;
+    percentChange: number;
+    trend: "up" | "down";
+  };
+  products: {
+    current: number;
+    previous: number;
+    percentChange: number;
+    trend: "up" | "down";
+  };
+  customers: {
+    current: number;
+    previous: number;
+    percentChange: number;
+    trend: "up" | "down";
+  };
+}
+
+interface MonthlyRevenueData {
+  name: string;
+  revenue: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    name: string;
+  }>;
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <p className="text-sm font-semibold text-gray-900">
+          {`₫${payload[0].value.toLocaleString('vi-VN')}`}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const formatCurrency = (amount: number) => {
+  return `₫${amount.toLocaleString('vi-VN')}`;
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<DashboardStatsResponse | null>(null)
+  const [stats, setStats] = useState<StatisticsData | null>(null)
+  const [revenueData, setRevenueData] = useState<MonthlyRevenueData[]>([])
+  const [recentOrders, setRecentOrders] = useState<OrderResponse[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        // Lấy stats từ đầu tháng đến hiện tại
-        const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const startDate = startOfMonth.toISOString().split('T')[0]
-        const endDate = now.toISOString().split('T')[0]
+        setLoading(true)
         
-        const response = await dashboardService.getDashboardStats(startDate, endDate)
-        setStats(response.data)
+        // Gọi API statistics/dashboard
+        const statsResponse = await dashboardService.getStatisticsDashboard()
+        if (statsResponse.data) {
+          setStats(statsResponse.data as StatisticsData)
+        }
+
+        // Gọi API statistics/monthly-revenue
+        const revenueResponse = await dashboardService.getStatisticsMonthlyRevenue()
+        if (revenueResponse.data) {
+          setRevenueData(revenueResponse.data as MonthlyRevenueData[])
+        }
+
+        // Gọi API orders/admin để lấy recent orders (chỉ lấy 5 đơn hàng COMPLETED mới nhất)
+        const ordersResponse = await orderService.getAllOrdersForAdmin({
+          status: "COMPLETED",
+          page: 1,
+          size: 5
+        })
+        if (ordersResponse.data?.data) {
+          setRecentOrders(ordersResponse.data.data)
+        }
       } catch (error) {
-        console.error('Error fetching dashboard stats:', error)
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
-    fetchStats()
+    fetchData()
   }, [])
 
   const statsCards = [
     {
       title: "Tổng doanh thu",
-      value: stats ? `₫${stats.totalRevenue.toLocaleString('vi-VN')}` : "...",
-      description: stats ? `${stats.revenueGrowth >= 0 ? '+' : ''}${stats.revenueGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      value: stats ? formatCurrency(stats.revenue.current) : "...",
+      description: stats ? `${stats.revenue.percentChange >= 0 ? '+' : ''}${stats.revenue.percentChange.toFixed(1)}% so với kỳ trước` : "...",
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-50",
       borderColor: "border-green-200",
-      trend: stats && stats.revenueGrowth >= 0 ? "up" : "down"
+      trend: stats?.revenue.trend || "up"
     },
     {
       title: "Đơn hàng",
-      value: stats ? stats.totalOrders.toString() : "...",
-      description: stats ? `${stats.ordersGrowth >= 0 ? '+' : ''}${stats.ordersGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      value: stats ? Math.round(stats.orders.current).toString() : "...",
+      description: stats ? `${stats.orders.percentChange >= 0 ? '+' : ''}${stats.orders.percentChange.toFixed(1)}% so với kỳ trước` : "...",
       icon: ShoppingCart,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
-      trend: stats && stats.ordersGrowth >= 0 ? "up" : "down"
+      trend: stats?.orders.trend || "up"
     },
     {
       title: "Sản phẩm",
-      value: stats ? stats.totalProducts.toString() : "...",
-      description: stats ? `${stats.productsGrowth >= 0 ? '+' : ''}${stats.productsGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      value: stats ? Math.round(stats.products.current).toString() : "...",
+      description: stats ? `${stats.products.percentChange >= 0 ? '+' : ''}${stats.products.percentChange.toFixed(1)}% so với kỳ trước` : "...",
       icon: Package,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",
-      trend: stats && stats.productsGrowth >= 0 ? "up" : "down"
+      trend: stats?.products.trend || "up"
     },
     {
       title: "Khách hàng",
-      value: stats ? stats.totalCustomers.toString() : "...",
-      description: stats ? `${stats.customersGrowth >= 0 ? '+' : ''}${stats.customersGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      value: stats ? Math.round(stats.customers.current).toString() : "...",
+      description: stats ? `${stats.customers.percentChange >= 0 ? '+' : ''}${stats.customers.percentChange.toFixed(1)}% so với kỳ trước` : "...",
       icon: Users,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
       borderColor: "border-orange-200",
-      trend: stats && stats.customersGrowth >= 0 ? "up" : "down"
+      trend: stats?.customers.trend || "up"
     }
   ]
+
+  if (loading) {
+    return (
+      <div className="space-y-3 p-2">
+        <div className="flex items-center justify-center h-96">
+          <p className="text-gray-500">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-3 p-2">
       <div className="space-y-1">

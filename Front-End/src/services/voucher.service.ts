@@ -4,6 +4,7 @@ import type {
   TopVoucherResponse,
   VoucherComparisonResponse
 } from '@/types/voucher-promotion.type';
+import type { Voucher, VoucherAvailableResponse } from '@/types/voucher.type';
 
 export const voucherService = {
   // Top vouchers by day
@@ -60,5 +61,12 @@ export const voucherService = {
       `/dashboard/compare-voucher?${params.toString()}`
     );
     return response.data;
+  },
+
+  getAvailableVouchers: async () => {
+    const response = await axiosClient.get<ApiResponse<VoucherAvailableResponse[]>>(
+      `/vouchers/available`
+    );
+    return response.data.data;
   }
 };

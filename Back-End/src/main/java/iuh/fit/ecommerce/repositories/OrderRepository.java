@@ -76,4 +76,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
         ORDER BY year_value ASC
     """, nativeQuery = true)
     List<RevenueByYearProjection> getRevenueByYear(@Param("year") Integer year);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.status = 'COMPLETED' AND o.orderDate BETWEEN :startDate AND :endDate")
+    Long countCompletedOrdersByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }
