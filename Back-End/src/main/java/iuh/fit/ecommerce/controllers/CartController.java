@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -66,7 +68,7 @@ public class CartController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 CREATED,
                 "Add product to cart success",
-                cartService.addProduct( request)
+                cartService.addProduct(request)
         ));
     }
 
@@ -77,7 +79,7 @@ public class CartController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Remove product from cart success",
-                cartService.removeProduct( productVariantId)
+                cartService.removeProduct(productVariantId)
         ));
     }
 
@@ -101,4 +103,17 @@ public class CartController {
                 cartService.updateProductQuantity(request)
         ));
     }
+
+    @PostMapping("/admin/send-reminders")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ResponseSuccess<Void>> sendRemindersToSelected(@RequestBody List<Long> cartIds) {
+        cartService.sendRemindersBatch(cartIds);
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Gửi email nhắc nhở thành công cho danh sách đã chọn",
+                null
+        ));
+    }
+
+
 }

@@ -6,6 +6,8 @@ import iuh.fit.ecommerce.dtos.response.cart.CartResponse;
 import iuh.fit.ecommerce.dtos.response.cart.CartWithCustomerResponse;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface CartService {
     CartResponse getOrCreateCart();
 
@@ -19,6 +21,8 @@ public interface CartService {
 
     // Admin methods
     Page<CartWithCustomerResponse> getAllCartsWithItems(int page, int size, String keyword);
+
+    void sendRemindersBatch(List<Long> cartIds);
 
     CartWithCustomerResponse getCartByCustomerId(Long customerId);
 }

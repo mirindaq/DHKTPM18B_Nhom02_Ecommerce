@@ -10,6 +10,7 @@ import iuh.fit.ecommerce.mappers.CartMapper;
 import iuh.fit.ecommerce.repositories.CartRepository;
 import iuh.fit.ecommerce.repositories.ProductVariantRepository;
 import iuh.fit.ecommerce.services.CartService;
+import iuh.fit.ecommerce.services.EmailService;
 import iuh.fit.ecommerce.services.PromotionService;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +19,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CartServiceImpl implements CartService {
 
     private final SecurityUtils securityUtils;
@@ -28,6 +35,7 @@ public class CartServiceImpl implements CartService {
     private final ProductVariantRepository productVariantRepository;
     private final PromotionService promotionService;
     private final CartMapper cartMapper;
+    private final EmailService emailService;
 
     @Override
     public CartResponse getOrCreateCart() {
@@ -163,11 +171,41 @@ public class CartServiceImpl implements CartService {
         return carts.map(cartMapper::toCartWithCustomerResponse);
     }
 
+
     @Override
     public CartWithCustomerResponse getCartByCustomerId(Long customerId) {
         Cart cart = cartRepository.findByCustomer_Id(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found for customer"));
         return cartMapper.toCartWithCustomerResponse(cart);
+    }
+
+    @Override
+    @Transactional
+    public void sendRemindersBatch(List<Long> cartIds) {
+        if (cartIds == null || cartIds.isEmpty()) {
+            throw new RuntimeException("Danh sách giỏ hàng để gửi mail không được trống");
+        }
+        List<Cart> carts = cartRepository.findCartsByIds(cartIds);
+        List<Cart> sentCarts = new ArrayList<>();
+
+        for (Cart cart : carts) {
+            try {
+                if (cart.getTotalItems() > 0 && cart.getCustomer() != null) {
+                    // 1. Gửi mail
+                    emailService.sendAbandonedCartReminder(cart.getCustomer().getEmail(), cart);
+
+                    // 2. Cập nhật thời gian gửi
+                    cart.setLastReminderSentAt(LocalDateTime.now());
+                    sentCarts.add(cart);
+                }
+            } catch (Exception e) {
+                // Log lỗi nhưng không dừng vòng lặp để các cart khác vẫn được gửi
+                log.error("Lỗi khi gửi reminder cho Cart ID {}: {}", cart.getId(), e.getMessage());
+            }
+        }
+        if (!sentCarts.isEmpty()) {
+            cartRepository.saveAll(sentCarts);
+        }
     }
 
 }
