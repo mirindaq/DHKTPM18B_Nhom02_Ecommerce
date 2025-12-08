@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.services.impl;
 
 
+import iuh.fit.ecommerce.entities.Cart;
 import iuh.fit.ecommerce.entities.Order;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.services.EmailService;
@@ -90,5 +91,34 @@ public class EmailServiceImpl implements EmailService {
             log.error("Error sending order confirmation email to {}: {}", to, exception.getMessage());
             // Don't throw exception to prevent order creation failure
         }
+    }
+
+    @Override
+    @Async("taskExecutor")
+    public void sendAbandonedCartReminder(String to, Cart cart) {
+        try {
+            Context context = new Context();
+            context.setVariable("customerName", cart.getCustomer().getFullName()); // Giả sử Customer có getFullName
+            context.setVariable("items", cart.getCartDetails());
+            context.setVariable("totalPrice", cart.getCartDetails().stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum());
+
+            // Tạo template tên là "abandoned-cart-template"
+            String text = templateEngine.process("abandoned-cart-template", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, UTF_8_ENCODING);
+
+            helper.setPriority(1);
+            helper.setSubject("Bạn ơi, hình như bạn để quên đồ trong giỏ hàng?");
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setText(text, true);
+
+            mailSender.send(message);
+            log.info("Abandoned cart reminder sent to: {}", to);
+        } catch (Exception exception) {
+            log.error("Error sending abandoned cart email to {}: {}", to, exception.getMessage());
+        }
+
     }
 }

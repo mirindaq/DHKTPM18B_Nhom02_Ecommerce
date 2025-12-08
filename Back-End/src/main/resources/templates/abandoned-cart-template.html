@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ hàng đang chờ bạn</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .btn { background-color: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; align-items: center; }
+        .item img { width: 60px; height: 60px; object-fit: cover; margin-right: 15px; border-radius: 4px;}
+    </style>
+</head>
+<body>
+<h3>Xin chào <span th:text="${customerName}">Bạn</span>,</h3>
+<p>Chúng tôi nhận thấy bạn đã để quên một số sản phẩm tuyệt vời trong giỏ hàng hơn 30 ngày qua.</p>
+<p>Các sản phẩm vẫn đang chờ bạn rước về dinh:</p>
+
+<div style="margin: 20px 0;">
+    <div th:each="detail : ${items}" class="item">
+        <img th:src="${detail.productVariant.product.thumbnail}" alt="Product Image" />
+        <div>
+            <strong th:text="${detail.productVariant.product.name}">Tên SP</strong><br/>
+            <span style="color: #666; font-size: 14px;">Số lượng: <span th:text="${detail.quantity}">1</span></span>
+        </div>
+    </div>
+</div>
+
+<p>Bạn có gặp khó khăn gì trong quá trình thanh toán không? Hãy quay lại ngay nhé!</p>
+</body>
+</html>
