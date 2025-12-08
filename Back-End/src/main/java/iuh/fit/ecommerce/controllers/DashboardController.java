@@ -163,4 +163,198 @@ public class DashboardController {
                 "Compare revenue success",
                 dashboardService.compareRevenue(timeType, startDate1, endDate1, startDate2, endDate2)));
     }
+    
+    /**
+     * Top 5 voucher được sử dụng nhiều nhất theo ngày
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/top-vouchers-by-day")
+    public ResponseEntity<ResponseSuccess<List<TopVoucherResponse>>> getTopVouchersByDay(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get top vouchers by day success",
+                dashboardService.getTopVouchersByDay(startDate, endDate)));
+    }
+    
+    /**
+     * Top 5 voucher được sử dụng nhiều nhất theo tháng
+     * @param year Năm
+     * @param month Tháng
+     */
+    @GetMapping("/top-vouchers-by-month")
+    public ResponseEntity<ResponseSuccess<List<TopVoucherResponse>>> getTopVouchersByMonth(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+        if (month == null) {
+            month = LocalDate.now().getMonthValue();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get top vouchers by month success",
+                dashboardService.getTopVouchersByMonth(year, month)));
+    }
+    
+    /**
+     * Top 5 voucher được sử dụng nhiều nhất theo năm
+     * @param year Năm
+     */
+    @GetMapping("/top-vouchers-by-year")
+    public ResponseEntity<ResponseSuccess<List<TopVoucherResponse>>> getTopVouchersByYear(
+            @RequestParam(required = false) Integer year) {
+        
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get top vouchers by year success",
+                dashboardService.getTopVouchersByYear(year)));
+    }
+    
+    /**
+     * Top 5 promotion được sử dụng nhiều nhất theo ngày
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/top-promotions-by-day")
+    public ResponseEntity<ResponseSuccess<List<TopPromotionResponse>>> getTopPromotionsByDay(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get top promotions by day success",
+                dashboardService.getTopPromotionsByDay(startDate, endDate)));
+    }
+    
+    /**
+     * Top 5 promotion được sử dụng nhiều nhất theo tháng
+     * @param year Năm
+     * @param month Tháng
+     */
+    @GetMapping("/top-promotions-by-month")
+    public ResponseEntity<ResponseSuccess<List<TopPromotionResponse>>> getTopPromotionsByMonth(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+        if (month == null) {
+            month = LocalDate.now().getMonthValue();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get top promotions by month success",
+                dashboardService.getTopPromotionsByMonth(year, month)));
+    }
+    
+    /**
+     * Top 5 promotion được sử dụng nhiều nhất theo năm
+     * @param year Năm
+     */
+    @GetMapping("/top-promotions-by-year")
+    public ResponseEntity<ResponseSuccess<List<TopPromotionResponse>>> getTopPromotionsByYear(
+            @RequestParam(required = false) Integer year) {
+        
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get top promotions by year success",
+                dashboardService.getTopPromotionsByYear(year)));
+    }
+    
+    /**
+     * So sánh voucher giữa 2 kỳ
+     * @param timeType Loại thời gian: day, month, year
+     * @param startDate1 Ngày bắt đầu kỳ 1
+     * @param endDate1 Ngày kết thúc kỳ 1
+     * @param startDate2 Ngày bắt đầu kỳ 2
+     * @param endDate2 Ngày kết thúc kỳ 2
+     */
+    @GetMapping("/compare-voucher")
+    public ResponseEntity<ResponseSuccess<VoucherComparisonResponse>> compareVoucher(
+            @RequestParam String timeType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate2,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate2) {
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Compare voucher success",
+                dashboardService.compareVoucher(timeType, startDate1, endDate1, startDate2, endDate2)));
+    }
+    
+    /**
+     * So sánh promotion giữa 2 kỳ
+     * @param timeType Loại thời gian: day, month, year
+     * @param startDate1 Ngày bắt đầu kỳ 1
+     * @param endDate1 Ngày kết thúc kỳ 1
+     * @param startDate2 Ngày bắt đầu kỳ 2
+     * @param endDate2 Ngày kết thúc kỳ 2
+     */
+    @GetMapping("/compare-promotion")
+    public ResponseEntity<ResponseSuccess<PromotionComparisonResponse>> comparePromotion(
+            @RequestParam String timeType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate2,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate2) {
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Compare promotion success",
+                dashboardService.comparePromotion(timeType, startDate1, endDate1, startDate2, endDate2)));
+    }
+    
+    /**
+     * So sánh tổng hợp voucher vs promotion giữa 2 kỳ
+     * @param timeType Loại thời gian: day, month, year
+     * @param startDate1 Ngày bắt đầu kỳ 1
+     * @param endDate1 Ngày kết thúc kỳ 1
+     * @param startDate2 Ngày bắt đầu kỳ 2
+     * @param endDate2 Ngày kết thúc kỳ 2
+     */
+    @GetMapping("/compare-voucher-promotion")
+    public ResponseEntity<ResponseSuccess<VoucherPromotionComparisonResponse>> compareVoucherPromotion(
+            @RequestParam String timeType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate1,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate2,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate2) {
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Compare voucher vs promotion success",
+                dashboardService.compareVoucherPromotion(timeType, startDate1, endDate1, startDate2, endDate2)));
+    }
 }
