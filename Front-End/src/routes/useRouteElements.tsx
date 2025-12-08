@@ -80,6 +80,9 @@ import {
 } from "@/constants/path";
 import EditPromotion from "@/pages/admin/EditPromotion";
 import AddPromotion from "@/pages/admin/AddPromotion";
+import PurchaseOrders from "@/pages/admin/PurchaseOrders";
+import AddPurchaseOrder from "@/pages/admin/AddPurchaseOrder";
+import PurchaseOrderDetail from "@/pages/admin/PurchaseOrderDetail";
 import Banners from "@/pages/admin/Banner";
 import StaffSell from "@/pages/staff/StaffSell";
 import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
@@ -254,6 +257,9 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
         { path: "/admin/feedbacks", element: <Feedbacks /> },
+        { path: ADMIN_PATH.PURCHASE_ORDERS, element: <PurchaseOrders /> },
+        { path: ADMIN_PATH.PURCHASE_ORDER_ADD, element: <AddPurchaseOrder /> },
+        { path: "/admin/purchase-orders/:id", element: <PurchaseOrderDetail /> },
         { path: ADMIN_PATH.CARTS, element: <Carts /> },
       ],
     },

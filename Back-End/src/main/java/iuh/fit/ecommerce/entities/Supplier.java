@@ -1,8 +1,10 @@
 package iuh.fit.ecommerce.entities;
 
-import jakarta.persistence.*; // Thêm import
-import lombok.*; // Thêm import
-import lombok.experimental.SuperBuilder; // Thêm import
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -10,14 +12,13 @@ import lombok.experimental.SuperBuilder; // Thêm import
 @Table(name = "supplier")
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 public class Supplier extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String name;
 
     @Column(nullable = false, unique = true)

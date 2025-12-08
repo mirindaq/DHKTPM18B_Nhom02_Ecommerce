@@ -34,6 +34,7 @@ public class InitApp {
     private final VectorStoreService vectorStoreService;
     private final CustomerRepository customerRepository;
     private final ProductSearchService productSearchService;
+    private final SupplierRepository supplierRepository;
 
 
     @Bean

@@ -44,7 +44,7 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public SupplierResponse getSupplierById(String id) {
+    public SupplierResponse getSupplierById(Long id) {
         Supplier supplier = getSupplierEntityById(id);
         return supplierMapper.toResponse(supplier);
     }
@@ -68,7 +68,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     @Transactional
-    public SupplierResponse updateSupplier(String id, SupplierRequest request) {
+    public SupplierResponse updateSupplier(Long id, SupplierRequest request) {
         // 1. Lấy Entity
         Supplier existingSupplier = getSupplierEntityById(id);
 
@@ -89,29 +89,25 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     @Transactional
-    public void changeStatusSupplier(String id) {
+    public void changeStatusSupplier(Long id) {
         Supplier supplier = getSupplierEntityById(id);
         supplier.setStatus(!supplier.getStatus()); // Đảo ngược trạng thái
         supplierRepository.save(supplier);
     }
 
-    // --- PRIVATE HELPERS ---
-
     @Override
-    public Supplier getSupplierEntityById(String id) {
+    public Supplier getSupplierEntityById(Long id) {
         return supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhà cung cấp với ID: " + id));
     }
 
-    // Dùng cho Create
     private void validateSupplierPhone(String phone) {
         if (supplierRepository.existsByPhone(phone)) {
             throw new ConflictException("Số điện thoại này đã được sử dụng.");
         }
     }
 
-    // Dùng cho Update
-    private void validateSupplierPhone(String phone, String id) {
+    private void validateSupplierPhone(String phone, Long id) {
         if (supplierRepository.existsByPhoneAndIdNot(phone, id)) {
             throw new ConflictException("Số điện thoại này đã được sử dụng.");
         }

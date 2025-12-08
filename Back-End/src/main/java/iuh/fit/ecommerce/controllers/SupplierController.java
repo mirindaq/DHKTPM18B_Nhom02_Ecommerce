@@ -7,7 +7,6 @@ import iuh.fit.ecommerce.dtos.response.supplier.SupplierResponse;
 import iuh.fit.ecommerce.services.SupplierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,8 +34,8 @@ public class SupplierController {
             @RequestParam(required = false) String phone,
             @RequestParam(required = false) String address,
             @RequestParam(required = false) Boolean status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate
     ) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
@@ -49,7 +48,7 @@ public class SupplierController {
      * API Lấy chi tiết nhà cung cấp
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseSuccess<SupplierResponse>> getSupplierById(@PathVariable String id) {
+    public ResponseEntity<ResponseSuccess<SupplierResponse>> getSupplierById(@PathVariable Long id) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Lấy chi tiết nhà cung cấp thành công",
@@ -75,7 +74,7 @@ public class SupplierController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ResponseSuccess<SupplierResponse>> updateSupplier(
-            @PathVariable String id,
+            @PathVariable Long id,
             @Valid @RequestBody SupplierRequest request) {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
@@ -88,7 +87,7 @@ public class SupplierController {
      * API Thay đổi trạng thái (Active/Inactive)
      */
     @PutMapping("/change-status/{id}")
-    public ResponseEntity<ResponseSuccess<Void>> changeStatusSupplier(@PathVariable String id) {
+    public ResponseEntity<ResponseSuccess<Void>> changeStatusSupplier(@PathVariable Long id) {
         supplierService.changeStatusSupplier(id);
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,

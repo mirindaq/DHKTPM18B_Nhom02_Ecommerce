@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 @Repository
-public interface SupplierRepository extends JpaRepository<Supplier, String> { // <-- ID là String
+public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
     /**
      * Tìm kiếm nhà cung cấp tương tự như CustomerRepository
@@ -20,7 +20,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, String> { //
      */
     @Query("SELECT s FROM Supplier s WHERE " +
             "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:phone IS NULL OR s.phone LIKE CONCAT('%', :phone, '%')) AND " + // <-- SỬA: Đã xóa 1 dấu ')' thừa ở cuối dòng này
+            "(:phone IS NULL OR s.phone LIKE CONCAT('%', :phone, '%')) AND " +
             "(:address IS NULL OR LOWER(s.address) LIKE LOWER(CONCAT('%', :address, '%'))) AND " +
             "(:status IS NULL OR s.status = :status) AND " +
             "(:startDate IS NULL OR s.createdAt >= :startDate) AND " +
@@ -37,7 +37,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, String> { //
     boolean existsByPhone(String phone);
 
     // Dùng để kiểm tra (validate) khi cập nhật
-    boolean existsByPhoneAndIdNot(String phone, String id);
+    boolean existsByPhoneAndIdNot(String phone, Long id);
 
     Optional<Supplier> findByPhone(String phone);
 }
