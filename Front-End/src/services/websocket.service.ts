@@ -1,13 +1,17 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import type { Message, MessageRequest } from '@/types/chat.type';
+import type { NotificationResponse } from '@/types/notification.type';
 
 class WebSocketService {
   private client: Client | null = null;
   private isConnected = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private subscriptions: Map<number, any[]> = new Map(); // Track all chat subscriptions (multiple per chat)
+  private subscriptions: Map<number, any[]> = new Map();
+  private orderSubscription: any | null = null;
+  private deliverySubscription: any | null = null;
+  private shipperDeliverySubscription: any | null = null;
 
   connect(onConnected?: () => void, onError?: (error: any) => void) {
     if (this.isConnected) {
@@ -112,10 +116,88 @@ class WebSocketService {
     });
   }
 
+  subscribeToOrders(onOrderNotification: (notification: NotificationResponse) => void) {
+    if (!this.client || !this.isConnected) {
+      console.error('WebSocket not connected, cannot subscribe to orders');
+      return;
+    }
+
+    if (this.orderSubscription) {
+      this.orderSubscription.unsubscribe();
+    }
+
+    this.orderSubscription = this.client.subscribe('/topic/orders', (message) => {
+      try {
+        const notification = JSON.parse(message.body) as NotificationResponse;
+        if (notification.type === 'ORDER') {
+          onOrderNotification(notification);
+        }
+      } catch (error) {
+        console.error('Error parsing order notification:', error);
+      }
+    });
+
+    return this.orderSubscription;
+  }
+
+  unsubscribeFromOrders() {
+    if (this.orderSubscription) {
+      this.orderSubscription.unsubscribe();
+      this.orderSubscription = null;
+      console.log('Unsubscribed from orders topic');
+    }
+  }
+
+  subscribeToDeliveries(onDeliveryNotification: (notification: NotificationResponse) => void, shipperId?: number) {
+    if (!this.client || !this.isConnected) {
+      console.error('WebSocket not connected');
+      return;
+    }
+
+    if (this.deliverySubscription) {
+      this.deliverySubscription.unsubscribe();
+    }
+    if (this.shipperDeliverySubscription) {
+      this.shipperDeliverySubscription.unsubscribe();
+    }
+
+    this.deliverySubscription = this.client.subscribe('/topic/deliveries', (message) => {
+      const notification = JSON.parse(message.body) as NotificationResponse;
+      if (notification.type === 'DELIVERY') {
+        onDeliveryNotification(notification);
+      }
+    });
+
+    if (shipperId) {
+      this.shipperDeliverySubscription = this.client.subscribe(`/topic/shipper/${shipperId}`, (message) => {
+        const notification = JSON.parse(message.body) as NotificationResponse;
+        if (notification.type === 'DELIVERY') {
+          onDeliveryNotification(notification);
+        }
+      });
+    }
+
+    console.log('Subscribed to deliveries topic');
+    return this.deliverySubscription;
+  }
+
+  unsubscribeFromDeliveries() {
+    if (this.deliverySubscription) {
+      this.deliverySubscription.unsubscribe();
+      this.deliverySubscription = null;
+    }
+    if (this.shipperDeliverySubscription) {
+      this.shipperDeliverySubscription.unsubscribe();
+      this.shipperDeliverySubscription = null;
+    }
+    console.log('Unsubscribed from deliveries topic');
+  }
 
   disconnect() {
     if (this.client) {
       this.unsubscribeFromAllChats();
+      this.unsubscribeFromOrders();
+      this.unsubscribeFromDeliveries();
       this.client.deactivate();
       this.isConnected = false;
       console.log('WebSocket Disconnected');

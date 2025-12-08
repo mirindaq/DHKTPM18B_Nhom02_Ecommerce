@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
 public class LoginRequest {
     @NotBlank(message = "Email không được để trống")
     private String email;

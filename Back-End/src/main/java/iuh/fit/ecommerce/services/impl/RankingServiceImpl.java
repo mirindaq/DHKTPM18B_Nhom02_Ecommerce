@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.dtos.response.rank.RankResponse;
 import iuh.fit.ecommerce.dtos.response.voucher.RankVoucherResponse;
 import iuh.fit.ecommerce.entities.Customer;
@@ -11,6 +12,7 @@ import iuh.fit.ecommerce.repositories.CustomerRepository;
 import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.services.RankingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class RankingServiceImpl implements RankingService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.RANKING_CACHE, key = "'all'")
     public List<RankResponse> getAllRankings() {
         return rankingRepository.findAll()
                 .stream()

@@ -105,6 +105,9 @@ export default function CategoryTable({
             <TableRow className="bg-gray-50 hover:bg-gray-50">
               <TableHead className="font-semibold text-gray-700">STT</TableHead>
               <TableHead className="font-semibold text-gray-700">
+                Hình ảnh
+              </TableHead>
+              <TableHead className="font-semibold text-gray-700">
                 Tên danh mục
               </TableHead>
               <TableHead className="font-semibold text-gray-700">
@@ -127,7 +130,7 @@ export default function CategoryTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12">
+                <TableCell colSpan={8} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <p className="text-gray-500 font-medium">
@@ -139,7 +142,7 @@ export default function CategoryTable({
             ) : categories.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="text-center py-24 text-gray-500"
                 >
                   <div className="flex flex-col items-center space-y-4">
@@ -169,6 +172,19 @@ export default function CategoryTable({
                 >
                   <TableCell className="text-center font-medium text-gray-600">
                     {(currentPage - 1) * pageSize + index + 1}
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
+                      <img
+                        src={category.image || "/assets/avatar.jpg"}
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/assets/avatar.jpg";
+                        }}
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="font-semibold text-gray-900">
                     {category.name}
@@ -215,11 +231,10 @@ export default function CategoryTable({
                         variant="outline"
                         size="sm"
                         onClick={() => onToggleStatus(category.id)}
-                        className={`${
-                          category.status
-                            ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
-                            : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
-                        }`}
+                        className={`${category.status
+                          ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                          : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                          }`}
                         disabled={isLoading}
                       >
                         {category.status ? (

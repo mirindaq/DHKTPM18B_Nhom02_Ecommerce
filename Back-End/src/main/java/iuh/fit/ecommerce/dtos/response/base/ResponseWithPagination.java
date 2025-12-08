@@ -1,7 +1,9 @@
 package iuh.fit.ecommerce.dtos.response.base;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Page;
 
@@ -11,6 +13,8 @@ import java.util.function.Function;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResponseWithPagination<T> {
     private T data;
     private int page;

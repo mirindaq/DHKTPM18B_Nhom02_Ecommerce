@@ -34,7 +34,11 @@ export const ADMIN_PATH = {
   CATEGORY_ASSIGNMENT: "/admin/category-assignment",
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
+  PURCHASE_ORDERS: "/admin/purchase-orders",
+  PURCHASE_ORDER_ADD: "/admin/purchase-orders/add",
+  PURCHASE_ORDER_DETAIL: "/admin/purchase-orders/:id",
   CARTS: "/admin/carts",
+  SUPPLIERS: "/admin/suppliers", 
 };
 
 // Staff paths
