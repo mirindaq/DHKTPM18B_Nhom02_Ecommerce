@@ -19,7 +19,6 @@ public class Endpoints {
             "/api/v1/feedbacks/check",
             "/api/v1/feedbacks/detail",
             "/api/v1/customers/update-push-token?"
-
     };
 }
 

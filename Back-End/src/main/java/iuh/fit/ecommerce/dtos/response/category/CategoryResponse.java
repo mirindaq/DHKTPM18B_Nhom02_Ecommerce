@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.category;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import iuh.fit.ecommerce.dtos.response.attribute.AttributeResponse;
 import lombok.*;
 
@@ -16,8 +17,13 @@ public class CategoryResponse {
     private String description;
     private String image;
     private Boolean status;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime modifiedAt;
+    
     private String slug;
     private List<AttributeResponse> attributes;
 

@@ -6,6 +6,7 @@ import {
 import Pagination from "@/components/ui/pagination";
 import { useMutation, useQuery } from "@/hooks";
 import { orderService } from "@/services/order.service";
+import { useOrderWebSocket } from "@/hooks/useOrderWebSocket";
 import type {
   OrderListResponse,
   OrderResponse,
@@ -59,6 +60,13 @@ export default function Orders() {
       ],
     }
   );
+
+  useOrderWebSocket({
+    onOrderNotification: () => {
+      refetchOrders();
+    },
+    enabled: true,
+  });
 
   const pagination = ordersData?.data;
   const orders = ordersData?.data?.data || [];
