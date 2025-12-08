@@ -28,6 +28,7 @@ export type CartWithCustomer = {
   totalItems: number;
   items: CartDetailResponse[];
   totalPrice: number;
+  modifiedAt: string;
 };
 
 export type PaginatedCartResponse = {

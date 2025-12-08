@@ -39,12 +39,8 @@ public class CacheConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        objectMapper.activateDefaultTyping(
-            objectMapper.getPolymorphicTypeValidator(),
-            com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.NON_FINAL,
-            com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
-        );
-
+        // GenericJackson2JsonRedisSerializer tự động xử lý type information
+        // Không cần activateDefaultTyping vì sẽ gây conflict khi deserialize
         GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
         
         // Default cache configuration (24 hours TTL for level 1 cache)

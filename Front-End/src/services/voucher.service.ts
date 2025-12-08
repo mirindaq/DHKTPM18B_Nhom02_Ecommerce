@@ -5,6 +5,7 @@ import type {
   VoucherComparisonResponse,
   VoucherDetailResponse
 } from '@/types/voucher-promotion.type';
+import type { Voucher, VoucherAvailableResponse } from '@/types/voucher.type';
 
 export const voucherService = {
   // Top vouchers by day
@@ -150,5 +151,10 @@ export const voucherService = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  getAvailableVouchers: async () => {
+    const response = await axiosClient.get<ApiResponse<VoucherAvailableResponse[]>>(
+      `/vouchers/available`
+    );
+    return response.data.data;
   }
 };

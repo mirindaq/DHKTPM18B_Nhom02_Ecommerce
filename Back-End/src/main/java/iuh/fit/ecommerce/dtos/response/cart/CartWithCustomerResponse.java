@@ -2,6 +2,7 @@ package iuh.fit.ecommerce.dtos.response.cart;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -20,4 +21,6 @@ public class CartWithCustomerResponse {
     private Long totalItems;
     private List<CartDetailResponse> items;
     private double totalPrice;
+    private LocalDateTime modifiedAt;
+    private LocalDateTime lastReminderSentAt;
 }

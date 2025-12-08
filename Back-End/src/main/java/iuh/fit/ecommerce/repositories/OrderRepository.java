@@ -90,4 +90,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
         @Param("endDate") LocalDateTime endDate,
         @Param("status") OrderStatus status
     );
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.status = 'COMPLETED' AND o.orderDate BETWEEN :startDate AND :endDate")
+    Long countCompletedOrdersByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

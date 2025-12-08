@@ -136,6 +136,10 @@ export const dashboardService = {
     const queryString = params.toString() ? `?${params.toString()}` : '';
     const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
       `/dashboard/all-products-by-day${queryString}`
+  // Statistics API - Dashboard overview
+  getStatisticsDashboard: async () => {
+    const response = await axiosClient.get<DashboardApiResponse<any>>(
+      '/statistics/dashboard'
     );
     return response.data;
   },
@@ -184,6 +188,10 @@ export const dashboardService = {
     const queryString = params.toString() ? `?${params.toString()}` : '';
     const response = await axiosClient.get<DashboardApiResponse<import('@/types/dashboard.type').OrderSummary[]>>(
       `/dashboard/orders-by-date-range${queryString}`
+  // Statistics API - Monthly revenue
+  getStatisticsMonthlyRevenue: async () => {
+    const response = await axiosClient.get<DashboardApiResponse<any[]>>(
+      '/statistics/monthly-revenue'
     );
     return response.data;
   }

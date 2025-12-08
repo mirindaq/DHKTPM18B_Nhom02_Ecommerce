@@ -1,6 +1,16 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CustomBadge } from "@/components/ui/CustomBadge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -10,26 +20,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cartService } from "@/services/cart.service";
+import type { CartDetailResponse, CartWithCustomer } from "@/types/cart.type";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CustomBadge } from "@/components/ui/CustomBadge";
-import {
-  ShoppingCart,
-  Search,
-  Eye,
-  User,
-  Package,
-  Loader2,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  Loader2,
+  Package,
+  Search,
+  Send,
+  ShoppingCart,
+  User,
 } from "lucide-react";
-import { cartService } from "@/services/cart.service";
-import type { CartWithCustomer, CartDetailResponse } from "@/types/cart.type";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Carts() {
@@ -39,15 +43,27 @@ export default function Carts() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+
+  // State cho việc chọn dòng
+  const [selectedCartIds, setSelectedCartIds] = useState<number[]>([]);
+
+  // State cho Dialog chi tiết
   const [selectedCart, setSelectedCart] = useState<CartWithCustomer | null>(
     null
   );
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+
+  // State cho Dialog xác nhận gửi mail
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
   const pageSize = 10;
 
   const fetchCarts = async () => {
     try {
       setLoading(true);
+      // Reset selection khi chuyển trang hoặc reload
+      setSelectedCartIds([]);
       const response = await cartService.getAllCarts(
         page,
         pageSize,
@@ -68,7 +84,7 @@ export default function Carts() {
 
   useEffect(() => {
     fetchCarts();
-  }, [page]);
+  }, [page]); // Chỉ chạy lại khi page thay đổi. Search sẽ gọi hàm handleSearch riêng.
 
   const handleSearch = () => {
     setPage(0);
@@ -86,11 +102,67 @@ export default function Carts() {
     setDetailDialogOpen(true);
   };
 
+  // --- Logic chọn Checkbox ---
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = carts.map((cart) => cart.cartId);
+      setSelectedCartIds(allIds);
+    } else {
+      setSelectedCartIds([]);
+    }
+  };
+
+  const handleSelectOne = (cartId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedCartIds((prev) => [...prev, cartId]);
+    } else {
+      setSelectedCartIds((prev) => prev.filter((id) => id !== cartId));
+    }
+  };
+
+  // --- Logic gửi Email ---
+  const handleOpenConfirmDialog = () => {
+    if (selectedCartIds.length === 0) {
+      toast.warning("Vui lòng chọn ít nhất một khách hàng");
+      return;
+    }
+    setConfirmDialogOpen(true);
+  };
+
+  const handleSendReminders = async () => {
+    try {
+      setSendingEmail(true);
+      await cartService.sendRemindersBatch(selectedCartIds);
+      toast.success(
+        `Đã gửi email nhắc nhở cho ${selectedCartIds.length} khách hàng`
+      );
+      setConfirmDialogOpen(false);
+      setSelectedCartIds([]); // Reset selection sau khi gửi thành công
+      fetchCarts(); // Load lại data để cập nhật cột "Last Reminder" (nếu có)
+    } catch (error) {
+      console.error("Error sending reminders:", error);
+      toast.error("Có lỗi xảy ra khi gửi email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
@@ -103,28 +175,46 @@ export default function Carts() {
               Quản lý giỏ hàng khách hàng
             </CardTitle>
             <CustomBadge variant="secondary" size="sm">
-              Tổng: {totalElements} giỏ hàng có sản phẩm
+              Tổng: {totalElements} giỏ hàng
             </CustomBadge>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Search */}
-          <div className="flex gap-4 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Tìm theo tên hoặc email khách hàng..."
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pl-10"
-              />
+          {/* Thanh công cụ: Search & Send Reminders */}
+          <div className="flex justify-between items-center mb-6">
+            {/* Search area (Bên trái) */}
+            <div className="flex gap-4 items-center">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Tìm theo tên hoặc email khách hàng..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={handleSearch}>
+                <Search className="h-4 w-4 mr-2" />
+                Tìm kiếm
+              </Button>
             </div>
-            <Button onClick={handleSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              Tìm kiếm
-            </Button>
+
+            {/* Send Reminders Button (Bên phải) */}
+            <div>
+              {selectedCartIds.length > 0 && (
+                <Button
+                  variant="default"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={handleOpenConfirmDialog}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Gửi nhắc nhở ({selectedCartIds.length})
+                </Button>
+              )}
+            </div>
           </div>
+          {/* Kết thúc Thanh công cụ */}
 
           {/* Table */}
           {loading ? (
@@ -141,11 +231,22 @@ export default function Carts() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={
+                          selectedCartIds.length === carts.length &&
+                          carts.length > 0
+                        }
+                        onCheckedChange={(checked) =>
+                          handleSelectAll(checked as boolean)
+                        }
+                      />
+                    </TableHead>
                     <TableHead className="w-16">STT</TableHead>
                     <TableHead>Khách hàng</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Số điện thoại</TableHead>
-                    <TableHead className="text-center">Số sản phẩm</TableHead>
+                    <TableHead>Cập nhật lần cuối</TableHead>
+                    <TableHead className="text-center">Số SP</TableHead>
                     <TableHead className="text-right">Tổng tiền</TableHead>
                     <TableHead className="text-center w-24">Thao tác</TableHead>
                   </TableRow>
@@ -153,6 +254,14 @@ export default function Carts() {
                 <TableBody>
                   {carts.map((cart, index) => (
                     <TableRow key={cart.cartId}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedCartIds.includes(cart.cartId)}
+                          onCheckedChange={(checked) =>
+                            handleSelectOne(cart.cartId, checked as boolean)
+                          }
+                        />
+                      </TableCell>
                       <TableCell>{page * pageSize + index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -172,11 +281,14 @@ export default function Carts() {
                       <TableCell className="text-gray-600">
                         {cart.customerEmail}
                       </TableCell>
-                      <TableCell className="text-gray-600">
-                        {cart.customerPhone || "Chưa cập nhật"}
+                      <TableCell className="text-gray-600 text-sm">
+                        <div>{formatDate(cart.modifiedAt)}</div>
+                        {/* Hiển thị thêm nếu cần: "Đã nhắc: ..." */}
                       </TableCell>
                       <TableCell className="text-center">
-                        <CustomBadge variant="secondary">{cart.totalItems}</CustomBadge>
+                        <CustomBadge variant="secondary">
+                          {cart.totalItems}
+                        </CustomBadge>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-red-600">
                         {formatPrice(cart.totalPrice)}
@@ -339,6 +451,42 @@ export default function Carts() {
               </Card>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog for Sending Email */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận gửi email nhắc nhở</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn gửi email nhắc nhở giỏ hàng bị bỏ quên cho{" "}
+              <strong>{selectedCartIds.length}</strong> khách hàng đã chọn
+              không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialogOpen(false)}
+              disabled={sendingEmail}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleSendReminders}
+              disabled={sendingEmail}
+            >
+              {sendingEmail ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang gửi...
+                </>
+              ) : (
+                "Gửi ngay"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
