@@ -30,12 +30,15 @@ export const ADMIN_PATH = {
   ARTICLES: "/admin/articles",
   ARTICLE_ADD: "/admin/articles/add",
   ARTICLE_CATEGORIES: "/admin/article-categories",
-  CATEGORY_BRAND_ASSIGNMENT: "/admin/category-brand-assignment",
+  BANNERS: "/admin/banners",
+  CATEGORY_ASSIGNMENT: "/admin/category-assignment",
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
   PURCHASE_ORDERS: "/admin/purchase-orders",
   PURCHASE_ORDER_ADD: "/admin/purchase-orders/add",
   PURCHASE_ORDER_DETAIL: "/admin/purchase-orders/:id",
+  CARTS: "/admin/carts",
+  SUPPLIERS: "/admin/suppliers", 
 };
 
 // Staff paths
@@ -47,6 +50,9 @@ export const STAFF_PATH = {
   ARTICLES: "/staff/articles",
   CHAT: "/staff/chats",
   ASSIGN_DELIVERY: "/staff/assign-delivery",
+  SELL: "/staff/sell",
+  PAYMENT_STATUS: "/staff/payment-status",
+  CARTS: "/staff/carts",
 };
 
 // Shipper paths
@@ -64,6 +70,10 @@ export const PUBLIC_PATH = {
   CART: "/cart",
   CHECKOUT: "/checkout",
   SEARCH_PAGE: "/search",
+  NEWS: "/news",
+  NEWS_SEARCH: "/news/search",
+  NEWS_DETAIL: "/news/article/:slug",
+  NEWS_CATEGORY: "/news/category/:slug",
   BLOGS: "/blogs",
   BRANDS: "/brands",
   COLLECTIONS: "/collections",
@@ -76,12 +86,19 @@ export const PUBLIC_PATH = {
 
 // User account paths
 export const USER_PATH = {
-  ACCOUNT: "/account",
-  OVERVIEW: "/account/overview",
-  ORDER_HISTORY: "/account/orders",
-  ORDER_HISTORY_DETAIL: "/account/orders/:orderId",
-  WISHLIST: "/account/wishlist",
-  ADDRESS: "/account/address",
+  PROFILE: "/profile",
+  OVERVIEW: "/profile",
+  ORDERS: "/profile/orders",
+  ORDER_DETAIL: "/profile/orders/:orderId",
+  ADDRESSES: "/profile/addresses",
+  WISHLIST: "/profile/wishlist",
+  MEMBERSHIP: "/profile/membership",
+  ACCOUNT_INFO: "/profile/account",
+  VOUCHERS: "/profile/vouchers",
+  EDIT_PROFILE: "/profile/edit",
+  GUARANTEE_POLICY: "/profile/guarantee-policy",
+  WARRANTY_POLICY: "/profile/warranty-policy",
+  TERMS: "/profile/terms",
   PAY: "/pay",
   PAY_SUCCESS: "/pay/success",
 };

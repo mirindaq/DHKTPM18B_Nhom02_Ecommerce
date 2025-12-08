@@ -4,9 +4,16 @@ import { orderService } from "@/services/order.service";
 import { useQuery } from "@/hooks/useQuery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Package,
   Calendar,
@@ -17,10 +24,14 @@ import {
   CreditCard,
   ShoppingBag,
   Eye,
+  XCircle,
+  AlertTriangle,
+  FileDown,
 } from "lucide-react";
-import type { OrderListResponse, OrderStatus } from "@/types/order.type";
+import type { OrderListResponse, OrderStatus, OrderResponse } from "@/types/order.type";
 import { PUBLIC_PATH } from "@/constants/path";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
 
 type StatusTab =
   | "ALL"
@@ -30,48 +41,70 @@ type StatusTab =
   | "COMPLETED"
   | "CANCELLED";
 
+const statusConfig: Record<OrderStatus, { label: string; color?: string }> = {
+  PENDING: { label: "Chờ xử lý" },
+  PENDING_PAYMENT: { label: "Chờ thanh toán" },
+  PROCESSING: { label: "Đang xử lý" },
+  READY_FOR_PICKUP: { label: "Sẵn sàng lấy hàng" },
+  SHIPPED: { label: "Đã giao cho ĐVVC" },
+  ASSIGNED_SHIPPER: { label: "Đã gán Shipper" },
+  DELIVERING: { label: "Đang giao hàng" },
+  FAILED: { label: "Giao thất bại" },
+  CANCELED: { label: "Đã hủy" },
+  COMPLETED: { label: "Hoàn thành" },
+  PAYMENT_FAILED: { label: "Thanh toán thất bại" },
+};
+
 export default function OrderHistory() {
   const navigate = useNavigate();
-  const pageSize = 10;
+  const pageSize = 3;
 
-  // Format date to dd/MM/yyyy for API
-  const formatDateForAPI = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
+  // Convert date from yyyy-MM-dd to dd/MM/yyyy for API
+  const formatDateForAPI = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
     return `${day}/${month}/${year}`;
   };
 
   // Initialize default dates
   const getDefaultStartDate = () => {
-    const date = new Date();
-    date.setFullYear(2020, 11, 1); // December 1, 2020
-    return formatDateForAPI(date);
+    return "2020-12-01";
   };
 
   const getDefaultEndDate = () => {
-    return formatDateForAPI(new Date());
+    const today = new Date();
+    return today.toISOString().split("T")[0];
   };
 
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<StatusTab>("ALL");
-  const [startDate, setStartDate] = useState(getDefaultStartDate());
-  const [endDate, setEndDate] = useState(getDefaultEndDate());
+  const [startDateInput, setStartDateInput] = useState(getDefaultStartDate());
+  const [endDateInput, setEndDateInput] = useState(getDefaultEndDate());
+  // State for actual filter values (only updated when filter button is clicked)
+  const [startDateFilter, setStartDateFilter] = useState(getDefaultStartDate());
+  const [endDateFilter, setEndDateFilter] = useState(getDefaultEndDate());
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(
+    null
+  );
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
 
-  // Map status tab to API status parameter (single status)
-  const getStatusParam = (statusTab: StatusTab): string | undefined => {
-    if (statusTab === "PENDING") {
-      return "PENDING";
-    } else if (statusTab === "CONFIRMED") {
-      return "PROCESSING";
-    } else if (statusTab === "DELIVERING") {
-      return "DELIVERING";
-    } else if (statusTab === "COMPLETED") {
-      return "COMPLETED";
-    } else if (statusTab === "CANCELLED") {
-      return "CANCELED";
-    }
-    return undefined; // ALL - không gửi status param
+  // Map status tab to API status parameter (multiple statuses)
+  const getStatusParam = (statusTab: StatusTab): string[] | undefined => {
+    const statusMap: Record<StatusTab, string[] | undefined> = {
+      ALL: undefined,
+      PENDING: ["PENDING", "PENDING_PAYMENT"],
+      CONFIRMED: [
+        "PROCESSING",
+        "READY_FOR_PICKUP",
+        "SHIPPED",
+        "ASSIGNED_SHIPPER",
+      ],
+      DELIVERING: ["DELIVERING"],
+      COMPLETED: ["COMPLETED"],
+      CANCELLED: ["FAILED", "CANCELED", "PAYMENT_FAILED"],
+    };
+    return statusMap[statusTab];
   };
 
   // Fetch orders using useQuery
@@ -86,16 +119,16 @@ export default function OrderHistory() {
         currentPage,
         pageSize,
         getStatusParam(activeTab),
-        startDate || undefined,
-        endDate || undefined
+        formatDateForAPI(startDateFilter) || undefined,
+        formatDateForAPI(endDateFilter) || undefined
       ),
     {
       queryKey: [
         "myOrders",
         currentPage.toString(),
         activeTab,
-        startDate,
-        endDate,
+        startDateFilter,
+        endDateFilter,
       ],
       onError: (err) => {
         console.error("Error fetching orders:", err);
@@ -129,36 +162,72 @@ export default function OrderHistory() {
   };
 
   const getStatusBadge = (status: OrderStatus) => {
-    if (["PENDING", "PENDING_PAYMENT"].includes(status)) {
+    if (status === "PENDING") {
       return (
-        <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+        <CustomBadge variant="warning">
           Chờ xác nhận
-        </Badge>
+        </CustomBadge>
       );
-    } else if (["PROCESSING", "READY_FOR_PICKUP", "SHIPPED"].includes(status)) {
+    } else if (status === "PENDING_PAYMENT") {
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-          Đã xác nhận
-        </Badge>
+        <CustomBadge variant="warning">
+          Chờ thanh toán
+        </CustomBadge>
+      );
+    } else if (status === "PROCESSING") {
+      return (
+        <CustomBadge variant="info">
+          Đang xử lý
+        </CustomBadge>
+      );
+    } else if (status === "READY_FOR_PICKUP") {
+      return (
+        <CustomBadge variant="info">
+          Sẵn sàng lấy hàng
+        </CustomBadge>
+      );
+    } else if (status === "SHIPPED") {
+      return (
+        <CustomBadge variant="info">
+          Đã giao cho ĐVVC
+        </CustomBadge>
+      );
+    } else if (status === "ASSIGNED_SHIPPER") {
+      return (
+        <CustomBadge variant="info">
+          Đã phân shipper
+        </CustomBadge>
       );
     } else if (status === "DELIVERING") {
       return (
-        <Badge className="bg-purple-100 text-purple-700 border-purple-300">
-          Đang vận chuyển
-        </Badge>
+        <CustomBadge variant="info">
+          Đang giao hàng
+        </CustomBadge>
       );
     } else if (status === "COMPLETED") {
       return (
-        <Badge className="bg-green-100 text-green-700 border-green-300">
+        <CustomBadge variant="success">
           Hoàn thành
-        </Badge>
+        </CustomBadge>
       );
-    } else if (["FAILED", "CANCELED", "PAYMENT_FAILED"].includes(status)) {
+    } else if (status === "FAILED") {
       return (
-        <Badge className="bg-red-100 text-red-700 border-red-300">Đã hủy</Badge>
+        <CustomBadge variant="error">
+          Giao thất bại
+        </CustomBadge>
+      );
+    } else if (status === "CANCELED") {
+      return (
+        <CustomBadge variant="error">Đã hủy</CustomBadge>
+      );
+    } else if (status === "PAYMENT_FAILED") {
+      return (
+        <CustomBadge variant="error">
+          Thanh toán thất bại
+        </CustomBadge>
       );
     }
-    return <Badge>{status}</Badge>;
+    return <CustomBadge variant="secondary">{status}</CustomBadge>;
   };
 
   const getPaymentMethodLabel = (method: string) => {
@@ -191,91 +260,321 @@ export default function OrderHistory() {
   };
 
   const handleFilter = () => {
-    // Validate date format (dd/MM/yyyy)
-    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-    if (startDate && !dateRegex.test(startDate)) {
-      toast.error("Ngày bắt đầu không đúng định dạng (dd/MM/yyyy)");
-      return;
+    setStartDateFilter(startDateInput);
+    setEndDateFilter(endDateInput);
+    setCurrentPage(1);
+  };
+
+  const openCancelDialog = (orderId: number) => {
+    setOrderToCancel(orderId);
+    setCancelDialogOpen(true);
+  };
+
+  const closeCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setOrderToCancel(null);
+  };
+
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+
+    try {
+      setCancellingOrderId(orderToCancel);
+      await orderService.cancelOrder(orderToCancel);
+      toast.success("Hủy đơn hàng thành công");
+      refetchOrders();
+      closeCancelDialog();
+    } catch (error: any) {
+      console.error("Error cancelling order:", error);
+      const errorMsg =
+        error.response?.data?.message || "Không thể hủy đơn hàng";
+      toast.error(errorMsg);
+    } finally {
+      setCancellingOrderId(null);
     }
-    if (endDate && !dateRegex.test(endDate)) {
-      toast.error("Ngày kết thúc không đúng định dạng (dd/MM/yyyy)");
+  };
+
+  const removeVietnameseTones = (str: string) => {
+    if (!str) return "";
+    str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+    str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+    str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+    str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+    str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+    str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+    str = str.replace(/đ/g, "d");
+    str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+    str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+    str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+    str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+    str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+    str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+    str = str.replace(/Đ/g, "D");
+    return str;
+  };
+
+  const generateAndDownloadInvoicePdf = (order: OrderResponse) => {
+    const doc = new jsPDF();
+
+    // --- CONSTANTS ---
+    const PAGE_WIDTH = doc.internal.pageSize.getWidth();
+    const MARGIN_LEFT = 12;
+    const MARGIN_RIGHT = PAGE_WIDTH - 12;
+    const LINE_HEIGHT = 7;
+    let y = 15;
+
+    // Căn cột bảng
+    const COLS = {
+      STT: MARGIN_LEFT,
+      SAN_PHAM: MARGIN_LEFT + 12,
+      SL: MARGIN_RIGHT - 80,
+      DON_GIA: MARGIN_RIGHT - 40,
+      THANH_TIEN: MARGIN_RIGHT,
+    };
+
+    const SUMMARY_LABEL_X = MARGIN_RIGHT - 65;
+    const SUMMARY_VALUE_X = MARGIN_RIGHT;
+
+    const textNoAccent = (str: string) => removeVietnameseTones(str || "");
+
+    // ======= HEADER =======
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("HOA DON BAN HANG", PAGE_WIDTH / 2, y, { align: "center" });
+    y += LINE_HEIGHT * 2;
+
+    // ======= INFO =======
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+
+    doc.text(`Ma don hang: #${order.id}`, MARGIN_LEFT, y);
+    doc.text(`Ngay dat: ${formatDate(order.orderDate)}`, MARGIN_RIGHT, y, {
+      align: "right",
+    });
+    y += LINE_HEIGHT;
+
+    const statusLabel = textNoAccent(statusConfig[order.status]?.label);
+    doc.text(`Trang thai: ${statusLabel}`, MARGIN_LEFT, y);
+    y += LINE_HEIGHT * 1.2;
+
+    // ======= CUSTOMER =======
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("THONG TIN KHACH HANG", MARGIN_LEFT, y);
+    y += LINE_HEIGHT;
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+
+    doc.text(`Nguoi nhan: ${textNoAccent(order.receiverName)}`, MARGIN_LEFT, y);
+    y += LINE_HEIGHT;
+
+    doc.text(`SDT: ${order.receiverPhone}`, MARGIN_LEFT, y);
+    y += LINE_HEIGHT;
+
+    const addr = textNoAccent(order.receiverAddress);
+    const addrWrap = doc.splitTextToSize(`Dia chi: ${addr}`, PAGE_WIDTH - 24);
+    doc.text(addrWrap, MARGIN_LEFT, y);
+    y += LINE_HEIGHT * addrWrap.length + 4;
+
+    // ======= TABLE HEADER =======
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("CHI TIET DON HANG", MARGIN_LEFT, y);
+    y += LINE_HEIGHT;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.line(MARGIN_LEFT, y - 3, MARGIN_RIGHT, y - 3);
+
+    doc.text("STT", COLS.STT, y + 2);
+    doc.text("San pham", COLS.SAN_PHAM, y + 2);
+    doc.text("SL", COLS.SL, y + 2, { align: "right" });
+    doc.text("Don gia", COLS.DON_GIA, y + 2, { align: "right" });
+    doc.text("Thanh tien", COLS.THANH_TIEN, y + 2, { align: "right" });
+
+    y += 5;
+    doc.line(MARGIN_LEFT, y, MARGIN_RIGHT, y);
+    y += 5;
+
+    doc.setFont("helvetica", "normal");
+
+    // ======= TABLE BODY =======
+    order.orderDetails.forEach((item, index) => {
+      const name = textNoAccent(item.productVariant.productName);
+      const nameWidth = COLS.SL - COLS.SAN_PHAM - 5;
+      const nameLines = doc.splitTextToSize(name, nameWidth);
+
+      doc.text(String(index + 1), COLS.STT, y);
+      doc.text(nameLines, COLS.SAN_PHAM, y);
+
+      doc.text(String(item.quantity), COLS.SL, y, { align: "right" });
+      doc.text(formatPrice(item.price), COLS.DON_GIA, y, { align: "right" });
+      doc.text(formatPrice(item.finalPrice), COLS.THANH_TIEN, y, {
+        align: "right",
+      });
+
+      y += LINE_HEIGHT * nameLines.length;
+    });
+
+    y += 3;
+    doc.line(MARGIN_LEFT, y, MARGIN_RIGHT, y);
+    y += LINE_HEIGHT;
+
+    // ======= SUMMARY =======
+    const shippingFee =
+      order.finalTotalPrice - order.totalPrice + order.totalDiscount;
+
+    doc.setFontSize(11);
+
+    const addSummary = (label: string, value: string) => {
+      doc.text(label, SUMMARY_LABEL_X, y, { align: "right" });
+      doc.text(value, SUMMARY_VALUE_X, y, { align: "right" });
+      y += LINE_HEIGHT;
+    };
+
+    addSummary("Tong tien hang:", formatPrice(order.totalPrice));
+    addSummary("Phi van chuyen:", formatPrice(shippingFee));
+    addSummary("Giam gia:", `-${formatPrice(order.totalDiscount)}`);
+
+    y += 3;
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    addSummary("TONG THANH TOAN:", formatPrice(order.finalTotalPrice));
+
+    doc.save(`HoaDon_${order.id}.pdf`);
+  };
+
+  const handleExportPdf = (order: OrderResponse) => {
+    if (order.status !== "COMPLETED") {
+      toast.error("Chỉ có thể xuất hóa đơn cho đơn hàng đã hoàn thành.");
       return;
     }
 
-    setCurrentPage(1);
-    refetchOrders();
+    try {
+      generateAndDownloadInvoicePdf(order);
+      toast.success("Đã xuất hóa đơn PDF thành công!");
+    } catch (error) {
+      console.error("Lỗi khi xuất PDF:", error);
+      toast.error("Không thể xuất file PDF. Vui lòng thử lại.");
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Lịch sử mua hàng</h1>
-        <p className="text-gray-600">
-          Xem và quản lý tất cả đơn hàng của bạn
-        </p>
-      </div>
-
+      {/* Cancel Order Confirmation Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg">
+                  Xác nhận hủy đơn hàng
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  Bạn có chắc chắn muốn hủy đơn hàng này không?
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Sau khi hủy, đơn hàng sẽ không thể khôi phục lại. Nếu bạn đã thanh
+              toán, số tiền sẽ được hoàn trả theo chính sách của chúng tôi.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={closeCancelDialog}
+              disabled={cancellingOrderId !== null}
+            >
+              Không, giữ lại
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelOrder}
+              disabled={cancellingOrderId !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {cancellingOrderId !== null ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang hủy...
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Xác nhận hủy
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Tabs */}
-      <Card>
-        <CardContent className="p-0">
+      <div>
+        <div className="p-0">
           <div className="flex border-b overflow-x-auto">
             <button
               onClick={() => handleTabChange("ALL")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "ALL"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Tất cả
             </button>
             <button
               onClick={() => handleTabChange("PENDING")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "PENDING"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Chờ xác nhận
             </button>
             <button
               onClick={() => handleTabChange("CONFIRMED")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "CONFIRMED"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đã xác nhận
             </button>
             <button
               onClick={() => handleTabChange("DELIVERING")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "DELIVERING"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đang vận chuyển
             </button>
             <button
               onClick={() => handleTabChange("COMPLETED")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "COMPLETED"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đã giao hàng
             </button>
             <button
               onClick={() => handleTabChange("CANCELLED")}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === "CANCELLED"
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-red-600"
+                  ? "text-red-600 border-b-2 border-red-600 bg-red-50"
+                  : "text-gray-600 hover:text-red-600 hover:bg-gray-50"
               }`}
             >
               Đã hủy
@@ -287,49 +586,44 @@ export default function OrderHistory() {
             <span className="text-sm font-medium text-gray-700">
               Lọc theo ngày:
             </span>
-            <div className="flex items-center gap-2">
-              <Input
-                type="text"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-32 h-9 text-sm"
-                placeholder="dd/MM/yyyy"
-                maxLength={10}
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={startDateInput}
+                onChange={(e) => setStartDateInput(e.target.value)}
+                className="h-10 px-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent cursor-pointer"
               />
               <span className="text-gray-500">→</span>
-              <Input
-                type="text"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-32 h-9 text-sm"
-                placeholder="dd/MM/yyyy"
-                maxLength={10}
+              <input
+                type="date"
+                value={endDateInput}
+                onChange={(e) => setEndDateInput(e.target.value)}
+                className="h-10 px-3 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent cursor-pointer"
               />
               <Button
                 size="sm"
-                variant="outline"
-                className="h-9"
                 onClick={handleFilter}
                 disabled={isLoading}
+                className="h-10 bg-red-600 hover:bg-red-700 text-white"
               >
-                <Calendar className="w-4 h-4 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 Lọc
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Orders List */}
       {isLoading ? (
-        <Card>
+        <div>
           <CardContent className="p-12">
             <div className="flex flex-col items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-4" />
               <p className="text-gray-600">Đang tải lịch sử đơn hàng...</p>
             </div>
           </CardContent>
-        </Card>
+        </div>
       ) : ordersError ? (
         <Alert className="bg-red-50 border-red-200">
           <AlertTitle>Có lỗi xảy ra</AlertTitle>
@@ -372,7 +666,9 @@ export default function OrderHistory() {
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 flex items-center justify-between border-b">
                   <div className="flex items-center gap-4 flex-wrap">
                     <div>
-                      <span className="text-sm text-gray-600">Mã đơn hàng:</span>
+                      <span className="text-sm text-gray-600">
+                        Mã đơn hàng:
+                      </span>
                       <span className="font-bold text-gray-900 ml-2">
                         #WN0{order.id.toString().padStart(10, "0")}
                       </span>
@@ -402,7 +698,9 @@ export default function OrderHistory() {
                               detail.productVariant?.productThumbnail ||
                               "https://via.placeholder.com/80x80?text=No+Image"
                             }
-                            alt={detail.productVariant?.productName || "Sản phẩm"}
+                            alt={
+                              detail.productVariant?.productName || "Sản phẩm"
+                            }
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -418,7 +716,9 @@ export default function OrderHistory() {
                             {detail.productVariant?.productName || "Sản phẩm"}
                           </h4>
                           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                            <span>SKU: {detail.productVariant?.sku || "N/A"}</span>
+                            <span>
+                              SKU: {detail.productVariant?.sku || "N/A"}
+                            </span>
                             {detail.productVariant?.brandName && (
                               <>
                                 <span>•</span>
@@ -428,14 +728,18 @@ export default function OrderHistory() {
                             {detail.productVariant?.categoryName && (
                               <>
                                 <span>•</span>
-                                <span>{detail.productVariant.categoryName}</span>
+                                <span>
+                                  {detail.productVariant.categoryName}
+                                </span>
                               </>
                             )}
                           </div>
                           <div className="flex items-center gap-4 text-sm">
                             <span className="text-gray-600">
                               Số lượng:{" "}
-                              <span className="font-semibold">{detail.quantity}</span>
+                              <span className="font-semibold">
+                                {detail.quantity}
+                              </span>
                             </span>
                             <span className="text-gray-600">
                               Giá:{" "}
@@ -473,7 +777,9 @@ export default function OrderHistory() {
                           </h5>
                           {!order.isPickup && (
                             <p className="text-sm text-gray-600">
-                              <span className="font-medium">{order.receiverName}</span>
+                              <span className="font-medium">
+                                {order.receiverName}
+                              </span>
                               <br />
                               <span>{order.receiverPhone}</span>
                               <br />
@@ -527,7 +833,29 @@ export default function OrderHistory() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-3">
+                    {order.status === "PENDING" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openCancelDialog(order.id)}
+                        className="border-gray-400 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-400"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Hủy đơn hàng
+                      </Button>
+                    )}
+                    {order.status === "COMPLETED" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportPdf(order)}
+                        className="border-purple-600 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                      >
+                        <FileDown className="w-4 h-4 mr-2" />
+                        Xuất hóa đơn
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -571,18 +899,13 @@ export default function OrderHistory() {
                   onClick={() => handlePageChange(page)}
                   disabled={isLoading}
                   className={
-                    page === currentPage
-                      ? "bg-red-600 hover:bg-red-700"
-                      : ""
+                    page === currentPage ? "bg-red-600 hover:bg-red-700" : ""
                   }
                 >
                   {page}
                 </Button>
               );
-            } else if (
-              page === currentPage - 2 ||
-              page === currentPage + 2
-            ) {
+            } else if (page === currentPage - 2 || page === currentPage + 2) {
               return (
                 <span key={page} className="px-2 text-gray-400">
                   ...

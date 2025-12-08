@@ -2,6 +2,7 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.product.ProductAddRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductAttributeRequest;
+import iuh.fit.ecommerce.dtos.request.product.ProductUpdateRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductVariantPromotionRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductVariantRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
@@ -26,8 +27,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
     private final AttributeService attributeService;
     private final VariantValueService variantValueService;
     private final PromotionService promotionService;
+    private final UploadService uploadService;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
@@ -45,6 +49,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductAttributeValueRepository productAttributeValueRepository;
     private final ProductFilterValueRepository productFilterValueRepository;
     private final FilterValueRepository filterValueRepository;
+    private final ProductImageRepository productImageRepository;
     private final VectorStoreService vectorStoreService;
     private final ProductSearchService productSearchService;
 
@@ -107,41 +112,209 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             return null;
         }
-
-        ProductResponse response = productMapper.toResponse(product);
-        List<ProductVariant> variants = product.getProductVariants();
-        if (variants == null || variants.isEmpty()) return response;
-
-        Map<Long, List<Promotion>>  promosByVariant = promotionService.getPromotionsGroupByVariantId(variants, product);
-
-        Map<Long, ProductVariant> variantMap = variants.stream()
-                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
-
-        for (ProductVariantResponse v : response.getVariants()) {
-            ProductVariant entityVariant = variantMap.get(v.getId());
-            if (entityVariant == null) continue;
-
-            Double originalPrice = promotionService.calculateOriginalPrice(entityVariant);
-            v.setOldPrice(originalPrice);
-
-            Promotion bestPromo = promotionService.getBestPromotion(entityVariant, promosByVariant);
-
-            if (bestPromo != null) {
-                Double finalPrice = promotionService.calculateDiscountPrice(entityVariant, bestPromo);
-                v.setPrice(finalPrice);
-                v.setDiscount(bestPromo.getDiscount());
-            } else {
-                v.setPrice(originalPrice);
-                v.setDiscount(0.0);
-            }
-        }
-
-        return response;
+        return promotionService.addPromotionToProductResponseByProduct( product);
     }
 
     @Override
-    public ProductResponse updateProductById(Long id) {
-        return null;
+    @Transactional
+    public ProductResponse updateProduct(Long id, ProductUpdateRequest request) {
+        Product product = getProductEntityById(id);
+        
+        // Check if name changed and new name already exists
+        if (!product.getName().equals(request.getName()) && 
+            productRepository.existsByName(request.getName())) {
+            throw new ConflictException("Product name already exists with name: " + request.getName());
+        }
+        
+        // Xóa thumbnail cũ trên MinIO nếu có thay đổi
+        String oldThumbnail = product.getThumbnail();
+        String newThumbnail = request.getThumbnail();
+        if (oldThumbnail != null && !oldThumbnail.isEmpty() 
+            && !oldThumbnail.equals(newThumbnail)) {
+            try {
+                uploadService.deleteFile(oldThumbnail);
+            } catch (Exception e) {
+                // Log lỗi nhưng không throw để không block việc update
+            }
+        }
+        
+        // Update basic info
+        product.setName(request.getName());
+        product.setSpu(request.getSpu());
+        product.setDescription(request.getDescription());
+        product.setThumbnail(request.getThumbnail());
+        product.setStatus(request.isStatus());
+        product.setSlug(StringUtils.normalizeString(request.getName()));
+        
+        // Update brand and category
+        Brand brand = brandService.getBrandEntityById(request.getBrandId());
+        Category category = categoryService.getCategoryEntityById(request.getCategoryId());
+        product.setBrand(brand);
+        product.setCategory(category);
+        
+        // Update product images
+        updateProductImages(product, request.getProductImages());
+        
+        // Update attributes
+        updateAttributes(product, request.getAttributes());
+        
+        // Update variants
+        updateVariants(product, request.getVariants());
+        
+        // Update filter values
+        updateFilterValues(product, request.getFilterValueIds());
+        
+        productRepository.save(product);
+        
+        // Re-index to Elasticsearch
+        Product savedProduct = productRepository.findById(product.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found after update"));
+        productSearchService.indexProduct(savedProduct);
+        
+        return productMapper.toResponse(savedProduct);
+    }
+    
+    @Override
+    @Transactional
+    public void changeStatusProduct(Long id) {
+        Product product = getProductEntityById(id);
+        product.setStatus(!product.getStatus());
+        productRepository.save(product);
+        
+        // Re-index to Elasticsearch
+        productSearchService.indexProduct(product);
+    }
+    
+    private void updateProductImages(Product product, List<String> newImageUrls) {
+        List<String> oldImageUrls = product.getProductImages().stream()
+                .map(ProductImage::getUrl)
+                .toList();
+        
+        List<String> imagesToDelete = oldImageUrls.stream()
+                .filter(oldUrl -> !newImageUrls.contains(oldUrl))
+                .toList();
+        
+        for (String urlToDelete : imagesToDelete) {
+            try {
+                uploadService.deleteFile(urlToDelete);
+            } catch (Exception e) {
+                // Log but don't throw
+            }
+        }
+        
+        // Xóa từng image cũ thay vì clear() để tránh orphan removal issue
+        product.getProductImages().removeIf(img -> !newImageUrls.contains(img.getUrl()));
+        
+        // Thêm các image mới (chưa có trong list hiện tại)
+        Set<String> existingUrls = product.getProductImages().stream()
+                .map(ProductImage::getUrl)
+                .collect(Collectors.toSet());
+        
+        for (String url : newImageUrls) {
+            if (!existingUrls.contains(url)) {
+                ProductImage newImage = ProductImage.builder()
+                        .url(url)
+                        .product(product)
+                        .build();
+                product.getProductImages().add(newImage);
+            }
+        }
+    }
+    
+    private void updateAttributes(Product product, List<ProductAttributeRequest> newAttributes) {
+        if (newAttributes == null || newAttributes.isEmpty()) {
+            return;
+        }
+        
+        // Delete existing attributes
+        productAttributeValueRepository.deleteByProductId(product.getId());
+        
+        // Create new attributes
+        for (ProductAttributeRequest req : newAttributes) {
+            ProductAttributeValue attributeValue = ProductAttributeValue.builder()
+                    .value(req.getValue())
+                    .product(product)
+                    .status(true)
+                    .attribute(attributeService.getAttributeEntityById(req.getAttributeId()))
+                    .build();
+            productAttributeValueRepository.save(attributeValue);
+        }
+    }
+    
+    private void updateVariants(Product product, List<ProductVariantRequest> newVariants) {
+        if (newVariants == null || newVariants.isEmpty()) {
+            return;
+        }
+        
+        // Get existing variant SKUs to preserve IDs
+        Map<String, ProductVariant> existingVariantsBySku = product.getProductVariants().stream()
+                .collect(Collectors.toMap(ProductVariant::getSku, v -> v, (v1, v2) -> v1));
+        
+        // Track which variants should remain
+        Set<Long> variantIdsToKeep = new HashSet<>();
+        
+        for (ProductVariantRequest req : newVariants) {
+            String newSku = generateSku(product.getSpu(), req.getVariantValueIds());
+            
+            if (existingVariantsBySku.containsKey(newSku)) {
+                // Update existing variant
+                ProductVariant existingVariant = existingVariantsBySku.get(newSku);
+                existingVariant.setPrice(req.getPrice());
+                existingVariant.setStock(req.getStock());
+                productVariantRepository.save(existingVariant);
+                variantIdsToKeep.add(existingVariant.getId());
+                
+                // Re-index variant
+                vectorStoreService.indexProductVariant(existingVariant);
+            } else {
+                // Create new variant
+                ProductVariant variant = ProductVariant.builder()
+                        .price(req.getPrice())
+                        .sku(newSku)
+                        .stock(req.getStock())
+                        .product(product)
+                        .build();
+                productVariantRepository.save(variant);
+                saveVariantValues(req.getVariantValueIds(), variant);
+                variantIdsToKeep.add(variant.getId());
+                
+                // Index new variant
+                ProductVariant savedVariant = productVariantRepository.findById(variant.getId())
+                        .orElse(variant);
+                vectorStoreService.indexProductVariant(savedVariant);
+            }
+        }
+        
+        // Delete variants that are no longer needed
+        List<ProductVariant> variantsToDelete = product.getProductVariants().stream()
+                .filter(v -> !variantIdsToKeep.contains(v.getId()))
+                .toList();
+        
+        for (ProductVariant variantToDelete : variantsToDelete) {
+            // Delete variant values first
+            productVariantValueRepository.deleteByProductVariantId(variantToDelete.getId());
+            // Remove from product's collection
+            product.getProductVariants().remove(variantToDelete);
+            // Delete from database
+            productVariantRepository.delete(variantToDelete);
+        }
+    }
+    
+    private void updateFilterValues(Product product, List<Long> newFilterValueIds) {
+        // Delete existing filter values
+        productFilterValueRepository.deleteByProductId(product.getId());
+        
+        // Save new filter values
+        if (newFilterValueIds != null && !newFilterValueIds.isEmpty()) {
+            List<FilterValue> filterValues = filterValueRepository.findAllById(newFilterValueIds);
+            for (FilterValue filterValue : filterValues) {
+                ProductFilterValue productFilterValue = ProductFilterValue.builder()
+                        .product(product)
+                        .filterValue(filterValue)
+                        .build();
+                productFilterValueRepository.save(productFilterValue);
+            }
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { DeliveryDetailDialog, DeliveryTable } from "@/components/shipper";
 import { useQuery, useMutation } from "@/hooks";
 import { deliveryAssignmentService } from "@/services/delivery-assignment.service";
+import { useDeliveryWebSocket } from "@/hooks/useDeliveryWebSocket";
 import type {
   DeliveryAssignment,
   DeliveryAssignmentListResponse,
@@ -26,6 +27,14 @@ export default function Deliveries() {
   );
 
   const allDeliveries = deliveriesData?.data || [];
+
+  // WebSocket for real-time delivery updates
+  useDeliveryWebSocket({
+    onDeliveryNotification: () => {
+      refetchDeliveries();
+    },
+    enabled: true,
+  });
 
   // Start delivery mutation
   const startDeliveryMutation = useMutation(

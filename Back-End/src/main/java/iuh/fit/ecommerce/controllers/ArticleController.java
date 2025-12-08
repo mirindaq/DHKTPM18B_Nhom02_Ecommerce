@@ -55,7 +55,23 @@ public class ArticleController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticles(
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticlesForCustomer(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "7") int limit,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) LocalDate createdDate) {
+
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get Articles success",
+                articleService.getAllArticlesForCustomer(page, limit, title, categoryId, createdDate)
+        ));
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<ArticleResponse>>>> getAllArticlesForAdmin(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "7") int limit,
             @RequestParam(required = false) Boolean status,
@@ -66,7 +82,7 @@ public class ArticleController {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get Articles success",
-                articleService.getAllArticles(page, limit, status, title, categoryId, createdDate)
+                articleService.getAllArticlesForAdmin(page, limit, status, title, categoryId, createdDate)
         ));
     }
 

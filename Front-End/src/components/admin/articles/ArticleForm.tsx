@@ -2,11 +2,21 @@ import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { uploadService } from "@/services/upload.service";
+import { toast } from "sonner";
 import type { Article, CreateArticleRequest } from "@/types/article.type";
-import type { ArticleCategoryListResponse } from "@/types/article-category.type";
+import type {
+  ArticleCategoryListResponse,
+  ArticleCategory,
+} from "@/types/article-category.type";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import Quill from "quill";
 import FileUpload from "@/components/ui/FileUpload";
@@ -15,6 +25,7 @@ import { useQuery } from "@/hooks";
 
 interface Props {
   article?: Article | null;
+  categories?: ArticleCategory[];
   onSubmit: (data: CreateArticleRequest) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -22,13 +33,15 @@ interface Props {
 
 export default function ArticleForm({
   article,
+  categories: _externalCategories,
   onSubmit,
   onCancel,
   isLoading,
 }: Props) {
   const quillRef = useRef<Quill | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedThumbnailFile, setSelectedThumbnailFile] = useState<File | null>(null);
+  const [selectedThumbnailFile, setSelectedThumbnailFile] =
+    useState<File | null>(null);
   const [previewThumbnailUrl, setPreviewThumbnailUrl] = useState<string>("");
 
   const [formData, setFormData] = useState<CreateArticleRequest>({
@@ -39,25 +52,23 @@ export default function ArticleForm({
     content: "",
   });
 
-  const {
-    data: categoriesData,
-    isLoading: isLoadingCategories
-  } = useQuery<ArticleCategoryListResponse>(
-    () => articleCategoryService.getCategories(1, 9999, ""),
+  const { data: categoriesData, isLoading: isLoadingCategories } =
+    useQuery<ArticleCategoryListResponse>(
+      () => articleCategoryService.getCategories(1, 9999, ""),
 
-    {
-      queryKey: ['categories'],
-    }
-  )
+      {
+        queryKey: ["categories"],
+      }
+    );
 
-  const categories = categoriesData?.data?.data || []
+  const categories = categoriesData?.data?.data || [];
 
   // Nếu có dữ liệu bài viết -> nạp vào formData
   useEffect(() => {
     if (!categories.length) return;
 
     if (article) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         title: article.title,
         thumbnail: article.thumbnail || "",
@@ -67,7 +78,7 @@ export default function ArticleForm({
       }));
       setPreviewThumbnailUrl(article.thumbnail || "");
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         articleCategoryId: 0,
       }));
@@ -105,10 +116,19 @@ export default function ArticleForm({
       try {
         setIsUploading(true);
         const response = await uploadService.uploadImage([selectedThumbnailFile]);
-        const url = response?.data?.[0];
-        if (url) thumbnailUrl = url;
+        if (response?.data && response.data.length > 0) {
+          thumbnailUrl = response.data[0];
+        } else {
+          console.error("Upload ảnh thất bại: Không nhận được URL");
+          toast.error("Không thể tải ảnh lên. Vui lòng thử lại.");
+          setIsUploading(false);
+          return;
+        }
       } catch (error) {
         console.error("Upload ảnh thất bại:", error);
+        toast.error("Không thể tải ảnh lên. Vui lòng thử lại.");
+        setIsUploading(false);
+        return;
       } finally {
         setIsUploading(false);
       }
@@ -153,11 +173,15 @@ export default function ArticleForm({
             <div>
               <Label className="font-medium mb-2">Danh mục</Label>
               <Select
-                value={formData.articleCategoryId ? String(formData.articleCategoryId) : ""}
+                value={
+                  formData.articleCategoryId
+                    ? String(formData.articleCategoryId)
+                    : ""
+                }
                 onValueChange={(value) =>
-                  setFormData(prev => ({
+                  setFormData((prev) => ({
                     ...prev,
-                    articleCategoryId: Number(value)
+                    articleCategoryId: Number(value),
                   }))
                 }
                 disabled={isLoading || isLoadingCategories}
@@ -246,11 +270,7 @@ export default function ArticleForm({
           Hủy
         </Button>
         <Button type="submit" disabled={isLoading || isUploading}>
-          {isLoading
-            ? "Đang xử lý..."
-            : article
-              ? "Cập nhật"
-              : "Thêm mới"}
+          {isLoading ? "Đang xử lý..." : article ? "Cập nhật" : "Thêm mới"}
         </Button>
       </div>
     </form>

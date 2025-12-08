@@ -71,11 +71,29 @@ spring:
           api-key: ${GEMINI_KEY}
     vectorstore:
       qdrant:
-        host: localhost
+        host: ${QDRANT_HOST:localhost}
         port: 6334
         collection-name: ecomstore
         use-tls: false
         initialize-schema: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+        shutdown-timeout: 200ms
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 payment:
   vnPay:
@@ -87,11 +105,11 @@ payment:
     command: pay
     orderType: other
   pay_os:
-    client-id: 123
-    api-key: 123
-    checksum-key: 123
-    return-url: 123
-    cancel-url: 123
+    client-id: ${PAY_OS_CLIENT_ID}
+    api-key: ${PAY_OS_API_KEY}
+    checksum-key: ${PAY_OS_CHECKSUM_KEY}
+    return-url: ${PAY_OS_RETURN_URL}
+    cancel-url: ${PAY_OS_CANCEL_URL}
 
 cloudinary:
   url: ${CLOUDINARY_URL}
@@ -104,3 +122,10 @@ app:
 
 domain:
   frontend: ${DOMAIN_FRONTEND}
+  frontend-staff: ${DOMAIN_FRONTEND_STAFF}
+
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket-name: ${MINIO_BUCKET_NAME}

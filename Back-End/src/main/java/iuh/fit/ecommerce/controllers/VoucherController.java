@@ -65,11 +65,23 @@ public class VoucherController {
 
     @GetMapping("/available")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<ResponseSuccess<List<VoucherAvailableResponse>>> getAvailableVouchers( ) {
+    public ResponseEntity<ResponseSuccess<List<VoucherAvailableResponse>>> getAvailableVouchers() {
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get available vouchers success",
                 voucherService.getAvailableVouchersForCustomer()
+        ));
+    }
+
+    @GetMapping("/available/{customerId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ResponseSuccess<List<VoucherAvailableResponse>>> getAvailableVouchersForCustomer(
+            @PathVariable Long customerId
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get available vouchers for customer success",
+                voucherService.getAvailableVouchersForCustomerById(customerId)
         ));
     }
 

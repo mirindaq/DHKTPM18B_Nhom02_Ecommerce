@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.services.impl;
 
 
+import iuh.fit.ecommerce.entities.Order;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.services.EmailService;
 import jakarta.mail.MessagingException;
@@ -17,6 +18,7 @@ import org.thymeleaf.context.Context;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class EmailServiceImpl implements EmailService {
     public static final String UTF_8_ENCODING = "UTF-8";
     private final JavaMailSender mailSender;
@@ -53,6 +55,40 @@ public class EmailServiceImpl implements EmailService {
             }
         } catch (Exception exception) {
             throw new RuntimeException("Có lỗi xảy ra khi gửi email OTP: " + exception.getMessage());
+        }
+    }
+
+    @Override
+    @Async("taskExecutor")
+    public void sendOrderConfirmation(String to, Order order) {
+        try {
+            Context context = new Context();
+            context.setVariable("order", order);
+            context.setVariable("orderDetails", order.getOrderDetails());
+            
+            String text = templateEngine.process("order-confirmation-template", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, UTF_8_ENCODING);
+
+            helper.setPriority(1);
+            helper.setSubject("Xác nhận đơn hàng #" + order.getId() + " - Cảm ơn bạn đã mua hàng!");
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setText(text, true);
+
+            mailSender.send(message);
+            log.info("Order confirmation email sent to: {}", to);
+        } catch (MessagingException exception) {
+            log.error("Failed to send order confirmation email to {}: {}", to, exception.getMessage());
+            if (exception.getMessage().contains("Recipient address rejected")) {
+                throw new RuntimeException("Địa chỉ email không tồn tại");
+            } else {
+                throw new RuntimeException("Không thể gửi email xác nhận đơn hàng: " + exception.getMessage());
+            }
+        } catch (Exception exception) {
+            log.error("Error sending order confirmation email to {}: {}", to, exception.getMessage());
+            // Don't throw exception to prevent order creation failure
         }
     }
 }

@@ -41,7 +41,7 @@ public class User extends  BaseEntity implements UserDetails {
     @JsonIgnore
     private String password;
 
-    @Column
+    @Column(unique = true)
     private String phone;
 
     @Column

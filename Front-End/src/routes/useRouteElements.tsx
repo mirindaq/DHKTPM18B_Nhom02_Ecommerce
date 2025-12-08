@@ -18,6 +18,7 @@ import Variants from "@/pages/admin/Variants";
 import Staffs from "@/pages/admin/Staff";
 import Home from "@/pages/user/Home";
 import ProductDetail from "@/pages/user/ProductDetail";
+import ProductReviews from "@/pages/user/ProductReviews";
 import Cart from "@/pages/user/Cart";
 import Checkout from "@/pages/user/Checkout";
 import Profile from "@/pages/user/Profile";
@@ -41,10 +42,9 @@ import Promotions from "@/pages/admin/Promotions";
 import Vouchers from "@/pages/admin/Vouchers";
 import VoucherForm from "@/pages/admin/VoucherForm";
 import UserRegister from "@/pages/auth/UserRegister";
-import ArticleLayout from "@/layouts/ArticleLayout";
-import ArticleHomePage from "@/components/user/ArticleHomePage";
-import ArticleDetailPage from "@/components/user/ArticleDetailPage";
-import ArticleCategoryPage from "@/components/user/ArticleCategoryPage";
+import News from "@/pages/user/News";
+import NewsDetail from "@/pages/user/NewsDetail";
+import NewsCategory from "@/pages/user/NewsCategory";
 import ArticleSearch from "@/pages/user/ArticleSearch";
 import SearchWithCategory from "@/pages/user/SearchWithCategory";
 import Search from "@/pages/user/Search";
@@ -56,11 +56,17 @@ import StaffDashboard from "@/pages/staff/StaffDashboard";
 import StaffAssignDelivery from "@/pages/staff/StaffAssignDelivery";
 import ShipperDashboard from "@/pages/shipper/ShipperDashboard";
 import Deliveries from "@/pages/shipper/Deliveries";
-import CategoryBrandAssignmentPage from "@/pages/admin/CategoryBrandAssignment";
+import CategoryAssignmentPage from "@/pages/admin/CategoryAssignment";
+import Carts from "@/pages/admin/Carts";
 import FilterCriterias from "@/pages/admin/FilterCriterias";
 import Address from "@/pages/user/Address";
 import MyWishlist from "@/pages/user/MyWishlist";
 import CustomerChat from "@/pages/user/CustomerChat";
+import MyVouchers from "@/pages/user/MyVouchers";
+import EditProfile from "@/pages/user/EditProfile";
+import GuaranteePolicy from "@/pages/user/GuaranteePolicy";
+import TermsOfUse from "@/pages/user/TermsOfUse";
+import WarrantyPolicy from "@/pages/user/WarrantyPolicy";
 import ChatManagement from "@/pages/admin/ChatManagement";
 import StaffLogin from "@/pages/auth/StaffLogin";
 import ShipperLogin from "@/pages/auth/ShipperLogin";
@@ -77,6 +83,10 @@ import AddPromotion from "@/pages/admin/AddPromotion";
 import PurchaseOrders from "@/pages/admin/PurchaseOrders";
 import AddPurchaseOrder from "@/pages/admin/AddPurchaseOrder";
 import PurchaseOrderDetail from "@/pages/admin/PurchaseOrderDetail";
+import Banners from "@/pages/admin/Banner";
+import StaffSell from "@/pages/staff/StaffSell";
+import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
+import Suppliers from "@/pages/admin/Suppliers";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -94,6 +104,7 @@ const useRouteElements = () => {
       children: [
         { index: true, element: <Home /> },
         { path: "product/:slug", element: <ProductDetail /> },
+        { path: "product/:slug/reviews", element: <ProductReviews /> },
         { path: "search/:slug", element: <SearchWithCategory /> },
         { path: "search", element: <Search /> },
         {
@@ -140,41 +151,24 @@ const useRouteElements = () => {
             { path: "wishlist", element: <MyWishlist /> },
             { path: "orders", element: <OrderHistory /> },
             { path: "orders/:id", element: <OrderDetail /> },
+            { path: "vouchers", element: <MyVouchers /> },
+            { path: "edit", element: <EditProfile /> },
+            { path: "guarantee-policy", element: <GuaranteePolicy /> },
+            { path: "terms", element: <TermsOfUse /> },
+            { path: "warranty-policy", element: <WarrantyPolicy /> },
+          ],
+        },
+        // News/Article routes - moved to UserLayout
+        {
+          path: "news",
+          children: [
+            { index: true, element: <News /> },
+            { path: "search", element: <ArticleSearch /> },
+            { path: "article/:slug", element: <NewsDetail /> },
+            { path: "category/:slug", element: <NewsCategory /> },
           ],
         },
       ],
-    },
-
-    // Article routes
-    {
-      path: "/sforum",
-      element: (
-        <RoleBasedAuthWrapper>
-          <ArticleLayout />
-        </RoleBasedAuthWrapper>
-      ),
-      children: [
-        { index: true, element: <ArticleHomePage /> },
-        { path: "search", element: <ArticleSearch /> },
-      ],
-    },
-    {
-      path: "/article/:slug",
-      element: (
-        <RoleBasedAuthWrapper>
-          <ArticleLayout />
-        </RoleBasedAuthWrapper>
-      ),
-      children: [{ index: true, element: <ArticleDetailPage /> }],
-    },
-    {
-      path: "/category/:slug",
-      element: (
-        <RoleBasedAuthWrapper>
-          <ArticleLayout />
-        </RoleBasedAuthWrapper>
-      ),
-      children: [{ index: true, element: <ArticleCategoryPage /> }],
     },
 
     // Auth routes
@@ -239,7 +233,9 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.VARIANTS, element: <Variants /> },
         { path: ADMIN_PATH.CATEGORIES, element: <Categories /> },
         { path: ADMIN_PATH.BRANDS, element: <Brands /> },
+        { path: ADMIN_PATH.BANNERS, element: <Banners /> },
         { path: ADMIN_PATH.CUSTOMERS, element: <Customers /> },
+        { path: ADMIN_PATH.SUPPLIERS, element: <Suppliers /> },
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
@@ -255,8 +251,8 @@ const useRouteElements = () => {
         { path: "/admin/articles/edit/:id", element: <EditArticle /> },
         { path: ADMIN_PATH.ARTICLE_CATEGORIES, element: <ArticleCategories /> },
         {
-          path: "category-brand-assignment",
-          element: <CategoryBrandAssignmentPage />,
+          path: "category-assignment",
+          element: <CategoryAssignmentPage />,
         },
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
@@ -264,6 +260,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.PURCHASE_ORDERS, element: <PurchaseOrders /> },
         { path: ADMIN_PATH.PURCHASE_ORDER_ADD, element: <AddPurchaseOrder /> },
         { path: "/admin/purchase-orders/:id", element: <PurchaseOrderDetail /> },
+        { path: ADMIN_PATH.CARTS, element: <Carts /> },
       ],
     },
 
@@ -282,6 +279,9 @@ const useRouteElements = () => {
         { path: STAFF_PATH.CUSTOMERS, element: <Customers /> },
         { path: STAFF_PATH.CHAT, element: <ChatManagement /> },
         { path: STAFF_PATH.ASSIGN_DELIVERY, element: <StaffAssignDelivery /> },
+        { path: STAFF_PATH.SELL, element: <StaffSell /> },
+        { path: STAFF_PATH.PAYMENT_STATUS, element: <StaffPaymentStatus /> },
+        { path: STAFF_PATH.CARTS, element: <Carts /> },
       ],
     },
 

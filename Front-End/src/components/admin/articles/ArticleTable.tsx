@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Edit, Loader2, PowerOff, Power, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Article } from "@/types/article.type";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 
 interface Props {
   articles: Article[];
@@ -100,13 +100,13 @@ export default function ArticleTable({ articles, onEdit, onToggleStatus, isLoadi
                   <TableCell>{a.staffName}</TableCell>
                   <TableCell>{formatDate(a.createdAt)}</TableCell>
                   <TableCell>
-                    <Badge variant={a.status ? "default" : "secondary"} className={
+                    <CustomBadge variant={a.status ? "success" : "secondary"} className={
                       a.status
                         ? "bg-green-100 text-green-800 border-green-200"
                         : "bg-gray-100 text-gray-800 border-gray-200"
                     }>
                       {a.status ? "Hiển thị" : "Ẩn"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell>
                     <Button

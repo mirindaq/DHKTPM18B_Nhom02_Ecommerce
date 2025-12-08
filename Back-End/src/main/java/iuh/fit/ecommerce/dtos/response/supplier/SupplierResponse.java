@@ -1,11 +1,11 @@
 package iuh.fit.ecommerce.dtos.response.supplier;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+import java.time.LocalDateTime;
+
+@Data
 @Builder
 public class SupplierResponse {
     private Long id;
@@ -13,4 +13,6 @@ public class SupplierResponse {
     private String phone;
     private String address;
     private Boolean status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

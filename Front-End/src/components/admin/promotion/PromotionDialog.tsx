@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   Select,
   SelectContent,
@@ -28,43 +28,55 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { 
-  Tag, 
-  Calendar, 
-  Percent, 
-  Target, 
-  Star, 
-  ToggleLeft, 
+import {
+  Tag,
+  Calendar,
+  Percent,
+  Target,
+  Star,
+  ToggleLeft,
   ToggleRight,
   Package,
   ShoppingCart,
   Layers,
-  Folder
+  Folder,
 } from "lucide-react";
-import type { PromotionSummary, CreatePromotionRequest, UpdatePromotionRequest } from "@/types/promotion.type";
+import type {
+  PromotionSummary,
+  CreatePromotionRequest,
+  UpdatePromotionRequest,
+} from "@/types/promotion.type";
 import { categoryService } from "@/services/category.service";
 import type { Category } from "@/types/category.type";
 
-const promotionSchema = z.object({
-  name: z.string().min(1, "Tên chương trình là bắt buộc"),
-  description: z.string().optional(),
-  type: z.enum(["PRODUCT_VARIANT", "ORDER", "PRODUCT", "CATEGORY"]),
-  discountType: z.enum(["PERCENTAGE", "FIXED_AMOUNT"]),
-  discountValue: z.number().min(0, "Giá trị giảm giá phải lớn hơn 0"),
-  active: z.boolean(),
-  priority: z.number().min(1, "Độ ưu tiên phải lớn hơn 0"),
-  startDate: z.string().min(1, "Ngày bắt đầu là bắt buộc"),
-  endDate: z.string().min(1, "Ngày kết thúc là bắt buộc"),
-  selectedCategoryIds: z.array(z.number()).optional(),
-}).refine((data) => {
-  if (data.type === "CATEGORY" && (!data.selectedCategoryIds || data.selectedCategoryIds.length === 0)) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Vui lòng chọn ít nhất một danh mục",
-  path: ["selectedCategoryIds"],
-});
+const promotionSchema = z
+  .object({
+    name: z.string().min(1, "Tên chương trình là bắt buộc"),
+    description: z.string().optional(),
+    type: z.enum(["PRODUCT_VARIANT", "ORDER", "PRODUCT", "CATEGORY"]),
+    discountType: z.enum(["PERCENTAGE", "FIXED_AMOUNT"]),
+    discountValue: z.number().min(0, "Giá trị giảm giá phải lớn hơn 0"),
+    active: z.boolean(),
+    priority: z.number().min(1, "Độ ưu tiên phải lớn hơn 0"),
+    startDate: z.string().min(1, "Ngày bắt đầu là bắt buộc"),
+    endDate: z.string().min(1, "Ngày kết thúc là bắt buộc"),
+    selectedCategoryIds: z.array(z.number()).optional(),
+  })
+  .refine(
+    (data) => {
+      if (
+        data.type === "CATEGORY" &&
+        (!data.selectedCategoryIds || data.selectedCategoryIds.length === 0)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Vui lòng chọn ít nhất một danh mục",
+      path: ["selectedCategoryIds"],
+    }
+  );
 
 type PromotionFormData = z.infer<typeof promotionSchema>;
 
@@ -120,16 +132,20 @@ export default function PromotionDialog({
       form.reset({
         name: promotion.name,
         description: promotion.description || "",
-        type: promotion.type as "PRODUCT_VARIANT" | "ORDER" | "PRODUCT" | "CATEGORY",
+        type: promotion.type as
+          | "PRODUCT_VARIANT"
+          | "ORDER"
+          | "PRODUCT"
+          | "CATEGORY",
         discountType: promotion.discountType as "PERCENTAGE" | "FIXED_AMOUNT",
         discountValue: promotion.discountValue,
         active: promotion.active,
         priority: promotion.priority,
-        startDate: promotion.startDate.split('T')[0],
-        endDate: promotion.endDate.split('T')[0],
+        startDate: promotion.startDate.split("T")[0],
+        endDate: promotion.endDate.split("T")[0],
         selectedCategoryIds: [],
       });
-      setSelectedType(promotion.type);
+      setSelectedType(promotion.type || promotion.promotionType || "ORDER");
     } else {
       form.reset({
         name: "",
@@ -149,22 +165,32 @@ export default function PromotionDialog({
 
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
-    form.setValue("type", value as "PRODUCT_VARIANT" | "ORDER" | "PRODUCT" | "CATEGORY");
+    form.setValue(
+      "type",
+      value as "PRODUCT_VARIANT" | "ORDER" | "PRODUCT" | "CATEGORY"
+    );
   };
 
   const handleSubmit = (data: PromotionFormData) => {
     // Tạo targets array nếu cần
-    const targets = data.type === "CATEGORY" && data.selectedCategoryIds && data.selectedCategoryIds.length > 0
-      ? data.selectedCategoryIds.map(categoryId => ({ categoryId }))
-      : undefined;
+    const targets =
+      data.type === "CATEGORY" &&
+      data.selectedCategoryIds &&
+      data.selectedCategoryIds.length > 0
+        ? data.selectedCategoryIds.map((categoryId) => ({ categoryId }))
+        : undefined;
 
     const submitData = {
       ...data,
       targets,
+      // Map to new API properties
+      promotionType: data.type as any,
+      discount: data.discountValue,
     };
 
     // Loại bỏ selectedCategoryIds khỏi data gửi lên API
-    const { selectedCategoryIds, ...apiData } = submitData;
+    const { selectedCategoryIds: _selectedCategoryIds, ...apiData } =
+      submitData;
     onSubmit(apiData);
   };
 
@@ -185,7 +211,10 @@ export default function PromotionDialog({
       PRODUCT_VARIANT: "bg-purple-100 text-purple-700 border-purple-200",
       CATEGORY: "bg-orange-100 text-orange-700 border-orange-200",
     };
-    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-700 border-gray-200";
+    return (
+      colors[type as keyof typeof colors] ||
+      "bg-gray-100 text-gray-700 border-gray-200"
+    );
   };
 
   return (
@@ -198,17 +227,24 @@ export default function PromotionDialog({
             </div>
             <div>
               <h2 className="font-bold">
-                {promotion ? "Chỉnh sửa chương trình khuyến mãi" : "Tạo chương trình khuyến mãi mới"}
+                {promotion
+                  ? "Chỉnh sửa chương trình khuyến mãi"
+                  : "Tạo chương trình khuyến mãi mới"}
               </h2>
               <p className="text-sm text-gray-600 font-normal">
-                {promotion ? "Cập nhật thông tin chương trình khuyến mãi" : "Thiết lập chương trình khuyến mãi cho sản phẩm"}
+                {promotion
+                  ? "Cập nhật thông tin chương trình khuyến mãi"
+                  : "Thiết lập chương trình khuyến mãi cho sản phẩm"}
               </p>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Form chính - gộp tất cả vào 1 card */}
             <Card>
               <CardHeader className="pb-4">
@@ -237,8 +273,8 @@ export default function PromotionDialog({
                             Tên chương trình *
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Nhập tên chương trình..." 
+                            <Input
+                              placeholder="Nhập tên chương trình..."
                               {...field}
                               className="h-11"
                             />
@@ -257,7 +293,10 @@ export default function PromotionDialog({
                             <Target className="h-4 w-4" />
                             Loại khuyến mãi *
                           </FormLabel>
-                          <Select onValueChange={handleTypeChange} value={selectedType}>
+                          <Select
+                            onValueChange={handleTypeChange}
+                            value={selectedType}
+                          >
                             <FormControl>
                               <SelectTrigger className="h-11">
                                 <SelectValue placeholder="Chọn loại khuyến mãi" />
@@ -303,8 +342,8 @@ export default function PromotionDialog({
                       <FormItem>
                         <FormLabel>Mô tả chương trình</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi..." 
+                          <Textarea
+                            placeholder="Nhập mô tả chi tiết về chương trình khuyến mãi..."
                             {...field}
                             className="min-h-[80px]"
                           />
@@ -331,7 +370,10 @@ export default function PromotionDialog({
                             <Percent className="h-4 w-4" />
                             Loại giảm giá *
                           </FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger className="h-11">
                                 <SelectValue placeholder="Chọn loại giảm giá" />
@@ -368,7 +410,9 @@ export default function PromotionDialog({
                               type="number"
                               placeholder="Nhập giá trị giảm giá..."
                               {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                               className="h-11"
                             />
                           </FormControl>
@@ -396,11 +440,7 @@ export default function PromotionDialog({
                             Ngày bắt đầu *
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
-                              {...field}
-                              className="h-11"
-                            />
+                            <Input type="date" {...field} className="h-11" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -417,11 +457,7 @@ export default function PromotionDialog({
                             Ngày kết thúc *
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
-                              {...field}
-                              className="h-11"
-                            />
+                            <Input type="date" {...field} className="h-11" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -442,7 +478,9 @@ export default function PromotionDialog({
                               type="number"
                               placeholder="1-10"
                               {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                               className="h-11"
                               min="1"
                               max="10"
@@ -459,10 +497,19 @@ export default function PromotionDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
-                            {field.value ? <ToggleRight className="h-4 w-4 text-green-600" /> : <ToggleLeft className="h-4 w-4 text-gray-400" />}
+                            {field.value ? (
+                              <ToggleRight className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <ToggleLeft className="h-4 w-4 text-gray-400" />
+                            )}
                             Trạng thái
                           </FormLabel>
-                          <Select onValueChange={(value) => field.onChange(value === "true")} value={field.value.toString()}>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(value === "true")
+                            }
+                            value={field.value.toString()}
+                          >
                             <FormControl>
                               <SelectTrigger className="h-11">
                                 <SelectValue placeholder="Chọn trạng thái" />
@@ -516,32 +563,45 @@ export default function PromotionDialog({
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             {categories.map((category) => {
-                              const isSelected = field.value?.includes(category.id) || false;
+                              const isSelected =
+                                field.value?.includes(category.id) || false;
                               return (
                                 <div
                                   key={category.id}
                                   className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
                                     isSelected
-                                      ? 'border-orange-500 bg-orange-50 text-orange-700'
-                                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                                      ? "border-orange-500 bg-orange-50 text-orange-700"
+                                      : "border-gray-200 hover:border-orange-300 hover:bg-orange-25"
                                   }`}
                                   onClick={() => {
                                     const currentIds = field.value || [];
                                     const newIds = isSelected
-                                      ? currentIds.filter(id => id !== category.id)
+                                      ? currentIds.filter(
+                                          (id) => id !== category.id
+                                        )
                                       : [...currentIds, category.id];
                                     field.onChange(newIds);
                                   }}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <div className={`p-1 rounded ${isSelected ? 'bg-orange-200' : 'bg-gray-100'}`}>
+                                    <div
+                                      className={`p-1 rounded ${
+                                        isSelected
+                                          ? "bg-orange-200"
+                                          : "bg-gray-100"
+                                      }`}
+                                    >
                                       <Folder className="h-4 w-4" />
                                     </div>
-                                    <span className="font-medium">{category.name}</span>
+                                    <span className="font-medium">
+                                      {category.name}
+                                    </span>
                                     {isSelected && (
                                       <div className="ml-auto">
                                         <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                                          <span className="text-white text-xs">✓</span>
+                                          <span className="text-white text-xs">
+                                            ✓
+                                          </span>
                                         </div>
                                       </div>
                                     )}
@@ -553,16 +613,25 @@ export default function PromotionDialog({
                           {field.value && field.value.length > 0 && (
                             <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
                               <p className="text-sm text-orange-700">
-                                <strong>Đã chọn {field.value.length} danh mục:</strong> 
-                                {field.value.map(id => {
-                                  const category = categories.find(c => c.id === id);
-                                  return category?.name;
-                                }).join(', ')}
+                                <strong>
+                                  Đã chọn {field.value.length} danh mục:
+                                </strong>
+                                {field.value
+                                  .map((id) => {
+                                    const category = categories.find(
+                                      (c) => c.id === id
+                                    );
+                                    return category?.name;
+                                  })
+                                  .join(", ")}
                               </p>
                             </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">Khuyến mãi sẽ áp dụng cho tất cả sản phẩm trong các danh mục đã chọn</p>
+                        <p className="text-xs text-gray-500">
+                          Khuyến mãi sẽ áp dụng cho tất cả sản phẩm trong các
+                          danh mục đã chọn
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -584,29 +653,44 @@ export default function PromotionDialog({
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 p-4 bg-white rounded-lg border">
-                    <div className={`p-2 rounded-lg border ${getTypeColor(selectedType)}`}>
+                    <div
+                      className={`p-2 rounded-lg border ${getTypeColor(
+                        selectedType
+                      )}`}
+                    >
                       {getTypeIcon(selectedType)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge className={getTypeColor(selectedType)}>
+                        <CustomBadge variant={
+                          selectedType === "ORDER" ? "info" :
+                          selectedType === "PRODUCT" ? "success" :
+                          selectedType === "PRODUCT_VARIANT" ? "info" :
+                          "warning"
+                        }>
                           {selectedType === "ORDER" && "Đơn hàng"}
                           {selectedType === "PRODUCT" && "Sản phẩm"}
-                          {selectedType === "PRODUCT_VARIANT" && "Biến thể sản phẩm"}
+                          {selectedType === "PRODUCT_VARIANT" &&
+                            "Biến thể sản phẩm"}
                           {selectedType === "CATEGORY" && "Danh mục"}
-                        </Badge>
-                        <Badge variant={form.watch("active") ? "default" : "secondary"}>
+                        </CustomBadge>
+                        <CustomBadge
+                          variant={
+                            form.watch("active") ? "success" : "secondary"
+                          }
+                        >
                           {form.watch("active") ? "Hoạt động" : "Tạm dừng"}
-                        </Badge>
+                        </CustomBadge>
                       </div>
                       <p className="text-sm text-gray-600">
                         {form.watch("name") || "Tên chương trình khuyến mãi"}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {form.watch("discountType") === "PERCENTAGE" 
+                        {form.watch("discountType") === "PERCENTAGE"
                           ? `Giảm ${form.watch("discountValue") || 0}%`
-                          : `Giảm ${(form.watch("discountValue") || 0).toLocaleString()}đ`
-                        }
+                          : `Giảm ${(
+                              form.watch("discountValue") || 0
+                            ).toLocaleString()}đ`}
                       </p>
                     </div>
                   </div>
@@ -620,16 +704,16 @@ export default function PromotionDialog({
                 <p>* Các trường bắt buộc</p>
               </div>
               <div className="flex gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => onOpenChange(false)}
                   className="px-6"
                 >
                   Hủy
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={isLoading}
                   className="px-6 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >

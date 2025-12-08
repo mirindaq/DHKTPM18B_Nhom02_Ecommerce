@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Edit, Power, PowerOff, Loader2, Search } from "lucide-react";
 import type { CustomerSummary, AddressResponse } from "@/types/customer.type"; // Import AddressResponse
 
@@ -153,15 +153,11 @@ export default function CustomerTable({
                   </TableCell>
 
                   <TableCell className="text-center">
-                    <Badge
-                      className={
-                        customer.active
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-gray-100 text-gray-800 border-gray-200"
-                      }
-                    >
-                      {customer.active ? "Hoạt động" : "Không hoạt động"}
-                    </Badge>
+                  <CustomBadge
+                    variant={customer.active ? "success" : "secondary"}
+                  >
+                    {customer.active ? "Hoạt động" : "Không hoạt động"}
+                  </CustomBadge>
                   </TableCell>
 
                   <TableCell>

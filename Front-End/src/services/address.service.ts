@@ -1,6 +1,6 @@
 // src/services/address.service.ts
 import axiosClient from '@/configurations/axios.config'
-import type { AddressResponse, AddressListResponse, CreateAddressRequest } from '@/types/address.type'
+import type { CreateAddressRequest } from '@/types/address.type'
 
 export const addressService = {
   /**

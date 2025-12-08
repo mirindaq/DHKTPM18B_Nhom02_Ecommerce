@@ -18,8 +18,8 @@ export default function VoucherDialog({
   open,
   onOpenChange,
   voucher,
-  onSubmit,
-  isLoading,
+  onSubmit: _onSubmit,
+  isLoading: _isLoading,
 }: VoucherDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

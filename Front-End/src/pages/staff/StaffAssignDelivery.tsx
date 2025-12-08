@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { OrderAssignmentTable, AssignShipperDialog } from "@/components/staff";
 import Pagination from "@/components/ui/pagination";
 import { useQuery, useMutation } from "@/hooks";
+import { useOrderWebSocket } from "@/hooks/useOrderWebSocket";
 import { orderService } from "@/services/order.service";
 import { shipperService } from "@/services/shipper.service";
 import { deliveryAssignmentService } from "@/services/delivery-assignment.service";
@@ -45,6 +46,15 @@ export default function StaffAssignDelivery() {
   const pagination = ordersData?.data;
   const orders = ordersData?.data?.data || [];
   const shippers = shippersData?.data || [];
+
+  useOrderWebSocket({
+    onOrderNotification: (notification) => {
+      if (notification.orderStatus === "SHIPPED") {
+        refetchOrders();
+      }
+    },
+    enabled: true,
+  });
 
   // Assign shipper mutation
   const assignShipperMutation = useMutation(

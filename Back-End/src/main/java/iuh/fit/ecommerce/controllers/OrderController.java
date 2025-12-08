@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.controllers;
 
 import iuh.fit.ecommerce.dtos.request.order.OrderCreationRequest;
+import iuh.fit.ecommerce.dtos.request.order.StaffOrderCreationRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.order.OrderResponse;
@@ -123,6 +124,19 @@ public class OrderController {
                 OK,
                 "Get orders need shipper success",
                 orderService.getOrdersNeedShipper(page, size)
+        ));
+    }
+
+    @PostMapping("/staff-create")
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<ResponseSuccess<Object>> staffCreateOrder(
+            @Valid @RequestBody StaffOrderCreationRequest request,
+            HttpServletRequest httpServletRequest
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                CREATED,
+                "Staff create order success",
+                orderService.staffCreateOrder(request, httpServletRequest)
         ));
     }
 }

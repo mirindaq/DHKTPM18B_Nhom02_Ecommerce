@@ -1,6 +1,5 @@
 import type { CustomerSummary } from "@/types/customer.type";
 import type { ResponseApi, ResponseApiWithPagination } from "./responseApi.type";
-import type { ProductVariantResponse } from "@/types/product.type";
 
 export type PaymentMethod = "CASH_ON_DELIVERY" | "VN_PAY" | "PAY_OS";
 
@@ -28,6 +27,22 @@ export interface OrderCreationRequest {
   voucherId?: number | null;
   paymentMethod: PaymentMethod;
   cartItemIds: number[];
+}
+
+export interface StaffOrderItem {
+  productVariantId: number;
+  quantity: number;
+}
+
+export interface StaffOrderCreationRequest {
+  customerId: number; // Required: customer must exist
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  note?: string;
+  voucherId?: number; // Optional: apply voucher for customer
+  paymentMethod: PaymentMethod; // CASH_ON_DELIVERY or VN_PAY only
+  items: StaffOrderItem[];
 }
 
 export interface OrderResponse {

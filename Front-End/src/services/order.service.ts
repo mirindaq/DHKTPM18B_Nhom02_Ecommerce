@@ -1,5 +1,5 @@
 import axiosClient from '@/configurations/axios.config';
-import type { OrderCreationRequest, OrderListResponse, OrderApiResponse, OrderSearchParams } from '@/types/order.type';
+import type { OrderCreationRequest, StaffOrderCreationRequest, OrderListResponse, OrderApiResponse, OrderSearchParams } from '@/types/order.type';
 
 export const orderService = {
   createOrder: async (request: OrderCreationRequest) => {
@@ -7,10 +7,17 @@ export const orderService = {
     return response.data;
   },
 
-  getMyOrders: async (page: number = 1, size: number = 7, status?: string, startDate?: string, endDate?: string) => {
-    const response = await axiosClient.get<OrderListResponse>(`/orders/my-orders`, {
-      params: { page, size, status, startDate, endDate }
-    });
+  getMyOrders: async (page: number = 1, size: number = 7, statuses?: string[], startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+    if (statuses && statuses.length > 0) {
+      statuses.forEach(status => params.append('status', status));
+    }
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const response = await axiosClient.get<OrderListResponse>(`/orders/my-orders?${params.toString()}`);
     return response.data;
   },
 
@@ -58,6 +65,11 @@ export const orderService = {
     const response = await axiosClient.get<OrderListResponse>(`/orders/need-shipper`, {
       params: { page, size }
     });
+    return response.data;
+  },
+
+  staffCreateOrder: async (request: StaffOrderCreationRequest) => {
+    const response = await axiosClient.post("/orders/staff-create", request);
     return response.data;
   }
 };

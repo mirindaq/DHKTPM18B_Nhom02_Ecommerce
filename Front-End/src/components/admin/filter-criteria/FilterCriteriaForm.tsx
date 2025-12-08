@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+import { CustomBadge } from "@/components/ui/CustomBadge"
 import { Loader2, Plus, X } from "lucide-react"
 import { useQuery } from "@/hooks"
 import { categoryService } from "@/services/category.service"
@@ -175,7 +175,7 @@ export default function FilterCriteriaForm({
           {formData.values && formData.values.length > 0 && (
             <div className="flex flex-wrap gap-2.5 p-4 border-2 border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-white min-h-[80px]">
               {formData.values.map((value, index) => (
-                <Badge
+                <CustomBadge
                   key={index}
                   variant="secondary"
                   className="bg-gray-100 text-gray-800 border-gray-300 px-3 py-1.5 text-sm font-medium inline-flex items-center gap-2"
@@ -190,7 +190,7 @@ export default function FilterCriteriaForm({
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
-                </Badge>
+                </CustomBadge>
               ))}
             </div>
           )}

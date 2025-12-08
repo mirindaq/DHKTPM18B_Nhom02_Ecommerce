@@ -91,7 +91,7 @@ export default function ArticleFilter({ onSearch }: { onSearch: (filters: any) =
                                 <DatePicker
                                     id="filterCreatedDate"
                                     value={filters.createdDate}
-                                    placeholder="Từ ngày"
+                                    placeholder="Ngày tạo"
                                     onChange={(val) => handleChange("createdDate", val)}
                                     className="w-full"
                                 />

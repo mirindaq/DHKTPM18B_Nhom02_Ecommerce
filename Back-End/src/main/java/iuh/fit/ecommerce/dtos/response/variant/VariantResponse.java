@@ -16,6 +16,5 @@ public class VariantResponse {
     private String name;
     private boolean status;
     private String slug;
-    private CategoryResponse category;
     private List<VariantValueResponse> variantValues;
 }

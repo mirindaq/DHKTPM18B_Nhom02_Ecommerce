@@ -5,7 +5,7 @@ import { webSocketService } from "@/services/websocket.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -182,11 +182,11 @@ export default function CustomerChat() {
             </CardTitle>
             <div className="flex items-center gap-2">
               {isConnected ? (
-                <Badge variant="default" className="bg-green-500">
+                <CustomBadge variant="success">
                   Đã kết nối
-                </Badge>
+                </CustomBadge>
               ) : (
-                <Badge variant="destructive">Mất kết nối</Badge>
+                <CustomBadge variant="error">Mất kết nối</CustomBadge>
               )}
             </div>
           </div>

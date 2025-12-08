@@ -1,20 +1,19 @@
 package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.order.OrderCreationRequest;
+import iuh.fit.ecommerce.dtos.request.order.StaffOrderCreationRequest;
+import iuh.fit.ecommerce.dtos.request.order.StaffOrderItem;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.order.OrderResponse;
 import iuh.fit.ecommerce.entities.*;
 import iuh.fit.ecommerce.enums.OrderStatus;
+import iuh.fit.ecommerce.enums.PaymentMethod;
 import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.OrderMapper;
 import iuh.fit.ecommerce.repositories.*;
-import iuh.fit.ecommerce.services.OrderService;
-import iuh.fit.ecommerce.services.PaymentService;
-import iuh.fit.ecommerce.services.PromotionService;
+import iuh.fit.ecommerce.services.*;
 import iuh.fit.ecommerce.utils.DateUtils;
-import iuh.fit.ecommerce.services.RankingService;
-import iuh.fit.ecommerce.services.PushNotificationService;
 import iuh.fit.ecommerce.specifications.OrderSpecification;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,35 +48,159 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
     private final RankingService rankingService;
     private final PushNotificationService pushNotificationService;
+    private final CustomerService customerService;
+    private final VoucherService voucherService;
+    private final EmailService emailService;
+    private final NotificationWebSocketService notificationWebSocketService;
 
     @Override
     @Transactional
-    public Object customerCreateOrder(OrderCreationRequest orderCreationRequest, HttpServletRequest request) {
+    public Object customerCreateOrder(OrderCreationRequest request, HttpServletRequest httpRequest) {
         Customer customer = securityUtils.getCurrentCustomer();
         Cart cart = getCustomerCart(customer);
 
         validateCartNotEmpty(cart);
 
-        Order order = buildOrder(orderCreationRequest, customer);
+        Order order = buildOrder(request, customer);
 
-        List<OrderDetail> orderDetails = buildOrderDetails(cart, order, orderCreationRequest.getCartItemIds());
+        List<OrderDetail> orderDetails = buildOrderDetails(cart, order, request.getCartItemIds());
         double totalPrice = calculateTotalPrice(orderDetails);
         double totalDiscount = calculatePromotionDiscount(orderDetails);
 
         totalDiscount += applyRankingDiscount(customer, totalPrice - totalDiscount);
 
-        Voucher voucher = getVoucherIfAvailable(orderCreationRequest);
+        Voucher voucher = request.getVoucherId() != null ? voucherService.getVoucherEntityById(request.getVoucherId()) : null;
+
         double voucherDiscountAmount = applyVoucherIfValid(voucher, customer, totalPrice, totalDiscount);
 
         double finalTotalPrice = totalPrice - (totalDiscount + voucherDiscountAmount);
 
-        prepareOrderSummary(order, orderDetails, totalPrice, totalDiscount + voucherDiscountAmount, finalTotalPrice, orderCreationRequest);
+        prepareOrderDetailAndPrice(order, orderDetails, totalPrice, totalDiscount, voucher, voucherDiscountAmount, finalTotalPrice, request.getPaymentMethod(), PENDING);
+
+        return processPayment(request, httpRequest, voucher, order, cart, request.getCartItemIds());
+    }
+
+
+    @Override
+    @Transactional
+    public Object staffCreateOrder(StaffOrderCreationRequest request, HttpServletRequest httpRequest) {
+
+        Order order = buildStaffOrder(request);
+        Customer customer = order.getCustomer();
+
+        List<OrderDetail> orderDetails = buildStaffOrderDetails(order, request.getItems());
+
+        double totalPrice = calculateTotalPrice(orderDetails);
+        double totalDiscount = calculatePromotionDiscount(orderDetails);
+
+        double rankingDiscount = applyRankingDiscount(customer, totalPrice - totalDiscount);
+        totalDiscount += rankingDiscount;
+
+        Voucher voucher = request.getVoucherId() != null ? voucherService.getVoucherEntityById(request.getVoucherId()) : null;
+
+        double voucherDiscountAmount = applyVoucherIfValid(voucher, customer, totalPrice, totalDiscount);
+        
+        double finalTotalPrice = totalPrice - totalDiscount - voucherDiscountAmount;
+
+        prepareOrderDetailAndPrice(order, orderDetails, totalPrice, totalDiscount, voucher, voucherDiscountAmount, finalTotalPrice, request.getPaymentMethod(), PROCESSING);
+
+        return processStaffPayment(request, httpRequest, order, voucher);
+    }
+
+
+    private void prepareOrderDetailAndPrice(Order order, List<OrderDetail> orderDetails, double totalPrice,
+                                            double totalDiscount, Voucher voucher, double voucherDiscountAmount,
+                                            double finalTotalPrice, PaymentMethod paymentMethod, OrderStatus orderStatus) {
+        order.setOrderDetails(orderDetails);
+        order.setTotalPrice(totalPrice);
+        order.setTotalDiscount(totalDiscount + voucherDiscountAmount);
+        order.setFinalTotalPrice(finalTotalPrice);
+
+        order.setStatus(CASH_ON_DELIVERY.equals(paymentMethod) ? orderStatus : PENDING_PAYMENT);
 
         orderRepository.save(order);
         handleVoucherUsage(voucher, order, voucherDiscountAmount);
-
-        return processPayment(orderCreationRequest, request, voucher, order, cart, orderCreationRequest.getCartItemIds());
     }
+
+
+    private Order buildStaffOrder(StaffOrderCreationRequest request) {
+        Customer customer = customerService.getCustomerEntityById(request.getCustomerId());
+
+        return Order.builder()
+                .receiverName(request.getCustomerName())
+                .receiverPhone(request.getCustomerPhone())
+                .receiverAddress("Mua tại cửa hàng")
+                .note(request.getNote())
+                .isPickup(true)
+                .paymentMethod(request.getPaymentMethod())
+                .orderDate(LocalDateTime.now())
+                .customer(customer)
+                .build();
+    }
+
+    private List<OrderDetail> buildStaffOrderDetails(Order order, List<StaffOrderItem> items) {
+        List<OrderDetail> details = new ArrayList<>();
+
+        for (StaffOrderItem item : items) {
+            ProductVariant variant = productVariantRepository.findById(item.getProductVariantId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product variant not found with id: " + item.getProductVariantId()));
+
+            int quantity = item.getQuantity();
+
+            if (variant.getStock() == null || variant.getStock() < quantity) {
+                throw new InvalidParamException(
+                        String.format(
+                                "Sản phẩm \"%s\" không đủ số lượng. Tồn kho hiện tại: %d, số lượng yêu cầu: %d",
+                                variant.getProduct().getName(),
+                                variant.getStock(),
+                                quantity
+                        )
+                );
+            }
+
+            Promotion promotion = promotionService.getBestPromotionForVariant(variant);
+            double discountPercent = promotion != null ? promotion.getDiscount() : 0.0;
+
+            double price = variant.getPrice();
+            double itemTotal = price * quantity;
+            double discountAmount = itemTotal * discountPercent / 100.0;
+            double finalPrice = itemTotal - discountAmount;
+
+            details.add(OrderDetail.builder()
+                    .order(order)
+                    .productVariant(variant)
+                    .price(price)
+                    .quantity((long) quantity)
+                    .discount(discountPercent)
+                    .finalPrice(finalPrice)
+                    .build());
+        }
+
+        return details;
+    }
+
+    private Object processStaffPayment(StaffOrderCreationRequest request, HttpServletRequest httpRequest, Order order, Voucher voucher) {
+        String platform = "web";
+
+        switch (request.getPaymentMethod()) {
+            case CASH_ON_DELIVERY -> {
+                updateVariantStockAfterOrderCreated(order.getOrderDetails());
+                // Gửi WebSocket notification
+                notificationWebSocketService.sendOrderNotification(
+                    order, 
+                    "CREATED", 
+                    String.format("Đơn hàng mới #%d đã được tạo bởi staff", order.getId())
+                );
+                return orderMapper.toResponse(order);
+            }
+            case VN_PAY -> {
+                updateVariantStockAfterOrderCreated(order.getOrderDetails());
+                return ((PaymentServiceImpl) paymentService).createPaymentUrl(voucher, order, null, httpRequest, platform, true);
+            }
+            default -> throw new InvalidParamException("Unsupported payment method for staff order");
+        }
+    }
+
 
     @Override
     public ResponseWithPagination<List<OrderResponse>> getMyOrders(int page, int size, List<String> status, String startDate, String endDate) {
@@ -204,11 +327,6 @@ public class OrderServiceImpl implements OrderService {
         return currentAmount * (ranking.getDiscountRate() / 100.0);
     }
 
-    private Voucher getVoucherIfAvailable(OrderCreationRequest request) {
-        if (request.getVoucherId() == null) return null;
-        return voucherRepository.findById(request.getVoucherId())
-                .orElseThrow(() -> new InvalidParamException("Voucher not found with id = " + request.getVoucherId()));
-    }
 
     private double applyVoucherIfValid(Voucher voucher, Customer customer, double totalPrice, double totalDiscount) {
         if (voucher == null) return 0.0;
@@ -223,15 +341,7 @@ public class OrderServiceImpl implements OrderService {
         return discountAmount;
     }
 
-    private void prepareOrderSummary(Order order, List<OrderDetail> details, double totalPrice,
-                                     double totalDiscount, double finalPrice, OrderCreationRequest request) {
-        order.setOrderDetails(details);
-        order.setTotalPrice(totalPrice);
-        order.setTotalDiscount(totalDiscount);
-        order.setFinalTotalPrice(finalPrice);
 
-        order.setStatus(CASH_ON_DELIVERY.equals(request.getPaymentMethod()) ? PENDING : PENDING_PAYMENT);
-    }
 
     private void handleVoucherUsage(Voucher voucher, Order order, double discountAmount) {
         if (voucher == null) return;
@@ -252,6 +362,14 @@ public class OrderServiceImpl implements OrderService {
             case CASH_ON_DELIVERY -> {
                 clearCart(cart, cartItemIds);
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
+                // Gửi email xác nhận đơn hàng
+                sendOrderConfirmationEmail(order);
+                // Gửi WebSocket notification
+                notificationWebSocketService.sendOrderNotification(
+                    order, 
+                    "CREATED", 
+                    String.format("Đơn hàng mới #%d đã được tạo", order.getId())
+                );
                 return orderMapper.toResponse(order);
             }
             case VN_PAY -> {
@@ -263,6 +381,18 @@ public class OrderServiceImpl implements OrderService {
                 return paymentService.createPayOsPaymentUrl(voucher, order, cartItemIds, platform);
             }
             default -> throw new InvalidParamException("Unsupported payment method");
+        }
+    }
+
+    private void sendOrderConfirmationEmail(Order order) {
+        try {
+            String customerEmail = order.getCustomer().getEmail();
+            if (customerEmail != null && !customerEmail.isBlank()) {
+                emailService.sendOrderConfirmation(customerEmail, order);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the order
+            // Email is sent asynchronously, so this won't block
         }
     }
 
@@ -343,6 +473,13 @@ public class OrderServiceImpl implements OrderService {
 
         sendOrderStatusNotification(order, PROCESSING, "Đơn hàng đã được tiếp nhận", 
                 String.format("Đơn hàng #%d của bạn đã được tiếp nhận và đang được xử lý.", order.getId()));
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "UPDATED", 
+            String.format("Đơn hàng #%d đã được tiếp nhận", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
@@ -368,6 +505,13 @@ public class OrderServiceImpl implements OrderService {
 
         sendOrderStatusNotification(order, CANCELED, "Đơn hàng đã bị hủy", 
                 String.format("Đơn hàng #%d của bạn đã bị hủy.", order.getId()));
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "CANCELLED", 
+            String.format("Đơn hàng #%d đã bị hủy", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
@@ -410,6 +554,13 @@ public class OrderServiceImpl implements OrderService {
             sendOrderStatusNotification(order, SHIPPED, "Đơn hàng đang được giao", 
                     String.format("Đơn hàng #%d của bạn đang được giao đến địa chỉ của bạn.", order.getId()));
         }
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "PROCESSED", 
+            String.format("Đơn hàng #%d đã được xử lý", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
@@ -432,6 +583,13 @@ public class OrderServiceImpl implements OrderService {
 
         sendOrderStatusNotification(order, COMPLETED, "Đơn hàng đã được nhận", 
                 String.format("Đơn hàng #%d của bạn đã được hoàn thành. Cảm ơn bạn đã mua sắm!", order.getId()));
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "COMPLETED", 
+            String.format("Đơn hàng #%d đã hoàn thành", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }

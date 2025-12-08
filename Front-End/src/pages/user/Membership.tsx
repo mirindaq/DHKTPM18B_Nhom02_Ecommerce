@@ -78,32 +78,29 @@ export default function Membership() {
   const canGoNext = currentSlide < rankings.length - 3;
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        {loading ? (
+    <div className="space-y-6">
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-red-600 animate-spin mb-4" />
+          <p className="text-gray-600">Đang tải thông tin hạng thành viên...</p>
+        </div>
+      ) : (
+        <>
+          {/* Empty State */}
           <div className="text-center py-12">
-            <Loader2 className="w-16 h-16 text-red-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Đang tải thông tin hạng thành viên...</p>
-          </div>
-        ) : (
-          <>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Ưu đãi của bạn</h3>
-
-            {/* Empty State */}
-            <div className="text-center py-12">
-              <div className="w-46 h-full mx-auto mb-5 flex items-center justify-center">
-                <img
-                  src={"/assets/empty.png"}
-                  alt={"empty"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = "/assets/empty.png"
-                  }}
-                />
-              </div>
-              <p className="text-gray-600">Bạn đang chưa có ưu đãi nào</p>
+            <div className="w-46 h-full mx-auto mb-5 flex items-center justify-center">
+              <img
+                src={"/assets/empty.png"}
+                alt={"empty"}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = "/assets/empty.png"
+                }}
+              />
             </div>
+            <p className="text-gray-600">Bạn đang chưa có ưu đãi nào</p>
+          </div>
 
             {/* Rank Cards Carousel */}
             <div className="mt-8 relative">
@@ -229,9 +226,8 @@ export default function Membership() {
                 </AlertDescription>
               </Alert>
             </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+        </>
+      )}
+    </div>
   );
 }

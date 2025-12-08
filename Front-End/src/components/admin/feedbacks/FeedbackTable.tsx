@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { CustomBadge } from "@/components/ui/CustomBadge";
 import {
   Select,
   SelectContent,
@@ -101,36 +101,40 @@ export default function FeedbackTable({
             {hasActiveFilters && (
               <div className="flex items-center gap-2 text-xs">
                 {filters.fromDate && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
                     className="bg-blue-50 text-blue-700 border-blue-200"
                   >
                     Từ: {new Date(filters.fromDate).toLocaleDateString("vi-VN")}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {filters.toDate && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
                     className="bg-blue-50 text-blue-700 border-blue-200"
                   >
                     Đến: {new Date(filters.toDate).toLocaleDateString("vi-VN")}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {filters.rating && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="info"
+                    size="sm"
                     className="bg-purple-50 text-purple-700 border-purple-200"
                   >
                     {filters.rating} sao
-                  </Badge>
+                  </CustomBadge>
                 )}
                 {filters.status !== undefined && filters.status !== null && (
-                  <Badge
-                    variant="outline"
+                  <CustomBadge
+                    variant="success"
+                    size="sm"
                     className="bg-green-50 text-green-700 border-green-200"
                   >
                     {filters.status ? "Hiển thị" : "Ẩn"}
-                  </Badge>
+                  </CustomBadge>
                 )}
               </div>
             )}
@@ -367,9 +371,9 @@ export default function FeedbackTable({
                     {feedback.comment || "Không có bình luận"}
                   </TableCell>
                   <TableCell>
-                    <Badge
+                    <CustomBadge
                       variant={
-                        feedback.status === false ? "secondary" : "default"
+                        feedback.status === false ? "secondary" : "success"
                       }
                       className={
                         feedback.status === false
@@ -378,7 +382,7 @@ export default function FeedbackTable({
                       }
                     >
                       {feedback.status === false ? "Ẩn" : "Hiển thị"}
-                    </Badge>
+                    </CustomBadge>
                   </TableCell>
                   <TableCell className="text-gray-600">
                     {formatDate(feedback.createdAt)}

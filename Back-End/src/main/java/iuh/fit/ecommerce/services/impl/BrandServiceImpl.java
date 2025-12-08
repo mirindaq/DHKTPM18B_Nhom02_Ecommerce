@@ -1,8 +1,12 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.services.CategoryBrandService;
 import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +34,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.BRAND_CACHE, allEntries = true)
     public BrandResponse createBrand(BrandAddRequest request) {
         validateBrandName(request.getName(), null);
 
@@ -41,6 +46,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.BRAND_CACHE, key = "'page:' + #page + ':size:' + #size + ':name:' + (#brandName != null ? #brandName : 'all')")
     public ResponseWithPagination<List<BrandResponse>> getBrands(int page, int size, String brandName) {
         page = Math.max(0, page - 1);
         Pageable pageable = PageRequest.of(page, size);
@@ -55,12 +61,15 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.BRAND_CACHE, key = "#id")
     public BrandResponse getBrandById(Long id) {
         return brandMapper.toResponse(getBrandEntityById(id));
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.BRAND_CACHE, key = "#id")
+    @CachePut(value = CacheConfig.BRAND_CACHE, key = "#id")
     public BrandResponse updateBrand(Long id, BrandAddRequest request) {
         Brand brand = getBrandEntityById(id);
         validateBrandName(request.getName(), brand);
@@ -70,6 +79,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.BRAND_CACHE, key = "#id")
     public void changeStatusBrand(Long id) {
         Brand brand = getBrandEntityById(id);
         brand.setStatus(!brand.getStatus());

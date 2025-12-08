@@ -1,6 +1,7 @@
 package iuh.fit.ecommerce.services;
 
 import iuh.fit.ecommerce.dtos.request.product.ProductAddRequest;
+import iuh.fit.ecommerce.dtos.request.product.ProductUpdateRequest;
 import iuh.fit.ecommerce.dtos.request.product.ProductVariantPromotionRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
@@ -15,7 +16,8 @@ public interface ProductService {
     ResponseWithPagination<List<ProductResponse>> getAllProducts(int page, int size, String keyword, Long brandId, Long categoryId, Boolean status, Double minPrice, Double maxPrice);
     ProductResponse getProductById(Long id);
     ProductResponse getProductBySlug(String slug);
-    ProductResponse updateProductById(Long id);
+    ProductResponse updateProduct(Long id, ProductUpdateRequest productUpdateRequest);
+    void changeStatusProduct(Long id);
 
     Product getProductEntityById(Long id);
 

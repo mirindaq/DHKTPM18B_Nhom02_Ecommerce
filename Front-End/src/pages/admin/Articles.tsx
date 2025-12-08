@@ -42,7 +42,7 @@ export default function Articles() {
         categoryId: filters.categoryId ?? null,
         createdDate: filters.createdDate || null
       });
-      return articleService.getArticles(
+      return articleService.getArticlesForAdmin(
         page,
         pageSize,
         filters.title || "",

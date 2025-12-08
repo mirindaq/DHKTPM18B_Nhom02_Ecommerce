@@ -27,10 +27,6 @@ public class Variant extends BaseEntity{
     @Column
     private String slug;
 
-    @ManyToOne
-    @JoinColumn( name = "category_id", nullable = false)
-    private Category category;
-
     @OneToMany( mappedBy = "variant")
     private List<VariantValue> variantValues;
 }

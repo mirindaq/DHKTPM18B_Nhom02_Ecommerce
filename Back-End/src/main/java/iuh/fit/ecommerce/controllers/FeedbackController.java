@@ -3,6 +3,7 @@ package iuh.fit.ecommerce.controllers;
 import iuh.fit.ecommerce.dtos.request.feedback.CreateFeedbackRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.feedback.FeedbackResponse;
+import iuh.fit.ecommerce.dtos.response.feedback.RatingStatisticsResponse;
 import iuh.fit.ecommerce.services.FeedbackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,30 @@ public class FeedbackController {
                 OK,
                 "Get feedback detail success",
                 feedbackService.getFeedbackDetail(orderId, productVariantId)
+        ));
+    }
+
+    // Product page APIs - Public
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<ResponseSuccess<Page<FeedbackResponse>>> getFeedbacksByProduct(
+            @PathVariable Long productId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) Integer rating) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get product feedbacks success",
+                feedbackService.getFeedbacksByProduct(productId, page, size, rating)
+        ));
+    }
+
+    @GetMapping("/product/{productId}/statistics")
+    public ResponseEntity<ResponseSuccess<RatingStatisticsResponse>> getRatingStatistics(
+            @PathVariable Long productId) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get rating statistics success",
+                feedbackService.getRatingStatistics(productId)
         ));
     }
 

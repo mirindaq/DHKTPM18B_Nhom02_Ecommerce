@@ -19,4 +19,6 @@ public interface BrandService {
 
     void changeStatusBrand(Long id);
     Brand getBrandEntityById(Long id);
+
+//    List<BrandResponse> getBrandsByCategoryId(Long id);
 }

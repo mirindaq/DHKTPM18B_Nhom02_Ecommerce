@@ -5,6 +5,8 @@ import iuh.fit.ecommerce.entities.Order;
 import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.repositories.*;
+import iuh.fit.ecommerce.services.EmailService;
+import iuh.fit.ecommerce.services.NotificationWebSocketService;
 import iuh.fit.ecommerce.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,6 +50,8 @@ public class PaymentServiceImpl implements PaymentService {
     private String orderType;
     @Value("${domain.frontend}")
     private String domainFrontend;
+    @Value("${domain.frontend-staff}")
+    private String domainFrontendStaff;
     @Value("${payment.pay_os.return-url}")
     private String payOsReturnUrl;
     @Value("${payment.pay_os.cancel-url}")
@@ -59,18 +63,27 @@ public class PaymentServiceImpl implements PaymentService {
     private final CartRepository cartRepository;
     private final ProductVariantRepository productVariantRepository;
     private final PayOS payOS;
+    private final EmailService emailService;
+    private final NotificationWebSocketService notificationWebSocketService;
     private final int TIME_OUT = 15;
 
     @Override
     public String createPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds, HttpServletRequest request, String platform) {
+        return createPaymentUrl(voucher, order, cartItemIds, request, platform, false);
+    }
+
+    public String createPaymentUrl(Voucher voucher, Order order, List<Long> cartItemIds, HttpServletRequest request, String platform, boolean isStaffOrder) {
         long amount = order.getFinalTotalPrice().longValue() * 100L;
         Map<String, String> vnpParamsMap = getVNPayConfig();
 
         long voucherId = voucher != null ? voucher.getId() : 0;
-        String cartItemIdsParam = cartItemIds.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(","));
-        vnpParamsMap.put("vnp_ReturnUrl", this.vnp_ReturnUrl  + "?orderId=" + order.getId() + "&voucherId=" + voucherId + "&cartItemIds=" + cartItemIdsParam + "&platform=" + (platform != null ? platform : "web"));
+
+        vnpParamsMap.put("vnp_ReturnUrl", this.vnp_ReturnUrl + "?orderId=" + order.getId() +
+                "&voucherId=" + voucherId +
+                "&cartItemIds=" + (cartItemIds != null ? cartItemIds.stream().map(String::valueOf).collect(Collectors.joining(",")) : "") +
+                "&platform=" + (platform != null ? platform : "web") +
+                "&isStaffOrder=" + isStaffOrder);
+
         vnpParamsMap.put("vnp_Amount", String.valueOf(amount));
         vnpParamsMap.put("vnp_IpAddr",getIpAddress(request));
 
@@ -105,15 +118,33 @@ public class PaymentServiceImpl implements PaymentService {
         String status = request.getParameter("vnp_ResponseCode");
         Long orderId = Long.parseLong(request.getParameter("orderId"));
         long voucherId = Long.parseLong(request.getParameter("voucherId"));
-        List<Long> cartItemIds = Arrays.stream(request.getParameter("cartItemIds").split(","))
+
+        String cartItemsIdsString = request.getParameter("cartItemIds");
+        List<Long> cartItemIds = cartItemsIdsString.isEmpty() ? new ArrayList<>() :
+                Arrays.stream(cartItemsIdsString.split(","))
                 .map(Long::parseLong)
                 .toList();
         String platform = request.getParameter("platform");
+        boolean isStaffOrder = "true".equals(request.getParameter("isStaffOrder"));
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         String redirectUrl;
         if ("mobile".equals(platform)) {
             redirectUrl = String.format(
                     "ecom-store://payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                    request.getParameter("vnp_ResponseCode"),
+                    request.getParameter("orderId"),
+                    request.getParameter("vnp_TransactionNo"),
+                    request.getParameter("vnp_TxnRef"),
+                    request.getParameter("vnp_Amount"),
+                    request.getParameter("vnp_BankCode"),
+                    request.getParameter("vnp_PayDate")
+            );
+        } else if (isStaffOrder) {
+            redirectUrl = String.format(
+                    "%s/payment-status?vnp_ResponseCode=%s&orderId=%s&vnp_TransactionNo=%s&vnp_TxnRef=%s&vnp_Amount=%s&vnp_BankCode=%s&vnp_PayDate=%s",
+                    domainFrontendStaff,
                     request.getParameter("vnp_ResponseCode"),
                     request.getParameter("orderId"),
                     request.getParameter("vnp_TransactionNo"),
@@ -136,16 +167,21 @@ public class PaymentServiceImpl implements PaymentService {
             );
         }
 
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
-
         if ("00".equals(status)) {
-            order.setStatus(PENDING);
-            clearCart(order.getCustomer().getCart(), cartItemIds);
-        }
-        else{
+            order.setStatus(isStaffOrder ? PROCESSING : PENDING);
+            if (!isStaffOrder && order.getCustomer() != null && order.getCustomer().getCart() != null) {
+                clearCart(order.getCustomer().getCart(), cartItemIds);
+            }
+            sendOrderConfirmationEmail(order);
+            notificationWebSocketService.sendOrderNotification(
+                order,
+                "CREATED",
+                String.format("Đơn hàng mới #%d đã được tạo", order.getId())
+            );
+        } else {
             order.setStatus(PAYMENT_FAILED);
             restoreVariantStock(order);
-            if(voucherId != 0) {
+            if (voucherId != 0) {
                 Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(() -> new ResourceNotFoundException("Voucher not found with id: " + voucherId));
                 voucherUsageHistoryRepository.deleteByVoucherAndOrder(voucher, order);
             }
@@ -211,6 +247,13 @@ public class PaymentServiceImpl implements PaymentService {
                 order.setStatus(PENDING);
                 clearCart(order.getCustomer().getCart(), cartItemIds);
                 orderRepository.save(order);
+                
+                sendOrderConfirmationEmail(order);
+                notificationWebSocketService.sendOrderNotification(
+                    order,
+                    "CREATED",
+                    String.format("Đơn hàng mới #%d đã được tạo", order.getId())
+                );
                 
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
                 String payDate = formatter.format(new Date());
@@ -404,5 +447,16 @@ public class PaymentServiceImpl implements PaymentService {
                                 URLEncoder.encode(entry.getValue()
                                         , StandardCharsets.US_ASCII))
                 .collect(Collectors.joining("&"));
+    }
+
+    private void sendOrderConfirmationEmail(Order order) {
+        try {
+            String customerEmail = order.getCustomer().getEmail();
+            if (customerEmail != null && !customerEmail.isBlank()) {
+                emailService.sendOrderConfirmation(customerEmail, order);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the payment callback
+        }
     }
 }

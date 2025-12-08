@@ -83,6 +83,7 @@ export default function ArticleCategoryTable({
           <TableHeader>
             <TableRow className="bg-gray-50 hover:bg-gray-50">
               <TableHead className="font-semibold text-gray-700">STT</TableHead>
+              <TableHead className="font-semibold text-gray-700">Ảnh</TableHead>
               <TableHead className="font-semibold text-gray-700">Tiêu đề</TableHead>
               <TableHead className="font-semibold text-gray-700">Đường dẫn</TableHead>
               <TableHead className="font-semibold text-gray-700">Ngày tạo</TableHead>
@@ -93,7 +94,7 @@ export default function ArticleCategoryTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12">
+                <TableCell colSpan={6} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
@@ -102,7 +103,7 @@ export default function ArticleCategoryTable({
               </TableRow>
             ) : categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-24 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-24 text-gray-500">
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                       <Search className="h-8 w-8 text-gray-400" />
@@ -123,6 +124,19 @@ export default function ArticleCategoryTable({
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">
                     {(currentPage - 1) * pageSize + index + 1}
+                  </TableCell>
+                  <TableCell>
+                    {category.image ? (
+                      <img
+                        src={category.image}
+                        alt={category.title}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No image</span>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="font-semibold">{category.title}</TableCell>
                   <TableCell className="font-semibold">{category.slug}</TableCell>

@@ -2,10 +2,12 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.request.feedback.CreateFeedbackRequest;
 import iuh.fit.ecommerce.dtos.response.feedback.FeedbackResponse;
+import iuh.fit.ecommerce.dtos.response.feedback.RatingStatisticsResponse;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Feedback;
 import iuh.fit.ecommerce.entities.FeedbackImage;
 import iuh.fit.ecommerce.entities.Order;
+import iuh.fit.ecommerce.entities.Product;
 import iuh.fit.ecommerce.entities.ProductVariant;
 import iuh.fit.ecommerce.enums.OrderStatus;
 import iuh.fit.ecommerce.exceptions.custom.InvalidParamException;
@@ -98,6 +100,9 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         feedback = feedbackRepository.save(feedback);
 
+        // Cập nhật rating của Product
+        updateProductRating(productVariant.getProduct());
+
         return feedbackMapper.toResponse(feedback);
     }
 
@@ -122,6 +127,37 @@ public class FeedbackServiceImpl implements FeedbackService {
         ).orElseThrow(() -> new ResourceNotFoundException("Feedback not found"));
 
         return feedbackMapper.toResponse(feedback);
+    }
+
+    // Product page APIs
+    @Override
+    public Page<FeedbackResponse> getFeedbacksByProduct(Long productId, int page, int size, Integer rating) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Feedback> feedbacks = feedbackRepository.findByProductIdWithFilters(productId, rating, pageable);
+        return feedbacks.map(feedbackMapper::toResponse);
+    }
+
+    @Override
+    public RatingStatisticsResponse getRatingStatistics(Long productId) {
+        Long totalReviews = feedbackRepository.countByProductId(productId);
+        Double averageRating = feedbackRepository.getAverageRatingByProductId(productId);
+        
+        Long fiveStarCount = feedbackRepository.countByProductIdAndRating(productId, 5);
+        Long fourStarCount = feedbackRepository.countByProductIdAndRating(productId, 4);
+        Long threeStarCount = feedbackRepository.countByProductIdAndRating(productId, 3);
+        Long twoStarCount = feedbackRepository.countByProductIdAndRating(productId, 2);
+        Long oneStarCount = feedbackRepository.countByProductIdAndRating(productId, 1);
+
+        return RatingStatisticsResponse.builder()
+                .productId(productId)
+                .totalReviews(totalReviews)
+                .averageRating(Math.round(averageRating * 10.0) / 10.0)
+                .fiveStarCount(fiveStarCount)
+                .fourStarCount(fourStarCount)
+                .threeStarCount(threeStarCount)
+                .twoStarCount(twoStarCount)
+                .oneStarCount(oneStarCount)
+                .build();
     }
 
     // Admin APIs
@@ -167,14 +203,54 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .orElseThrow(() -> new ResourceNotFoundException("Feedback not found"));
         feedback.setStatus(!feedback.getStatus());
         feedbackRepository.save(feedback);
+        
+        // Cập nhật lại rating của Product khi thay đổi status feedback
+        updateProductRating(feedback.getProductVariant().getProduct());
     }
 
     @Override
     @Transactional
     public void deleteFeedback(Long id) {
-        if (!feedbackRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Feedback not found");
-        }
+        Feedback feedback = feedbackRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Feedback not found"));
+        
+        Product product = feedback.getProductVariant().getProduct();
         feedbackRepository.deleteById(id);
+        
+        // Cập nhật lại rating của Product sau khi xóa
+        updateProductRating(product);
+    }
+
+    /**
+     * Cập nhật rating của Product dựa trên tất cả feedbacks
+     */
+    private void updateProductRating(Product product) {
+        // Lấy tất cả feedbacks của product (qua các product variants)
+        List<Long> variantIds = product.getProductVariants().stream()
+                .map(ProductVariant::getId)
+                .toList();
+        
+        List<Feedback> allFeedbacks = feedbackRepository.findAllByProductVariantIdInAndStatusTrue(variantIds);
+        
+        if (allFeedbacks.isEmpty()) {
+            product.setRating(0.0);
+            product.setTotalRating(0.0);
+            product.setReviewCount(0);
+        } else {
+            double totalRating = allFeedbacks.stream()
+                    .mapToInt(Feedback::getRating)
+                    .sum();
+            int reviewCount = allFeedbacks.size();
+            double averageRating = totalRating / reviewCount;
+            
+            product.setRating(Math.round(averageRating * 10.0) / 10.0); // Làm tròn 1 chữ số
+            product.setTotalRating(totalRating);
+            product.setReviewCount(reviewCount);
+        }
+        
+        // Save product through variant to trigger update
+        if (!product.getProductVariants().isEmpty()) {
+            productVariantRepository.save(product.getProductVariants().get(0));
+        }
     }
 }

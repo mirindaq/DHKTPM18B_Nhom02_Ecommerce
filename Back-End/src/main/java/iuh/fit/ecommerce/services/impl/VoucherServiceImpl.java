@@ -11,6 +11,7 @@ import iuh.fit.ecommerce.enums.VoucherType;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.VoucherMapper;
+import iuh.fit.ecommerce.repositories.CustomerRepository;
 import iuh.fit.ecommerce.repositories.VoucherCustomerRepository;
 import iuh.fit.ecommerce.repositories.VoucherRepository;
 import iuh.fit.ecommerce.repositories.VoucherUsageHistoryRepository;
@@ -38,6 +39,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherRepository voucherRepository;
     private final VoucherCustomerRepository voucherCustomerRepository;
+    private final CustomerRepository customerRepository;
     private final VoucherMapper voucherMapper;
     private final EmailService emailService;
     private final CustomerService customerService;
@@ -223,6 +225,52 @@ public class VoucherServiceImpl implements VoucherService {
                         })
                         .toList();
 
+        List<VoucherAvailableResponse> globalVoucherResponses =
+                voucherRepository
+                        .findAllByVoucherTypeAndEndDateGreaterThanEqualAndStartDateLessThanEqual(VoucherType.ALL, now, now)
+                        .stream()
+                        .map(voucherMapper::toVoucherAvailableResponse)
+                        .toList();
+
+        List<VoucherAvailableResponse> allVouchers = Stream.concat(
+                        customerVoucherResponses.stream(),
+                        globalVoucherResponses.stream()
+                )
+                .distinct()
+                .toList();
+
+        List<Long> usedVoucherIds = voucherUsageHistoryRepository
+                .findAllByOrder_Customer(customer)
+                .stream()
+                .map(vuh -> vuh.getVoucher().getId())
+                .distinct()
+                .toList();
+
+        return allVouchers.stream()
+                .filter(v -> !usedVoucherIds.contains(v.getId()))
+                .toList();
+    }
+
+    @Override
+    public List<VoucherAvailableResponse> getAvailableVouchersForCustomerById(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id = " + customerId));
+
+        LocalDate now = LocalDate.now();
+
+        // Get vouchers assigned to this specific customer
+        List<VoucherAvailableResponse> customerVoucherResponses =
+                voucherCustomerRepository
+                        .findAllByCustomerIdAndVoucherDateBetweenAndReady(customerId, now, now)
+                        .stream()
+                        .map(vc -> {
+                            VoucherAvailableResponse dto = voucherMapper.toVoucherAvailableResponse(vc.getVoucher());
+                            dto.setCode(vc.getCode());
+                            return dto;
+                        })
+                        .toList();
+
+        // Get global vouchers (type ALL)
         List<VoucherAvailableResponse> globalVoucherResponses =
                 voucherRepository
                         .findAllByVoucherTypeAndEndDateGreaterThanEqualAndStartDateLessThanEqual(VoucherType.ALL, now, now)

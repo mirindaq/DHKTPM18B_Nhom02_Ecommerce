@@ -31,7 +31,6 @@ public class ArticleServiceImpl implements ArticleService {
 
     private final ArticleRepository articleRepository;
     private final ArticleCategoryRepository articleCategoryRepository;
-    private final StaffRepository staffRepository;
     private final ArticleMapper articleMapper;
     private final SecurityUtils securityUtils;
 
@@ -80,7 +79,30 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseWithPagination<List<ArticleResponse>> getAllArticles(
+    public ResponseWithPagination<List<ArticleResponse>> getAllArticlesForCustomer(
+            int page, int limit, String title, Long categoryId, LocalDate createdDate) {
+
+        page = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(page, limit);
+        // Customer chỉ xem các bài viết có status = true
+        Page<Article> articlePage = articleRepository.searchArticles(true, title, categoryId, createdDate, pageable);
+
+        List<ArticleResponse> responses = articlePage.getContent().stream()
+                .map(articleMapper::toResponse)
+                .toList();
+
+        return ResponseWithPagination.<List<ArticleResponse>>builder()
+                .data(responses)
+                .page(page + 1)
+                .limit(limit)
+                .totalItem((int) articlePage.getTotalElements())
+                .totalPage(articlePage.getTotalPages())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseWithPagination<List<ArticleResponse>> getAllArticlesForAdmin(
             int page, int limit, Boolean status, String title, Long categoryId, LocalDate createdDate) {
 
         page = Math.max(page - 1, 0);
@@ -180,6 +202,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setStatus(!article.getStatus());
         articleRepository.save(article);
     }
+
     /**
      * 🔎 Helper methods
      */
@@ -187,7 +210,6 @@ public class ArticleServiceImpl implements ArticleService {
         return articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found with id: " + id));
     }
-
 
     private Article findBySlug(String slug) {
         return articleRepository.findBySlug(slug)
