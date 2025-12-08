@@ -4,11 +4,12 @@ import { Loader2 } from 'lucide-react';
 import { categoryBrandService } from '@/services/categoryBrand.service';
 import { productService } from '@/services/product.service';
 import { filterCriteriaService } from '@/services/filterCriteria.service';
+import { bannerService } from '@/services/banner.service';
 import type { Brand } from '@/types/brand.type';
 import type { Product } from '@/types/product.type';
 import type { FilterCriteria } from '@/types/filterCriteria.type';
+import type { BannerDisplayResponse } from '@/types/banner.type';
 import Breadcrumb from '@/components/user/search/Breadcrumb';
-import PromotionalBanners from '@/components/user/search/PromotionalBanners';
 import BrandSelection from '@/components/user/search/BrandSelection';
 import FilterSection from '@/components/user/search/FilterSection';
 import SortSection from '@/components/user/search/SortSection';
@@ -94,6 +95,19 @@ export default function SearchWithCategory() {
   );
 
   const products = productsData?.data?.data || [];
+
+  // Load banners using useQuery hook
+  const {
+    data: bannersData,
+    isLoading: bannersLoading,
+  } = useQuery<BannerDisplayResponse>(
+    () => bannerService.getBannersToDisplay(),
+    {
+      queryKey: ['banners', 'display'],
+    }
+  );
+
+  const banners = bannersData?.data || [];
 
   useEffect(() => {
     if (slug) {
@@ -205,15 +219,54 @@ export default function SearchWithCategory() {
   )
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <Breadcrumb
-        items={[
-          { label: 'Điện thoại', href: '/products' },
-          { label: categoryName || 'Danh mục' },
-        ]}
-      />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/' },
+            { label: categoryName || 'Danh mục' },
+          ]}
+        />
 
-      <PromotionalBanners />
+        {/* Promotional Banners from API */}
+        {bannersLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="h-48 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="h-48 bg-gray-200 rounded-lg animate-pulse" />
+          </div>
+        ) : banners.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {banners.slice(0, 2).map((banner) => (
+              <a
+                key={banner.id}
+                href={banner.linkUrl || '#'}
+                className="relative rounded-lg overflow-hidden group hover:shadow-lg transition-shadow duration-300"
+              >
+                <img
+                  src={banner.imageUrl}
+                  alt={banner.title || 'Banner'}
+                  className="w-full h-48 md:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/assets/avatar.jpg";
+                  }}
+                />
+                {(banner.title || banner.description) && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-4 left-4 right-4 text-white">
+                      {banner.title && (
+                        <h3 className="text-lg font-bold mb-1">{banner.title}</h3>
+                      )}
+                      {banner.description && (
+                        <p className="text-sm opacity-90">{banner.description}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
+        ) : null}
 
       <BrandSelection 
         brands={brands} 
@@ -273,6 +326,7 @@ export default function SearchWithCategory() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

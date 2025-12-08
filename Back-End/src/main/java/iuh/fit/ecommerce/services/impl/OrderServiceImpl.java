@@ -51,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerService customerService;
     private final VoucherService voucherService;
     private final EmailService emailService;
+    private final NotificationWebSocketService notificationWebSocketService;
 
     @Override
     @Transactional
@@ -184,6 +185,12 @@ public class OrderServiceImpl implements OrderService {
         switch (request.getPaymentMethod()) {
             case CASH_ON_DELIVERY -> {
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
+                // Gửi WebSocket notification
+                notificationWebSocketService.sendOrderNotification(
+                    order, 
+                    "CREATED", 
+                    String.format("Đơn hàng mới #%d đã được tạo bởi staff", order.getId())
+                );
                 return orderMapper.toResponse(order);
             }
             case VN_PAY -> {
@@ -357,6 +364,12 @@ public class OrderServiceImpl implements OrderService {
                 updateVariantStockAfterOrderCreated(order.getOrderDetails());
                 // Gửi email xác nhận đơn hàng
                 sendOrderConfirmationEmail(order);
+                // Gửi WebSocket notification
+                notificationWebSocketService.sendOrderNotification(
+                    order, 
+                    "CREATED", 
+                    String.format("Đơn hàng mới #%d đã được tạo", order.getId())
+                );
                 return orderMapper.toResponse(order);
             }
             case VN_PAY -> {
@@ -460,6 +473,13 @@ public class OrderServiceImpl implements OrderService {
 
         sendOrderStatusNotification(order, PROCESSING, "Đơn hàng đã được tiếp nhận", 
                 String.format("Đơn hàng #%d của bạn đã được tiếp nhận và đang được xử lý.", order.getId()));
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "UPDATED", 
+            String.format("Đơn hàng #%d đã được tiếp nhận", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
@@ -485,6 +505,13 @@ public class OrderServiceImpl implements OrderService {
 
         sendOrderStatusNotification(order, CANCELED, "Đơn hàng đã bị hủy", 
                 String.format("Đơn hàng #%d của bạn đã bị hủy.", order.getId()));
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "CANCELLED", 
+            String.format("Đơn hàng #%d đã bị hủy", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
@@ -527,6 +554,13 @@ public class OrderServiceImpl implements OrderService {
             sendOrderStatusNotification(order, SHIPPED, "Đơn hàng đang được giao", 
                     String.format("Đơn hàng #%d của bạn đang được giao đến địa chỉ của bạn.", order.getId()));
         }
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "PROCESSED", 
+            String.format("Đơn hàng #%d đã được xử lý", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
@@ -549,6 +583,13 @@ public class OrderServiceImpl implements OrderService {
 
         sendOrderStatusNotification(order, COMPLETED, "Đơn hàng đã được nhận", 
                 String.format("Đơn hàng #%d của bạn đã được hoàn thành. Cảm ơn bạn đã mua sắm!", order.getId()));
+        
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendOrderNotification(
+            order, 
+            "COMPLETED", 
+            String.format("Đơn hàng #%d đã hoàn thành", order.getId())
+        );
 
         return orderMapper.toResponse(order);
     }
