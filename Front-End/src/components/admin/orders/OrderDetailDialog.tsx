@@ -17,6 +17,7 @@ import {
   Clock,
   AlertCircle,
   XCircle,
+  FileDown,
 } from "lucide-react";
 
 interface OrderDetailDialogProps {
@@ -27,6 +28,7 @@ interface OrderDetailDialogProps {
   onCancelOrder?: (orderId: number) => void;
   onProcessOrder?: (orderId: number) => void;
   onCompleteOrder?: (orderId: number) => void;
+  onExportPdf?: (orderId: number) => void;
   isConfirming?: boolean;
   isCanceling?: boolean;
   isProcessing?: boolean;
@@ -108,6 +110,7 @@ export default function OrderDetailDialog({
   onCancelOrder,
   onProcessOrder,
   onCompleteOrder,
+  onExportPdf,
   isConfirming = false,
   isCanceling = false,
   isProcessing = false,
@@ -122,6 +125,7 @@ export default function OrderDetailDialog({
     order.status === "READY_FOR_PICKUP";
   const canProcess = order.status === "PROCESSING";
   const canComplete = order.status === "READY_FOR_PICKUP";
+  const canExportPdf = order.status === "COMPLETED";
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -359,7 +363,7 @@ export default function OrderDetailDialog({
         </div>
 
         {/* Footer with Action Buttons */}
-        {(canConfirm || canCancel || canProcess || canComplete) && (
+        {(canConfirm || canCancel || canProcess || canComplete || canExportPdf) && (
           <DialogFooter className="mt-6 flex gap-3">
             {canConfirm && onConfirmOrder && (
               <Button
@@ -430,6 +434,16 @@ export default function OrderDetailDialog({
                     Hoàn thành đơn hàng
                   </>
                 )}
+              </Button>
+            )}
+
+            {canExportPdf && onExportPdf && (
+              <Button
+                onClick={() => onExportPdf(order.id)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                Xuất hóa đơn PDF
               </Button>
             )}
 
