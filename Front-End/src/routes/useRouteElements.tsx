@@ -71,6 +71,7 @@ import ChatManagement from "@/pages/admin/ChatManagement";
 import StaffLogin from "@/pages/auth/StaffLogin";
 import ShipperLogin from "@/pages/auth/ShipperLogin";
 import Feedbacks from "@/pages/admin/Feedbacks";
+import AdminProductQuestionsPage from "@/pages/admin/ProductQuestionsPage";
 import {
   ADMIN_PATH,
   AUTH_PATH,
@@ -257,6 +258,10 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.FILTER_CRITERIAS, element: <FilterCriterias /> },
         { path: ADMIN_PATH.CHAT, element: <ChatManagement /> },
         { path: "/admin/feedbacks", element: <Feedbacks /> },
+        {
+          path: "/admin/product-questions",
+          element: <AdminProductQuestionsPage />,
+        },
         { path: ADMIN_PATH.PURCHASE_ORDERS, element: <PurchaseOrders /> },
         { path: ADMIN_PATH.PURCHASE_ORDER_ADD, element: <AddPurchaseOrder /> },
         { path: "/admin/purchase-orders/:id", element: <PurchaseOrderDetail /> },
