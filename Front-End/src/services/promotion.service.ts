@@ -60,5 +60,75 @@ export const promotionService = {
       `/dashboard/compare-promotion?${params.toString()}`
     );
     return response.data;
+  },
+
+  // Get all promotions by day
+  getAllPromotionsByDay: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<TopPromotionResponse[]>>(
+      `/dashboard/all-promotions-by-day${queryString}`
+    );
+    return response.data;
+  },
+
+  // Get all promotions by month
+  getAllPromotionsByMonth: async (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<TopPromotionResponse[]>>(
+      `/dashboard/all-promotions-by-month${queryString}`
+    );
+    return response.data;
+  },
+
+  // Get all promotions by year
+  getAllPromotionsByYear: async (year?: number) => {
+    const params = year ? `?year=${year}` : '';
+    const response = await axiosClient.get<ApiResponse<TopPromotionResponse[]>>(
+      `/dashboard/all-promotions-by-year${params}`
+    );
+    return response.data;
+  },
+
+  // Get promotion detail
+  getPromotionDetail: async (promotionId: number, startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<import('@/types/voucher-promotion.type').PromotionDetailResponse>>(
+      `/dashboard/promotion-detail/${promotionId}${queryString}`
+    );
+    return response.data;
+  },
+
+  // Export promotion dashboard to Excel (uses common dashboard export endpoint)
+  exportDashboardExcel: async (startDate?: string, endDate?: string): Promise<void> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get(`/dashboard/export-excel${queryString}`, {
+      responseType: 'blob',
+    });
+    
+    const blob = response.data;
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `promotion_dashboard_${startDate}_${endDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   }
 };

@@ -4,11 +4,14 @@ import iuh.fit.ecommerce.dtos.projection.TopProductProjection;
 import iuh.fit.ecommerce.dtos.projection.TopPromotionProjection;
 import iuh.fit.ecommerce.dtos.projection.TopVoucherProjection;
 import iuh.fit.ecommerce.dtos.response.dashboard.*;
+import iuh.fit.ecommerce.entities.OrderDetail;
+import iuh.fit.ecommerce.entities.PromotionUsage;
 import iuh.fit.ecommerce.repositories.OrderDetailRepository;
 import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.repositories.PromotionUsageRepository;
 import iuh.fit.ecommerce.repositories.VoucherUsageHistoryRepository;
 import iuh.fit.ecommerce.services.DashboardService;
+import iuh.fit.ecommerce.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final OrderDetailRepository orderDetailRepository;
     private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
     private final PromotionUsageRepository promotionUsageRepository;
+    private final ProductService productService;
 
     @Override
     public List<RevenueByMonthResponse> getRevenueByMonth(Integer year, Integer month) {
@@ -524,4 +528,317 @@ public class DashboardServiceImpl implements DashboardService {
                 .customersGrowth(0.0) // Tạm thời set 0, cần logic riêng
                 .build();
     }
+
+    @Override
+    public VoucherDetailResponse getVoucherDetail(Long voucherId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+        
+        // Lấy danh sách usage history của voucher trong khoảng thời gian
+        List<iuh.fit.ecommerce.entities.VoucherUsageHistory> usageHistories = 
+                voucherUsageHistoryRepository.findByVoucherIdAndDateRange(voucherId, start, end);
+        
+        if (usageHistories.isEmpty()) {
+            // Nếu không có usage, vẫn trả về thông tin voucher
+            var voucher = voucherUsageHistoryRepository.findFirstByVoucherId(voucherId)
+                    .map(iuh.fit.ecommerce.entities.VoucherUsageHistory::getVoucher)
+                    .orElseThrow(() -> new RuntimeException("Voucher not found"));
+            
+            return VoucherDetailResponse.builder()
+                    .voucherId(voucherId)
+                    .voucherCode(voucher.getCode())
+                    .voucherName(voucher.getName())
+                    .totalUsage(0L)
+                    .totalDiscountAmount(0.0)
+                    .orders(List.of())
+                    .build();
+        }
+        
+        // Lấy thông tin voucher từ usage history đầu tiên
+        var voucher = usageHistories.get(0).getVoucher();
+        
+        // Map sang response
+        List<VoucherOrderDetailResponse> orders = usageHistories.stream()
+                .map(usage -> {
+                    var order = usage.getOrder();
+                    return VoucherOrderDetailResponse.builder()
+                            .orderId(order.getId())
+                            .orderCode("ORD-" + order.getId()) // Tạo order code
+                            .orderDate(order.getOrderDate())
+                            .customerName(order.getCustomer().getFullName())
+                            .orderTotal(order.getTotalPrice())
+                            .discountAmount(usage.getDiscountAmount())
+                            .build();
+                })
+                .toList();
+        
+        // Tính tổng
+        Long totalUsage = (long) orders.size();
+        Double totalDiscount = orders.stream()
+                .mapToDouble(VoucherOrderDetailResponse::getDiscountAmount)
+                .sum();
+        
+        return VoucherDetailResponse.builder()
+                .voucherId(voucherId)
+                .voucherCode(voucher.getCode())
+                .voucherName(voucher.getName())
+                .totalUsage(totalUsage)
+                .totalDiscountAmount(totalDiscount)
+                .orders(orders)
+                .build();
+    }
+
+    @Override
+    public List<TopVoucherResponse> getAllVouchersByDay(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+        
+        return voucherUsageHistoryRepository.getAllVouchersByDay(start, end).stream()
+                .map(this::mapToTopVoucherResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopVoucherResponse> getAllVouchersByMonth(Integer year, Integer month) {
+        return voucherUsageHistoryRepository.getAllVouchersByMonth(year, month).stream()
+                .map(this::mapToTopVoucherResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopVoucherResponse> getAllVouchersByYear(Integer year) {
+        return voucherUsageHistoryRepository.getAllVouchersByYear(year).stream()
+                .map(this::mapToTopVoucherResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopPromotionResponse> getAllPromotionsByDay(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+        
+        log.info("Getting all promotions by day from {} to {}", start, end);
+        var projections = promotionUsageRepository.getAllPromotionsByDay(start, end);
+        log.info("Found {} promotion projections", projections.size());
+        
+        return projections.stream()
+                .map(this::mapToTopPromotionResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopPromotionResponse> getAllPromotionsByMonth(Integer year, Integer month) {
+        log.info("Getting all promotions by month: {}/{}", month, year);
+        var projections = promotionUsageRepository.getAllPromotionsByMonth(year, month);
+        log.info("Found {} promotion projections", projections.size());
+        
+        return projections.stream()
+                .map(this::mapToTopPromotionResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopPromotionResponse> getAllPromotionsByYear(Integer year) {
+        log.info("Getting all promotions by year: {}", year);
+        var projections = promotionUsageRepository.getAllPromotionsByYear(year);
+        log.info("Found {} promotion projections", projections.size());
+        
+        return projections.stream()
+                .map(this::mapToTopPromotionResponse)
+                .toList();
+    }
+
+    @Override
+    public PromotionDetailResponse getPromotionDetail(Long promotionId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+        
+        log.info("Getting promotion detail for promotionId: {} from {} to {}", promotionId, start, end);
+        
+        // Lấy danh sách usage của promotion trong khoảng thời gian
+        List<PromotionUsage> usages = 
+                promotionUsageRepository.findByPromotionIdAndDateRange(promotionId, start, end);
+        
+        if (usages.isEmpty()) {
+            // Nếu không có usage, vẫn trả về thông tin promotion
+            var promotion = promotionUsageRepository.findFirstByPromotionId(promotionId)
+                    .map(PromotionUsage::getPromotion)
+                    .orElseThrow(() -> new RuntimeException("Promotion not found"));
+            
+            return PromotionDetailResponse.builder()
+                    .promotionId(promotionId)
+                    .promotionName(promotion.getName())
+                    .promotionType(promotion.getPromotionType().name())
+                    .totalUsage(0L)
+                    .totalDiscountAmount(0.0)
+                    .orders(List.of())
+                    .build();
+        }
+        
+        // Lấy thông tin promotion từ usage đầu tiên
+        var promotion = usages.get(0).getPromotion();
+        
+        // Map sang response
+        List<PromotionOrderDetailResponse> orders = usages.stream()
+                .map(usage -> {
+                    var order = usage.getOrder();
+                    return PromotionOrderDetailResponse.builder()
+                            .orderId(order.getId())
+                            .orderCode("ORD-" + order.getId())
+                            .orderDate(order.getOrderDate())
+                            .customerName(order.getCustomer().getFullName())
+                            .orderTotal(order.getTotalPrice())
+                            .discountAmount(usage.getDiscountAmount())
+                            .build();
+                })
+                .toList();
+        
+        // Tính tổng
+        Long totalUsage = (long) orders.size();
+        Double totalDiscount = orders.stream()
+                .mapToDouble(PromotionOrderDetailResponse::getDiscountAmount)
+                .sum();
+        
+        log.info("Found {} orders for promotion {}", totalUsage, promotionId);
+        
+        return PromotionDetailResponse.builder()
+                .promotionId(promotionId)
+                .promotionName(promotion.getName())
+                .promotionType(promotion.getPromotionType().name())
+                .totalUsage(totalUsage)
+                .totalDiscountAmount(totalDiscount)
+                .orders(orders)
+                .build();
+    }
+
+    @Override
+    public List<TopProductResponse> getAllProductsByDay(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        log.info("Getting all products by day from {} to {}", start, end);
+        var projections = orderDetailRepository.getAllProductsByDay(start, end);
+        log.info("Found {} product projections", projections.size());
+
+        return projections.stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getAllProductsByMonth(Integer year, Integer month) {
+        log.info("Getting all products by month: {}/{}", month, year);
+        var projections = orderDetailRepository.getAllProductsByMonth(year, month);
+        log.info("Found {} product projections", projections.size());
+
+        return projections.stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TopProductResponse> getAllProductsByYear(Integer year) {
+        log.info("Getting all products by year: {}", year);
+        var projections = orderDetailRepository.getAllProductsByYear(year);
+        log.info("Found {} product projections", projections.size());
+
+        return projections.stream()
+                .map(this::mapToTopProductResponse)
+                .toList();
+    }
+
+    @Override
+    public ProductDetailResponse getProductDetail(Long productId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        log.info("Getting product detail for productId: {} from {} to {}", productId, start, end);
+        
+        // Lấy danh sách order details của sản phẩm trong khoảng thời gian
+        List<OrderDetail> orderDetails = 
+                orderDetailRepository.findOrderDetailsByProductAndDateRange(productId, start, end);
+        
+        if (orderDetails.isEmpty()) {
+            // Nếu không có order, vẫn trả về thông tin sản phẩm
+            var product = productService.getProductById(productId);
+            
+            return ProductDetailResponse.builder()
+                    .productId(productId)
+                    .productName(product.getName())
+                    .productImage(product.getThumbnail())
+                    .totalQuantitySold(0L)
+                    .totalRevenue(0.0)
+                    .orders(List.of())
+                    .build();
+        }
+
+        // Lấy thông tin sản phẩm từ order detail đầu tiên
+        var product = orderDetails.get(0).getProductVariant().getProduct();
+
+        // Map sang response
+        List<ProductOrderDetailResponse> orders = orderDetails.stream()
+                .map(od -> {
+                    var order = od.getOrder();
+                    return ProductOrderDetailResponse.builder()
+                            .orderId(order.getId())
+                            .orderCode("ORD-" + order.getId())
+                            .orderDate(order.getOrderDate())
+                            .customerName(order.getCustomer().getFullName())
+                            .quantityOrdered(od.getQuantity())
+                            .unitPrice(od.getPrice())
+                            .totalPrice(od.getFinalPrice())
+                            .build();
+                })
+                .toList();
+
+        // Tính tổng
+        Long totalQuantity = orders.stream()
+                .mapToLong(ProductOrderDetailResponse::getQuantityOrdered)
+                .sum();
+        Double totalRevenue = orders.stream()
+                .mapToDouble(ProductOrderDetailResponse::getTotalPrice)
+                .sum();
+
+        log.info("Found {} orders for product {}", orders.size(), productId);
+
+        return ProductDetailResponse.builder()
+                .productId(productId)
+                .productName(product.getName())
+                .productImage(product.getThumbnail())
+                .totalQuantitySold(totalQuantity)
+                .totalRevenue(totalRevenue)
+                .orders(orders)
+                .build();
+    }
+
+    @Override
+    public List<OrderSummaryResponse> getOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        log.info("Getting orders by date range from {} to {}", start, end);
+        
+        var orders = orderRepository.findByOrderDateBetweenAndStatus(
+                start, 
+                end, 
+                iuh.fit.ecommerce.enums.OrderStatus.COMPLETED
+        );
+        
+        log.info("Found {} orders", orders.size());
+
+        return orders.stream()
+                .map(order -> OrderSummaryResponse.builder()
+                        .orderId(order.getId())
+                        .orderCode("ORD-" + order.getId())
+                        .orderDate(order.getOrderDate())
+                        .customerName(order.getCustomer().getFullName())
+                        .customerPhone(order.getCustomer().getPhone())
+                        .totalPrice(order.getTotalPrice())
+                        .finalTotalPrice(order.getFinalTotalPrice())
+                        .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod().name() : "")
+                        .status(order.getStatus() != null ? order.getStatus().name() : "")
+                        .build())
+                .toList();
+    }
+
 }

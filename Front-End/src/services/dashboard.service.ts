@@ -127,6 +127,15 @@ export const dashboardService = {
     return response.data;
   },
 
+  // Get all products by day
+  getAllProductsByDay: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
+      `/dashboard/all-products-by-day${queryString}`
   // Statistics API - Dashboard overview
   getStatisticsDashboard: async () => {
     const response = await axiosClient.get<DashboardApiResponse<any>>(
@@ -135,6 +144,50 @@ export const dashboardService = {
     return response.data;
   },
 
+  // Get all products by month
+  getAllProductsByMonth: async (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
+      `/dashboard/all-products-by-month${queryString}`
+    );
+    return response.data;
+  },
+
+  // Get all products by year
+  getAllProductsByYear: async (year?: number) => {
+    const params = year ? `?year=${year}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<TopProductResponse[]>>(
+      `/dashboard/all-products-by-year${params}`
+    );
+    return response.data;
+  },
+
+  // Get product detail
+  getProductDetail: async (productId: number, startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<import('@/types/dashboard.type').ProductDetailResponse>>(
+      `/dashboard/product-detail/${productId}${queryString}`
+    );
+    return response.data;
+  },
+
+  // Get orders by date range
+  getOrdersByDateRange: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<import('@/types/dashboard.type').OrderSummary[]>>(
+      `/dashboard/orders-by-date-range${queryString}`
   // Statistics API - Monthly revenue
   getStatisticsMonthlyRevenue: async () => {
     const response = await axiosClient.get<DashboardApiResponse<any[]>>(
