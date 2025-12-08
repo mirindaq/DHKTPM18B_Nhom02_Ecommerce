@@ -1,4 +1,4 @@
-package iuh.fit.ecommerce.configurations;
+ package iuh.fit.ecommerce.configurations;
 
 
 import iuh.fit.ecommerce.entities.*;

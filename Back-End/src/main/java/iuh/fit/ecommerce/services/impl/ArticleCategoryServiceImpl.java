@@ -1,7 +1,11 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +30,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.ARTICLE_CATEGORY_CACHE, allEntries = true)
     public ArticleCategoryResponse createCategory(ArticleCategoryAddRequest request) {
         // Check if title already exists
         if (articleCategoryRepository.existsByTitle(request.getTitle())) {
@@ -50,6 +55,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ARTICLE_CATEGORY_CACHE, key = "'slug:' + #slug")
     public ArticleCategoryResponse getCategoryBySlug(String slug) {
         ArticleCategory category = articleCategoryRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with slug: " + slug));
@@ -58,6 +64,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ARTICLE_CATEGORY_CACHE, key = "#id")
     public ArticleCategoryResponse getCategoryById(Long id) {
         ArticleCategory category = articleCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with id: " + id));
@@ -66,6 +73,8 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.ARTICLE_CATEGORY_CACHE, allEntries = true)
+    @CachePut(value = CacheConfig.ARTICLE_CATEGORY_CACHE, key = "#id")
     public ArticleCategoryResponse updateCategory(Long id, ArticleCategoryAddRequest request) {
         ArticleCategory category = articleCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with id: " + id));
@@ -85,6 +94,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.ARTICLE_CATEGORY_CACHE, allEntries = true)
     public void deleteCategory(Long id) {
         ArticleCategory category = articleCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article Category not found with id: " + id));
@@ -94,6 +104,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.ARTICLE_CATEGORY_CACHE, key = "'page:' + #page + ':limit:' + #limit + ':title:' + (#title != null ? #title : 'all')")
     public ResponseWithPagination<List<ArticleCategoryResponse>> getAllCategories(int page, int limit, String title) {
         page = page > 0 ? page - 1 : page;
         Pageable pageable = PageRequest.of(page, limit);

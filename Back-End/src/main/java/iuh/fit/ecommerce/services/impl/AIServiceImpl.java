@@ -38,58 +38,44 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public ChatAIResponse chat(String message, Long customerId, String sessionId) {
-        // Lấy conversation history (10 tin nhắn gần nhất)
         List<ChatHistoryMessage> conversationHistory = chatMemoryService.getRecentMessages(sessionId, 10);
         
-        // Search sản phẩm liên quan từ Qdrant (semantic search)
         List<String> relevantProducts = vectorStoreService.searchSimilarProducts(message, 5);
         String productsContext = relevantProducts.isEmpty() 
                 ? "(Không tìm thấy sản phẩm liên quan)" 
                 : String.join("\n---\n", relevantProducts);
-        
-        // Xây dựng context (có thể null nếu chưa đăng nhập)
+            
         String context = (customerId != null) 
                 ? buildContextForCustomer(customerId)
                 : buildContextForGuest();
 
-        // Xây dựng conversation history string
         String historyString = buildConversationHistory(conversationHistory);
+        
 
         String promptTemplateString = """
-                Chào bạn! 😊
-                
-                Tôi là trợ lý ảo thông minh của cửa hàng điện thoại Ecommerce.
-                
-                Nhiệm vụ của tôi:
-                - Tư vấn sản phẩm phù hợp với nhu cầu của bạn
-                - Trả lời câu hỏi về đơn hàng và trạng thái giao hàng
-                - Hướng dẫn về sử dụng, bảo hành, đổi trả sản phẩm
-                - Hỗ trợ bạn một cách lịch sự, nhiệt tình và chuyên nghiệp
-                
-                Thông tin khách hàng:
-                {context}
-                
-                Sản phẩm liên quan (tìm kiếm thông minh):
-                {products}
-                
-                Lịch sử hội thoại gần đây:
-                {history}
-                
-                Câu hỏi hiện tại của bạn: {question}
-                
-                Lưu ý khi trả lời:
-                - Trả lời ngắn gọn, dễ hiểu, thân thiện
-                - Dựa vào lịch sử hội thoại để hiểu ngữ cảnh tốt hơn
-                - Chỉ tư vấn dựa trên thông tin có sẵn ở trên
-                - Nếu không chắc chắn, hãy đề xuất bạn liên hệ nhân viên hỗ trợ trực tiếp
-                - Sử dụng emoji phù hợp để tạo sự gần gũi
-                - KHÔNG sử dụng markdown formatting (**, *, #, ##, etc)
-                - Chỉ trả lời bằng plain text với emoji
-                
-                Hãy trả lời câu hỏi một cách tốt nhất nhé!
-                """;
+            Chào bạn! Tôi là trợ lý ảo của Ecomstore.
+        
+            Nhiệm vụ của tôi:
+            - Tư vấn sản phẩm
+            - Trả lời câu hỏi về đơn hàng, giao hàng
+            - Hướng dẫn sử dụng, bảo hành, đổi trả
+            - Hỗ trợ một cách chuyên nghiệp
+        
+            Thông tin khách hàng: {context}
+            Sản phẩm liên quan: {products}
+            Lịch sử hội thoại gần đây: {history}
+            Câu hỏi hiện tại: {question}
+        
+            Lưu ý:
+            - Trả lời ngắn gọn, dễ hiểu, thân thiện
+            - Dựa vào lịch sử hội thoại và thông tin có sẵn
+            - Nếu bạn chưa đăng nhập, vui lòng đăng nhập để nhận hỗ trợ tốt hơn
+            - Nếu không chắc chắn, đề xuất liên hệ nhân viên hỗ trợ
+            - KHÔNG dùng markdown
+            - Trả lời bằng plain text
+        """;
 
-        // Tạo prompt với template
+
         PromptTemplate promptTemplate = new PromptTemplate(promptTemplateString);
         Prompt prompt = promptTemplate.create(Map.of(
                 "context", context,
@@ -97,17 +83,12 @@ public class AIServiceImpl implements AIService {
                 "history", historyString,
                 "question", message
         ));
-
-        // Gọi AI model
         String response = chatModel.call(prompt)
                 .getResult()
                 .getOutput()
                 .getText();
-
-        // Lưu user message vào history
         chatMemoryService.addMessage(sessionId, "user", message);
         
-        // Lưu AI response vào history
         chatMemoryService.addMessage(sessionId, "assistant", response);
 
         return ChatAIResponse.builder()
