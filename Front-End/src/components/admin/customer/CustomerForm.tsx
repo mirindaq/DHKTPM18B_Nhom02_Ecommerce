@@ -3,20 +3,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Calendar as CalendarIcon,
-  Camera,
-  Loader2,
-  ArrowLeft,
-  Plus,
-} from "lucide-react";
-import { format } from "date-fns";
+import { Camera, Loader2, ArrowLeft, Plus } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import type {
   CustomerSummary,
@@ -25,9 +13,9 @@ import type {
   AddressRequest,
   AddressResponse,
 } from "@/types/customer.type";
-import { customerService } from "@/services/customer.service";
 import { provinceService } from "@/services/province.service";
 import AddressFields from "./AddressFields";
+import { customerService } from "@/services/customer.service";
 
 interface AddressFormData {
   id: number;
@@ -47,7 +35,7 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
       fullName: customer.fullName ?? "",
       email: customer.email ?? "",
       phone: customer.phone ?? "",
-      dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth) : null,
+      dateOfBirth: customer.dateOfBirth ?? "",
       avatar: customer.avatar ?? "",
       password: "",
     };
@@ -57,7 +45,7 @@ const getInitialFormData = (customer: CustomerSummary | null) => {
     email: "",
     phone: "",
     password: "",
-    dateOfBirth: null,
+    dateOfBirth: "",
     avatar: "",
   };
 };
@@ -77,40 +65,25 @@ const getNewAddress = (
   addressName: index === 0 ? "Địa chỉ mặc định" : "",
 });
 
-// --- Sửa chỗ map: giữ id thực từ backend (rawAddr.id) nếu có
-const mapAddressResponseToFormData = (
-  addr: AddressResponse,
-  index: number
-): AddressFormData => {
+//cai nao dung ong nho k
+
+const mapAddressResponseToFormData = (addr: AddressResponse, index: number): AddressFormData => {
   const rawAddr = addr as any;
-  // lấy id thật từ raw nếu backend trả id, fallback về addr.id (nếu có), cuối cùng là index
-  const realId = rawAddr.id ?? (addr as any).id ?? index;
-  const customerId =
-    rawAddr.customerId ??
-    rawAddr.customer_id ??
-    rawAddr.customer?.id ??
-    undefined;
+  const realId = rawAddr.id ?? index;
+  const customerId = rawAddr.customerId ?? rawAddr.customer_id ?? rawAddr.customer?.id ?? undefined;
+
+  const wardId = rawAddr.wardId?.toString() || "";
+  const provinceId = rawAddr.provinceId?.toString() || "";
 
   return {
     id: realId,
     subAddress: addr.subAddress || "",
-    // preserve codes/names; try common fields
-    wardCode:
-      (addr as any).ward?.code ||
-      rawAddr.wardCode ||
-      rawAddr.ward_code ||
-      rawAddr.wardName ||
-      "",
-    provinceCode:
-      (addr as any).province?.code ||
-      rawAddr.provinceCode ||
-      rawAddr.province_code ||
-      rawAddr.provinceName ||
-      "",
+    wardCode: wardId, 
+    provinceCode: provinceId, 
     fullName: addr.fullName || "",
     phone: addr.phone || "",
-    isDefault: (addr as any).isDefault || false,
-    addressName: (addr as any).addressName || "",
+    isDefault: rawAddr.isDefault || false,
+    addressName: rawAddr.addressName || "",
     customerId,
   };
 };
@@ -137,12 +110,11 @@ export default function CustomerForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [step, setStep] = useState(1);
-  const [createdCustomer, setCreatedCustomer] =
-    useState<CustomerSummary | null>(customer);
-  // 🧩 Lưu danh sách ID địa chỉ bị xoá (chờ đến khi cập nhật mới xoá DB)
-  const [deletedAddressIds, setDeletedAddressIds] = useState<number[]>([]);
+  const [createdCustomer, setCreatedCustomer] = useState<CustomerSummary | null>(customer);
 
-  // keep addresses initial mapped from customer.addresses if any
+const [deletedAddressIds, setDeletedAddressIds] = useState<number[]>([]);
+
+ 
   const [addresses, setAddresses] = useState<AddressFormData[]>(() => {
     if (customer && customer.addresses && customer.addresses.length > 0) {
       return customer.addresses.map((addr, idx) => ({
@@ -198,125 +170,35 @@ export default function CustomerForm({
   useEffect(() => {
     if (!customer) return;
     if (!provinces.length) return;
+    if (!addresses.length) return;
 
-    const rawAddrs = (customer.addresses || []) as any[];
-    const newAddresses = addresses.map((addr, idx) => {
-      const raw = rawAddrs[idx] || {};
-      let provinceCode = addr.provinceCode || "";
-      let wardCode = addr.wardCode || "";
-
-      const candidateProvince =
-        raw.province?.code ||
-        raw.provinceCode ||
-        raw.province_code ||
-        raw.provinceName ||
-        raw.province_name ||
-        "";
-      const candidateWard =
-        raw.ward?.code ||
-        raw.wardCode ||
-        raw.ward_code ||
-        raw.wardName ||
-        raw.ward_name ||
-        "";
-
-      if (candidateProvince) {
-        const byCode = provinces.find((p) => p.code === candidateProvince);
-        if (byCode) {
-          provinceCode = byCode.code;
-        } else {
-          const byName = provinces.find(
-            (p) =>
-              normalize(p.name) === normalize(candidateProvince) ||
-              normalize(p.name) === normalize(raw.provinceName)
-          );
-          if (byName) provinceCode = byName.code;
-        }
-      }
-
-      if (!provinceCode && raw.provinceName) {
-        const byName = provinces.find(
-          (p) => normalize(p.name) === normalize(raw.provinceName)
-        );
-        if (byName) provinceCode = byName.code;
-      }
-
-      if (candidateWard) {
-        wardCode =
-          candidateWard && candidateWard.length > 0 ? candidateWard : "";
-      }
-
-      return {
-        ...addr,
-        provinceCode: provinceCode || "",
-        wardCode: wardCode || "",
-      };
-    });
-
-    setAddresses(newAddresses);
-
-    const codesToFetch = Array.from(
+    // Load wards for all provinces that have addresses
+    const provinceIdsToFetch = Array.from(
       new Set(
-        newAddresses
+        addresses
           .map((a) => a.provinceCode)
           .filter((c) => !!c && !wardsByProvince[c])
       )
     );
 
-    if (codesToFetch.length === 0) return;
+    if (provinceIdsToFetch.length === 0) return;
 
-    const fetchWardsAndMap = async () => {
+    const fetchWards = async () => {
       const newWardsMap: Record<string, any[]> = {};
-      for (const code of codesToFetch) {
+      for (const provinceIdStr of provinceIdsToFetch) {
         try {
-          const w = await provinceService.getWardsByProvince(Number(code));
-          newWardsMap[code] = w || [];
+          const wards = await provinceService.getWardsByProvince(Number(provinceIdStr));
+          newWardsMap[provinceIdStr] = wards || [];
         } catch (err) {
           console.error("fetch ward error", err);
-          newWardsMap[code] = [];
+          newWardsMap[provinceIdStr] = [];
         }
       }
-
       setWardsByProvince((prev) => ({ ...prev, ...newWardsMap }));
-
-      setAddresses((prevAddrs) =>
-        prevAddrs.map((addr, idx) => {
-          if (addr.wardCode) {
-            const list =
-              newWardsMap[addr.provinceCode] ||
-              wardsByProvince[addr.provinceCode] ||
-              [];
-            const foundByCode = list.find((w: any) => w.code === addr.wardCode);
-            if (foundByCode) return addr;
-          }
-          const raw = rawAddrs[idx] || {};
-          const wardNameCandidate =
-            raw.wardName || raw.ward_name || raw.ward?.name || "";
-          const list =
-            newWardsMap[addr.provinceCode] ||
-            wardsByProvince[addr.provinceCode] ||
-            [];
-          if (wardNameCandidate) {
-            const found = list.find(
-              (w: any) => normalize(w.name) === normalize(wardNameCandidate)
-            );
-            if (found) {
-              return { ...addr, wardCode: found.code || "" };
-            }
-          }
-          if (addr.wardCode) {
-            const found2 = list.find(
-              (w: any) => normalize(w.name) === normalize(addr.wardCode)
-            );
-            if (found2) return { ...addr, wardCode: found2.code || "" };
-          }
-          return addr;
-        })
-      );
     };
 
-    fetchWardsAndMap();
-  }, [customer, provinces]); // run when provinces available
+    fetchWards();
+  }, [customer, provinces, addresses.length]); // run when provinces available and addresses are set
 
   const handleValueChange = (field: string, value: any) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -339,18 +221,18 @@ export default function CustomerForm({
     );
   };
 
-  const handleProvinceChange = async (index: number, provinceCode: string) => {
-    handleAddressChange(index, "provinceCode", provinceCode);
+  const handleProvinceChange = async (index: number, provinceIdStr: string) => {
+    handleAddressChange(index, "provinceCode", provinceIdStr);
     handleAddressChange(index, "wardCode", "");
 
-    if (provinceCode && !wardsByProvince[provinceCode]) {
+    if (provinceIdStr && !wardsByProvince[provinceIdStr]) {
       try {
         setIsAddressLoading(true);
-        const data = await provinceService.getWardsByProvince(
-          Number(provinceCode)
-        );
-        setWardsByProvince((prev) => ({ ...prev, [provinceCode]: data }));
-      } catch {
+        // Convert provinceId string to number for API call
+        const data = await provinceService.getWardsByProvince(Number(provinceIdStr));
+        setWardsByProvince((prev) => ({ ...prev, [provinceIdStr]: data }));
+      } catch (error) {
+        console.error("Error loading wards:", error);
         toast.error("Không tải được danh sách phường/xã");
       } finally {
         setIsAddressLoading(false);
@@ -449,9 +331,7 @@ export default function CustomerForm({
         await new Promise((r) => setTimeout(r, 500));
         toast.success("Upload avatar thành công (mô phỏng)");
       }
-      const dob = formData.dateOfBirth
-        ? format(formData.dateOfBirth, "yyyy-MM-dd")
-        : null;
+      const dob = formData.dateOfBirth || null;
       const payload: CreateCustomerRequest = {
         fullName: formData.fullName,
         email: formData.email,
@@ -477,7 +357,7 @@ export default function CustomerForm({
     e.preventDefault();
     if (!customer && step === 1) return handleStep1Submit();
 
-    // Kiểm tra step 1 và step 2
+  
     if (!validateStep(1)) return;
     if (!validateStep(2)) return;
 
@@ -486,33 +366,65 @@ export default function CustomerForm({
       const targetCustomer = customer || createdCustomer;
 
       if (!targetCustomer) throw new Error("Customer chưa được tạo");
-
-      // 1. Xoá địa chỉ
+  
       for (const id of deletedAddressIds) {
         await customerService.deleteAddressForCustomer(targetCustomer.id, id);
       }
-
-      // 2. Duyệt địa chỉ: phân biệt mới/cũ
-      for (const addr of addresses) {
-        const req: AddressRequest = {
+  
+      
+      const defaultAddress = addresses.find(a => a.isDefault);
+      const nonDefaultAddresses = addresses.filter(a => !a.isDefault);
+   
+      for (const addr of nonDefaultAddresses) {
+      
+        let phoneNumber = addr.phone.trim();
+        if (!phoneNumber.startsWith('0') && !phoneNumber.startsWith('+84')) {
+          phoneNumber = '0' + phoneNumber;
+        }
+        
+        const req = {
           subAddress: addr.subAddress,
-          wardCode: addr.wardCode,
-          provinceCode: addr.provinceCode,
+          wardId: Number(addr.wardCode),
           fullName: addr.fullName,
-          phone: addr.phone,
-          isDefault: addr.isDefault,
-          addressName: addr.addressName,
+          phone: phoneNumber,
+          isDefault: false, 
         };
-
+//export interface CreateAddressRequest {
+//   subAddress: string;
+//   wardCode: string;
+//   provinceCode: string;
+//   isDefault: boolean;
+//   fullName: string;
+//   phone: string;
+//   addressName: string;
+// }
+// cai do ko sao chay vvan bth  am no wảning k build đc ông
         if (addr.id && addr.customerId) {
-          // Cập nhật địa chỉ cũ
           await customerService.updateAddress(targetCustomer.id, addr.id, req);
         } else {
-          // Tạo mới
-          await customerService.createAddressForCustomer(
-            targetCustomer.id,
-            req
-          );
+          await customerService.createAddressForCustomer(targetCustomer.id, req);
+        }
+      }
+      
+    
+      if (defaultAddress) {
+        let phoneNumber = defaultAddress.phone.trim();
+        if (!phoneNumber.startsWith('0') && !phoneNumber.startsWith('+84')) {
+          phoneNumber = '0' + phoneNumber;
+        }
+        
+        const req = {
+          subAddress: defaultAddress.subAddress,
+          wardId: Number(defaultAddress.wardCode),
+          fullName: defaultAddress.fullName,
+          phone: phoneNumber,
+          isDefault: true,
+        };
+  
+        if (defaultAddress.id && defaultAddress.customerId) {
+          await customerService.updateAddress(targetCustomer.id, defaultAddress.id, req);
+        } else {
+          await customerService.createAddressForCustomer(targetCustomer.id, req);
         }
       }
 
@@ -559,14 +471,14 @@ export default function CustomerForm({
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1">
               <Label>Họ và tên *</Label>
               <Input
                 value={formData.fullName}
                 onChange={(e) => handleValueChange("fullName", e.target.value)}
               />
             </div>
-            <div>
+            <div className="space-y-1">
               <Label>SĐT *</Label>
               <Input
                 value={formData.phone}
@@ -575,14 +487,14 @@ export default function CustomerForm({
             </div>
             {!customer && (
               <>
-                <div>
+                <div className="space-y-1">
                   <Label>Email *</Label>
                   <Input
                     value={formData.email}
                     onChange={(e) => handleValueChange("email", e.target.value)}
                   />
                 </div>
-                <div>
+                <div className="space-y-1">
                   <Label>Mật khẩu *</Label>
                   <Input
                     type="password"
@@ -593,25 +505,13 @@ export default function CustomerForm({
                 </div>
               </>
             )}
-            <div>
+            <div className="space-y-1">
               <Label>Ngày sinh</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dateOfBirth
-                      ? format(formData.dateOfBirth, "dd/MM/yyyy")
-                      : "Chọn ngày"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={formData.dateOfBirth || undefined}
-                    onSelect={(date) => handleValueChange("dateOfBirth", date)}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePicker
+                id="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={(val) => handleValueChange("dateOfBirth", val)}
+              />
             </div>
           </div>
         </div>

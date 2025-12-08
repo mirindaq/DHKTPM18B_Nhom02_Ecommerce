@@ -15,6 +15,7 @@ import CustomerTable from "@/components/admin/customer/CustomerTable";
 import CustomerDialog from "@/components/admin/customer/CustomerDialog";
 import CustomerDetailDialog from "@/components/admin/customer/CustomerDetailDialog";
 import CustomerFilter from "@/components/admin/customer/CustomerFilter";
+import ExcelActions from "@/components/admin/common/ExcelActions";
 
 export default function Customers() {
   const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);
@@ -126,15 +127,25 @@ export default function Customers() {
           <h1 className="text-2xl font-bold">Quản lý khách hàng</h1>
           <p className="text-lg text-gray-600">Quản lý và theo dõi thông tin khách hàng.</p>
         </div>
-        <Button
-          size="lg"
-          onClick={() => {
-            setEditingCustomer(null);
-            setIsAddEditDialogOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Thêm khách hàng
-        </Button>
+        <div className="flex gap-2">
+          <ExcelActions
+            onDownloadTemplate={customerService.downloadTemplate}
+            onImport={customerService.importCustomers}
+            onExport={customerService.exportCustomers}
+            onImportSuccess={refetchCustomers}
+            templateFileName="customer_template.xlsx"
+            exportFileName="customers.xlsx"
+          />
+          <Button
+            size="lg"
+            onClick={() => {
+              setEditingCustomer(null);
+              setIsAddEditDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Thêm khách hàng
+          </Button>
+        </div>
       </div>
 
       {/* Filter */}

@@ -58,4 +58,31 @@ export const staffService = {
     const response = await axiosClient.get<ApiResponse<Staff[]>>("/staffs/active")
     return response.data.data
   },
+
+  // Excel operations
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosClient.get("/staffs/template", {
+      responseType: "blob",
+    })
+    return response.data
+  },
+
+  importStaffs: async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    const response = await axiosClient.post("/staffs/import", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 300000, // 5 minutes for large files
+    })
+    return response.data
+  },
+
+  exportStaffs: async (): Promise<Blob> => {
+    const response = await axiosClient.get("/staffs/export", {
+      responseType: "blob",
+    })
+    return response.data
+  },
 }

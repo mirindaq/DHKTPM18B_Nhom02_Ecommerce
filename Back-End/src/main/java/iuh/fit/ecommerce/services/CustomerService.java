@@ -1,8 +1,10 @@
 package iuh.fit.ecommerce.services;
 
 
+import iuh.fit.ecommerce.dtos.request.address.AddressRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerAddRequest;
 import iuh.fit.ecommerce.dtos.request.customer.CustomerProfileRequest;
+import iuh.fit.ecommerce.dtos.response.address.AddressResponse;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.customer.CustomerResponse;
 import iuh.fit.ecommerce.entities.Customer;
@@ -22,6 +24,11 @@ public interface CustomerService {
     Customer getCustomerEntityById( Long id);
 
     void updateExpoPushToken(@NotBlank(message = "Expo push token is required") String expoPushToken);
+
+    // Address management for admin
+    AddressResponse addAddressForCustomer(Long customerId, AddressRequest request);
+    AddressResponse updateAddressForCustomer(Long customerId, Long addressId, AddressRequest request);
+    void deleteAddressForCustomer(Long customerId, Long addressId);
 
     CustomerResponse getCustomerByPhone(String phone);
 }

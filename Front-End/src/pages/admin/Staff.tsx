@@ -8,6 +8,7 @@ import StaffFilter from "@/components/admin/staffs/StaffFilter";
 import Pagination from "@/components/ui/pagination";
 import { useQuery, useMutation } from "@/hooks";
 import { staffService } from "@/services/staff.service";
+import ExcelActions from "@/components/admin/common/ExcelActions";
 import type {
   Staff as StaffType,
   StaffListPayload,
@@ -147,13 +148,23 @@ export default function Staffs() {
             Quản lý các nhân viên trong hệ thống
           </p>
         </div>
-        <Button
-          onClick={handleOpenAddDialog}
-          size="lg"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm nhân viên
-        </Button>
+        <div className="flex gap-2">
+          <ExcelActions
+            onDownloadTemplate={staffService.downloadTemplate}
+            onImport={staffService.importStaffs}
+            onExport={staffService.exportStaffs}
+            onImportSuccess={refetchStaffs}
+            templateFileName="staff_template.xlsx"
+            exportFileName="staffs.xlsx"
+          />
+          <Button
+            onClick={handleOpenAddDialog}
+            size="lg"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm nhân viên
+          </Button>
+        </div>
       </div>
 
       {/* Bộ lọc */}
