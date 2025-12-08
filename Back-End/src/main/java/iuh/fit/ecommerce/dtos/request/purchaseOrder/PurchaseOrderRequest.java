@@ -13,7 +13,7 @@ import java.util.List;
 public class PurchaseOrderRequest {
 
     @NotBlank(message = "Supplier ID is required")
-    private String supplierId;
+    private Long supplierId;
 
     private String note;
 
