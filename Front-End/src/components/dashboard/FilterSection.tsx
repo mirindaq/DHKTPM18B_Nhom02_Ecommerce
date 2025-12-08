@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -36,6 +36,12 @@ export default function FilterSection({ onFilter, onCompareToggle, compareMode }
       month: timeType === 'month' ? month : undefined
     })
   }
+
+  // Auto-trigger filter on mount with default values (current month)
+  useEffect(() => {
+    handleFilter()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">

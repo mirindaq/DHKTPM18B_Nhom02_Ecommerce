@@ -49,9 +49,6 @@ export default function VoucherComparisonModal({ open, onClose }: VoucherCompari
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center justify-between">
             <span>So sánh Voucher giữa 2 kỳ</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </DialogTitle>
         </DialogHeader>
 
