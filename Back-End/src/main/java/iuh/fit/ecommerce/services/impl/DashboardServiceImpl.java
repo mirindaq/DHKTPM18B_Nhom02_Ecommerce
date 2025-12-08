@@ -479,4 +479,49 @@ public class DashboardServiceImpl implements DashboardService {
                 .totalDiscountGrowthPercent(totalDiscountGrowth)
                 .build();
     }
+    
+    @Override
+    public DashboardStatsResponse getDashboardStats(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+        
+        // Tính toán kỳ trước (cùng độ dài thời gian)
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        LocalDate prevStartDate = startDate.minusDays(daysBetween);
+        LocalDate prevEndDate = startDate.minusDays(1);
+        LocalDateTime prevStart = prevStartDate.atStartOfDay();
+        LocalDateTime prevEnd = prevEndDate.atTime(23, 59, 59);
+        
+        // Lấy dữ liệu kỳ hiện tại
+        Double currentRevenue = orderRepository.sumRevenueByDateRange(start, end);
+        Long currentOrders = orderRepository.countByDateRange(start, end);
+        
+        // Lấy dữ liệu kỳ trước
+        Double prevRevenue = orderRepository.sumRevenueByDateRange(prevStart, prevEnd);
+        Long prevOrders = orderRepository.countByDateRange(prevStart, prevEnd);
+        
+        // Tính % tăng trưởng
+        double prevRev = prevRevenue != null ? prevRevenue : 0.0;
+        double currRev = currentRevenue != null ? currentRevenue : 0.0;
+        Double revenueGrowth = prevRev > 0 ? ((currRev - prevRev) / prevRev) * 100 : 0.0;
+        
+        double prevOrd = prevOrders != null ? prevOrders.doubleValue() : 0.0;
+        double currOrd = currentOrders != null ? currentOrders.doubleValue() : 0.0;
+        Double ordersGrowth = prevOrd > 0 ? ((currOrd - prevOrd) / prevOrd) * 100 : 0.0;
+        
+        // Đếm tổng sản phẩm và khách hàng (không phụ thuộc thời gian)
+        Long totalProducts = orderDetailRepository.count(); // Hoặc productRepository.count() nếu có
+        Long totalCustomers = orderRepository.count(); // Tạm thời dùng count orders, nên dùng customerRepository
+        
+        return DashboardStatsResponse.builder()
+                .totalRevenue(currentRevenue != null ? currentRevenue : 0.0)
+                .totalOrders(currentOrders != null ? currentOrders : 0L)
+                .totalProducts(totalProducts)
+                .totalCustomers(totalCustomers)
+                .revenueGrowth(revenueGrowth)
+                .ordersGrowth(ordersGrowth)
+                .productsGrowth(0.0) // Tạm thời set 0, cần logic riêng
+                .customersGrowth(0.0) // Tạm thời set 0, cần logic riêng
+                .build();
+    }
 }

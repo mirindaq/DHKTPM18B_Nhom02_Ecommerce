@@ -50,4 +50,7 @@ public interface DashboardService {
         LocalDate startDate1, LocalDate endDate1,
         LocalDate startDate2, LocalDate endDate2
     );
+    
+    // Thống kê tổng quan dashboard
+    DashboardStatsResponse getDashboardStats(LocalDate startDate, LocalDate endDate);
 }

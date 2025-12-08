@@ -170,7 +170,24 @@ const navigation = [
   {
     title: "Báo cáo & Thống kê",
     icon: BarChart3,
-    href: "/admin/analytics",
+    isSubmenu: true,
+    items: [
+      {
+        title: "Dashboard Analytics",
+        href: "/admin/analytics",
+        icon: BarChart3,
+      },
+      {
+        title: "Thống kê Voucher",
+        href: "/admin/reports/voucher",
+        icon: Tag,
+      },
+      {
+        title: "Thống kê Promotion",
+        href: "/admin/reports/promotion",
+        icon: Award,
+      },
+    ],
   },
 ];
 

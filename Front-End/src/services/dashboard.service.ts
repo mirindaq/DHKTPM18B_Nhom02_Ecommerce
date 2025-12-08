@@ -5,7 +5,8 @@ import type {
   RevenueByYearResponse,
   TopProductResponse,
   DashboardApiResponse,
-  ComparisonResponse
+  ComparisonResponse,
+  DashboardStatsResponse
 } from '@/types/dashboard.type';
 
 export const dashboardService = {
@@ -77,8 +78,7 @@ export const dashboardService = {
       `/dashboard/top-products-by-year${params}`
     );
     return response.data;
-  }
-};
+  },
 
   // So sánh doanh thu
   compareRevenue: async (
@@ -99,4 +99,18 @@ export const dashboardService = {
       `/dashboard/compare-revenue?${params.toString()}`
     );
     return response.data;
+  },
+
+  // Thống kê tổng quan
+  getDashboardStats: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<DashboardApiResponse<DashboardStatsResponse>>(
+      `/dashboard/stats${queryString}`
+    );
+    return response.data;
   }
+};

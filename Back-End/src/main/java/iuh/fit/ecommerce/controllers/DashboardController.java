@@ -21,6 +21,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class DashboardController {
     
     private final DashboardService dashboardService;
+    private final iuh.fit.ecommerce.services.excel.DashboardExcelService dashboardExcelService;
     
     /**
      * Lấy doanh thu theo từng tháng trong năm
@@ -356,5 +357,66 @@ public class DashboardController {
                 OK,
                 "Compare voucher vs promotion success",
                 dashboardService.compareVoucherPromotion(timeType, startDate1, endDate1, startDate2, endDate2)));
+    }
+    
+    /**
+     * Thống kê tổng quan dashboard
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<ResponseSuccess<DashboardStatsResponse>> getDashboardStats(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        
+        if (startDate == null) {
+            startDate = LocalDate.now().withDayOfMonth(1); // Đầu tháng
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+        
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Get dashboard stats success",
+                dashboardService.getDashboardStats(startDate, endDate)));
+    }
+    
+    /**
+     * Export dashboard to Excel (4 sheets: Revenue, Voucher, Promotion, Products)
+     * @param startDate Ngày bắt đầu
+     * @param endDate Ngày kết thúc
+     */
+    @GetMapping("/export-excel")
+    public ResponseEntity<org.springframework.core.io.Resource> exportDashboardExcel(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        
+        try {
+            if (startDate == null) {
+                startDate = LocalDate.now().minusDays(30);
+            }
+            if (endDate == null) {
+                endDate = LocalDate.now();
+            }
+            
+            byte[] excelData = dashboardExcelService.exportDashboard(startDate, endDate);
+            
+            String filename = String.format("Dashboard_Report_%s_to_%s.xlsx", 
+                    startDate.toString(), endDate.toString());
+            
+            org.springframework.core.io.ByteArrayResource resource = 
+                    new org.springframework.core.io.ByteArrayResource(excelData);
+            
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, 
+                            "attachment; filename=\"" + filename + "\"")
+                    .contentType(org.springframework.http.MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

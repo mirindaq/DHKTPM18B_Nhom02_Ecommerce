@@ -85,4 +85,14 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
             """, nativeQuery = true)
     Double sumPromotionDiscountByDateRange(@Param("startDate") LocalDateTime startDate,
                                             @Param("endDate") LocalDateTime endDate);
+
+    // Lấy tất cả promotion usage với thông tin chi tiết (cho Excel export)
+    @Query("SELECT pu FROM PromotionUsage pu " +
+           "JOIN FETCH pu.promotion p " +
+           "JOIN FETCH pu.order o " +
+           "JOIN FETCH o.customer c " +
+           "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY o.orderDate DESC")
+    List<PromotionUsage> findAllWithDetailsByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                         @Param("endDate") LocalDateTime endDate);
 }

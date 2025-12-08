@@ -58,3 +58,14 @@ export interface ComparisonResponse {
   orderDifference: number;
   orderGrowthPercent: number;
 }
+
+export interface DashboardStatsResponse {
+  totalRevenue: number;
+  totalOrders: number;
+  totalProducts: number;
+  totalCustomers: number;
+  revenueGrowth: number;
+  ordersGrowth: number;
+  productsGrowth: number;
+  customersGrowth: number;
+}

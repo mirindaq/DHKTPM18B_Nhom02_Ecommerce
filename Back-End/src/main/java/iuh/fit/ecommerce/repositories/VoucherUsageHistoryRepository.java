@@ -98,4 +98,13 @@ public interface VoucherUsageHistoryRepository extends JpaRepository<VoucherUsag
             """, nativeQuery = true)
     Double sumVoucherDiscountByDateRange(@Param("startDate") LocalDateTime startDate,
                                           @Param("endDate") LocalDateTime endDate);
+
+    // Lấy tất cả voucher usage với thông tin chi tiết (cho Excel export)
+    @Query("SELECT vuh FROM VoucherUsageHistory vuh " +
+           "JOIN FETCH vuh.voucher v " +
+           "JOIN FETCH vuh.order o " +
+           "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY v.code")
+    List<VoucherUsageHistory> findAllWithDetailsByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                              @Param("endDate") LocalDateTime endDate);
 }
