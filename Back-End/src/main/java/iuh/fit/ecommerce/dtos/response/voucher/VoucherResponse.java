@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.voucher;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import iuh.fit.ecommerce.enums.DiscountType;
 import iuh.fit.ecommerce.enums.VoucherType;
 import lombok.Getter;
@@ -15,8 +16,13 @@ public class VoucherResponse {
     private String code;
     private String name;
     private String description;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+    
     private Double discount;
     private Double minOrderAmount;
     private Double maxDiscountAmount;

@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.dtos.request.filterCriteria.CreateFilterCriteriaRequest;
 import iuh.fit.ecommerce.dtos.request.filterCriteria.SetFilterValuesForCriteriaRequest;
 import iuh.fit.ecommerce.dtos.response.filterCriteria.FilterCriteriaResponse;
@@ -16,6 +17,8 @@ import iuh.fit.ecommerce.repositories.ProductFilterValueRepository;
 import iuh.fit.ecommerce.services.CategoryService;
 import iuh.fit.ecommerce.services.FilterCriteriaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,7 @@ public class FilterCriteriaServiceImpl implements FilterCriteriaService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.FILTER_CRITERIA_CACHE, allEntries = true)
     public FilterCriteriaResponse createFilterCriteria(CreateFilterCriteriaRequest request) {
         Category category = categoryService.getCategoryEntityById(request.getCategoryId());
 
@@ -60,6 +64,7 @@ public class FilterCriteriaServiceImpl implements FilterCriteriaService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.FILTER_CRITERIA_CACHE, key = "'category:' + #categoryId + ':name:' + (#name != null ? #name : 'all')")
     public List<FilterCriteriaResponse> getFilterCriteriaByCategoryId(Long categoryId, String name) {
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found with id: " + categoryId);
@@ -70,6 +75,7 @@ public class FilterCriteriaServiceImpl implements FilterCriteriaService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.FILTER_CRITERIA_CACHE, key = "'category-slug:' + #categorySlug + ':name:' + (#name != null ? #name : 'all')")
     public List<FilterCriteriaResponse> getFilterCriteriaByCategorySlug(String categorySlug, String name) {
         Category category = categoryRepository.findBySlug(categorySlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with slug: " + categorySlug));
@@ -80,6 +86,7 @@ public class FilterCriteriaServiceImpl implements FilterCriteriaService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.FILTER_CRITERIA_CACHE, allEntries = true)
     public void setFilterValuesForCriteria(SetFilterValuesForCriteriaRequest request) {
         FilterCriteria filterCriteria = getFilterCriteriaEntityById(request.getFilterCriteriaId());
 
@@ -100,6 +107,7 @@ public class FilterCriteriaServiceImpl implements FilterCriteriaService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.FILTER_CRITERIA_CACHE, key = "'criteria:' + #filterCriteriaId + ':value:' + (#value != null ? #value : 'all')")
     public List<FilterValueResponse> getFilterValuesByCriteriaId(Long filterCriteriaId, String value) {
         if (!filterCriteriaRepository.existsById(filterCriteriaId)) {
             throw new ResourceNotFoundException("FilterCriteria not found with id: " + filterCriteriaId);
@@ -117,6 +125,7 @@ public class FilterCriteriaServiceImpl implements FilterCriteriaService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.FILTER_CRITERIA_CACHE, allEntries = true)
     public void deleteFilterCriteria(Long id) {
         FilterCriteria filterCriteria = getFilterCriteriaEntityById(id);
         filterCriteriaRepository.delete(filterCriteria);

@@ -1,7 +1,11 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.CATEGORY_CACHE, allEntries = true)
     public CategoryResponse createCategory(CategoryAddRequest request) {
         validateCategoryName(request.getName(), null);
 
@@ -46,6 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
+    @Cacheable(value = CacheConfig.CATEGORY_CACHE, key = "'page:' + #page + ':size:' + #size + ':name:' + (#categoryName != null ? #categoryName : 'all')")
     public ResponseWithPagination<List<CategoryResponse>> getCategories(int page, int size, String categoryName) {
 
         page = Math.max(0, page - 1);
@@ -61,12 +67,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CATEGORY_CACHE, key = "#id")
     public CategoryResponse getCategoryById(Long id) {
         return categoryMapper.toResponse(getCategoryEntityById(id));
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.CATEGORY_CACHE, key = "#id")
+    @CachePut(value = CacheConfig.CATEGORY_CACHE, key = "#id")
     public CategoryResponse updateCategory(Long id, CategoryAddRequest request) {
         Category category = getCategoryEntityById(id);
 
@@ -83,6 +92,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.CATEGORY_CACHE, key = "#id")
     public void changeStatusCategory(Long id) {
         Category category = getCategoryEntityById(id);
         category.setStatus(!category.getStatus());

@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.staff;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import iuh.fit.ecommerce.entities.UserRole;
 import iuh.fit.ecommerce.enums.WorkStatus;
 import lombok.*;
@@ -29,18 +30,22 @@ public class StaffResponse {
 
     private String phone;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
     private boolean active;
 
     private List<UserRole> userRole;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate joinDate;
 
     private WorkStatus workStatus;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime modifiedAt;
 
 }

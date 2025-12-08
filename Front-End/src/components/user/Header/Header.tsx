@@ -4,6 +4,10 @@ import {
   Search,
   ShoppingCart,
   User,
+  RefreshCcw,
+  Store,
+  PackageSearch,
+  Phone,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/context/UserContext";
@@ -74,8 +78,44 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-b from-red-600 to-rose-400 text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 py-3">
+    <header className="sticky top-0 z-50 bg-gradient-to-b from-red-600 to-rose-400 text-white shadow-md py-2">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Top Banner */}
+        <div className="text-white text-sm py-2">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            {/* Left Side - Promotional Text */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span>Giao hàng nhanh - Miễn phí cho đơn 300k</span>
+              <span className="w-1 h-1 bg-white rounded-full"></span>
+              <div className="flex items-center gap-1.5">
+                <RefreshCcw size={14} />
+                <span>Thu cũ giá ngon - Lên đời tiết kiệm</span>
+              </div>
+            </div>
+
+            {/* Right Side - Utility Links */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="h-4 w-px bg-white/50"></div>
+              <button className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                <Store size={14} />
+                <span>Cửa hàng gần bạn</span>
+              </button>
+              <div className="h-4 w-px bg-white/50"></div>
+              <button className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                <PackageSearch size={14} />
+                <span>Tra cứu đơn hàng</span>
+              </button>
+              <div className="h-4 w-px bg-white/50"></div>
+              <a href="tel:18002097" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                <Phone size={14} />
+                <span>1800 2097</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Header */}
+        <div className="py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center space-x-1 font-bold text-2xl tracking-tighter shrink-0">
@@ -255,6 +295,7 @@ export default function Header() {
               <User size={20} />
             </Button>
           </div>
+        </div>
         </div>
       </div>
 

@@ -1,4 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.attribute;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,5 +18,7 @@ public class AttributeValueResponse {
     private String categoryName;
     private Boolean status;
     private Integer orderIndex;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

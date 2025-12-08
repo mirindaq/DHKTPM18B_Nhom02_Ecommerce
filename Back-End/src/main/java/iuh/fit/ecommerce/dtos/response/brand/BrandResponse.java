@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.brand;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -23,8 +24,10 @@ public class BrandResponse {
 
     private boolean status;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime modifiedAt;
 
     private String slug;

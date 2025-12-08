@@ -33,4 +33,10 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     // Find orders by customerId with pagination
     List<Order> findByCustomerId(Long customerId, Pageable pageable);
+
+    @Query("SELECT SUM(o.finalTotalPrice) FROM Order o WHERE o.status = 'COMPLETED' AND o.orderDate BETWEEN :startDate AND :endDate")
+    Double sumRevenueByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.status = 'COMPLETED' AND o.orderDate BETWEEN :startDate AND :endDate")
+    Long countCompletedOrdersByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }
