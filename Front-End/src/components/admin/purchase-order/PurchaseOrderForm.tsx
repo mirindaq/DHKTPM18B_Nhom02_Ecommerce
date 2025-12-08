@@ -1,30 +1,17 @@
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus, Package, Search, ChevronDown, Check } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery } from "@/hooks";
-import { productService } from "@/services/product.service";
+import { useQuery, useDebounce } from "@/hooks";
+import { supplierService } from "@/services/supplier.service";
 import type { Product } from "@/types/product.type";
+import type { SupplierListResponse } from "@/types/supplier.type";
 import type { CreatePurchaseOrderRequest, PurchaseOrderDetailRequest } from "@/types/purchase-order.type";
-
-// Fake suppliers data
-const FAKE_SUPPLIERS = [
-  { id: "1", name: "Công ty TNHH ABC", phone: "0901234567", address: "123 Nguyễn Huệ, Q1, TP.HCM" },
-  { id: "2", name: "Công ty CP XYZ", phone: "0912345678", address: "456 Lê Lợi, Q1, TP.HCM" },
-  { id: "3", name: "Nhà phân phối DEF", phone: "0923456789", address: "789 Trần Hưng Đạo, Q5, TP.HCM" },
-  { id: "4", name: "Công ty TNHH GHI", phone: "0934567890", address: "321 Võ Văn Tần, Q3, TP.HCM" },
-  { id: "5", name: "Tập đoàn JKL", phone: "0945678901", address: "654 Hai Bà Trưng, Q1, TP.HCM" },
-];
+import ProductSearchModal from "./ProductSearchModal";
+import VariantSelector from "./VariantSelector";
 
 interface SelectedVariant {
   productVariantId: number;
@@ -52,53 +39,108 @@ export default function PurchaseOrderForm({
 }: PurchaseOrderFormProps) {
   const [supplierId, setSupplierId] = useState("");
   const [note, setNote] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>([]);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [supplierSearchKeyword, setSupplierSearchKeyword] = useState("");
+  const [isProductSearchModalOpen, setIsProductSearchModalOpen] = useState(false);
+  const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
+  const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
+  const supplierDropdownRef = useRef<HTMLDivElement>(null);
 
-  const { data: productsData, isLoading: isLoadingProducts } = useQuery(
-    () => productService.getProducts(1, 100, { keyword: searchKeyword, status: true }),
+  // Debounce cho tìm kiếm supplier
+  const debouncedSupplierSearch = useDebounce(supplierSearchKeyword, 500);
+
+  // Đóng dropdown khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        supplierDropdownRef.current &&
+        !supplierDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsSupplierDropdownOpen(false);
+      }
+    };
+
+    if (isSupplierDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSupplierDropdownOpen]);
+
+  // Lấy danh sách suppliers (chỉ lấy các supplier đang active, có tìm kiếm)
+  const { data: suppliersData, isLoading: isLoadingSuppliers } = useQuery<SupplierListResponse>(
+    () => supplierService.getSuppliers({
+      page: 1,
+      size: 100,
+      status: "true",
+      name: debouncedSupplierSearch || undefined,
+    }),
     {
-      queryKey: ["products-for-purchase", searchKeyword],
-      enabled: searchKeyword.length > 0,
+      queryKey: ["suppliers-for-purchase", debouncedSupplierSearch],
     }
   );
 
-  const products = productsData?.data?.data || [];
+  const suppliers = suppliersData?.data?.data || [];
 
-  const handleProductSelect = (productId: string) => {
-    const product = products.find((p) => p.id === Number(productId));
-    setSelectedProduct(product || null);
-  };
-
-  const handleAddVariant = (variantId: number) => {
-    if (!selectedProduct) return;
-
-    const variant = selectedProduct.variants.find((v) => v.id === variantId);
-    if (!variant) return;
-
-    if (selectedVariants.some((v) => v.productVariantId === variantId)) {
-      toast.error("Biến thể này đã được thêm");
+  const handleProductSelect = useCallback((product: Product) => {
+    // Kiểm tra xem sản phẩm đã được thêm chưa
+    if (selectedProducts.some((p) => p.id === product.id)) {
       return;
     }
+    setSelectedProducts((prev) => [...prev, product]);
+    setExpandedProductId(product.id);
+  }, [selectedProducts]);
 
-    const variantValues = variant.productVariantValues
-      .map((pvv) => pvv.variantValue.value)
-      .join(", ");
+  const handleRemoveProduct = useCallback((productId: number) => {
+    setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
+    // Xóa tất cả biến thể của sản phẩm này
+    setSelectedVariants((prev) => {
+      const product = selectedProducts.find((p) => p.id === productId);
+      if (!product) return prev;
+      const variantIds = product.variants.map((v) => v.id);
+      return prev.filter((v) => !variantIds.includes(v.productVariantId));
+    });
+    if (expandedProductId === productId) {
+      setExpandedProductId(null);
+    }
+  }, [selectedProducts, expandedProductId]);
 
-    const newVariant: SelectedVariant = {
-      productVariantId: variant.id,
-      productName: selectedProduct.name,
-      sku: variant.sku,
-      thumbnail: selectedProduct.thumbnail,
-      variantValues,
-      currentStock: variant.stock,
-      quantity: 1,
-      price: variant.price,
-    };
+  const handleAddVariant = useCallback((productId: number, variantId: number) => {
+    const product = selectedProducts.find((p) => p.id === productId);
+    if (!product) return;
 
-    setSelectedVariants([...selectedVariants, newVariant]);
-  };
+    const variant = product.variants.find((v) => v.id === variantId);
+    if (!variant) return;
+
+    // Toggle: Nếu đã chọn thì bỏ chọn, chưa chọn thì thêm
+    const isAlreadySelected = selectedVariants.some((v) => v.productVariantId === variantId);
+    
+    if (isAlreadySelected) {
+      // Bỏ chọn biến thể
+      setSelectedVariants((prev) => prev.filter((v) => v.productVariantId !== variantId));
+    } else {
+      // Thêm biến thể mới
+      const variantValues = variant.productVariantValues
+        .map((pvv) => pvv.variantValue.value)
+        .join(" / ");
+
+      const newVariant: SelectedVariant = {
+        productVariantId: variant.id,
+        productName: product.name,
+        sku: variant.sku,
+        thumbnail: product.thumbnail,
+        variantValues,
+        currentStock: variant.stock,
+        quantity: 1,
+        price: variant.price,
+      };
+
+      setSelectedVariants((prev) => [...prev, newVariant]);
+    }
+  }, [selectedProducts, selectedVariants]);
 
   const handleRemoveVariant = (variantId: number) => {
     setSelectedVariants(selectedVariants.filter((v) => v.productVariantId !== variantId));
@@ -144,7 +186,7 @@ export default function PurchaseOrderForm({
     const request: CreatePurchaseOrderRequest = {
       supplierId: supplierId,
       note: note.trim() || undefined,
-      details,
+      details
     };
 
     onSubmit(request);
@@ -169,22 +211,110 @@ export default function PurchaseOrderForm({
             Thông tin nhà cung cấp
           </h3>
           <div className="space-y-6 pl-10">
-            <div>
+            <div className="relative" ref={supplierDropdownRef}>
               <Label htmlFor="supplierId" className="text-base font-medium">
                 Nhà cung cấp <span className="text-red-500">*</span>
               </Label>
-              <Select value={supplierId} onValueChange={setSupplierId}>
-                <SelectTrigger className="mt-2 h-12">
-                  <SelectValue placeholder="Chọn nhà cung cấp" />
-                </SelectTrigger>
-                <SelectContent>
-                  {FAKE_SUPPLIERS.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              {/* Input với dropdown */}
+              <div className="mt-2 relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Input
+                    id="supplierId"
+                    placeholder={isLoadingSuppliers ? "Đang tải..." : "Tìm kiếm và chọn nhà cung cấp..."}
+                    value={
+                      supplierId
+                        ? suppliers.find((s) => s.id === supplierId)?.name || ""
+                        : supplierSearchKeyword
+                    }
+                    onChange={(e) => {
+                      setSupplierSearchKeyword(e.target.value);
+                      if (supplierId) {
+                        setSupplierId("");
+                      }
+                      setIsSupplierDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsSupplierDropdownOpen(true)}
+                    className="h-12 pl-10 pr-10"
+                    disabled={isLoadingSuppliers}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsSupplierDropdownOpen(!isSupplierDropdownOpen)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${
+                        isSupplierDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Dropdown */}
+                {isSupplierDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-hidden">
+                    {isLoadingSuppliers ? (
+                      <div className="p-4 text-center text-sm text-gray-500">
+                        Đang tải...
+                      </div>
+                    ) : suppliers.length === 0 ? (
+                      <div className="p-4 text-center">
+                        <p className="text-sm text-gray-500">
+                          {supplierSearchKeyword
+                            ? "Không tìm thấy nhà cung cấp"
+                            : "Không có nhà cung cấp"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="py-1 max-h-80 overflow-y-auto">
+                        {suppliers.map((supplier) => {
+                          const isSelected = supplierId === supplier.id;
+                          return (
+                            <button
+                              key={supplier.id}
+                              type="button"
+                              onClick={() => {
+                                setSupplierId(supplier.id);
+                                setSupplierSearchKeyword("");
+                                setIsSupplierDropdownOpen(false);
+                              }}
+                              className={`w-full flex items-center justify-between gap-3 p-3 hover:bg-blue-50 transition-colors text-left ${
+                                isSelected ? "bg-blue-50" : ""
+                              }`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  className={`font-medium text-sm line-clamp-1 ${
+                                    isSelected ? "text-blue-600" : "text-gray-900"
+                                  }`}
+                                >
+                                  {supplier.name}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs text-gray-500">{supplier.phone}</span>
+                                  {supplier.address && (
+                                    <>
+                                      <span className="text-xs text-gray-300">•</span>
+                                      <span className="text-xs text-gray-500 line-clamp-1">
+                                        {supplier.address}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {supplierId && (
@@ -193,7 +323,7 @@ export default function PurchaseOrderForm({
                   Thông tin chi tiết
                 </h4>
                 {(() => {
-                  const supplier = FAKE_SUPPLIERS.find((s) => s.id === supplierId);
+                  const supplier = suppliers.find((s) => s.id === supplierId);
                   return supplier ? (
                     <div className="space-y-2 text-sm">
                       <div className="flex items-start gap-2">
@@ -204,10 +334,12 @@ export default function PurchaseOrderForm({
                         <span className="text-blue-600 font-medium min-w-[80px]">Điện thoại:</span>
                         <span className="text-gray-700">{supplier.phone}</span>
                       </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-600 font-medium min-w-[80px]">Địa chỉ:</span>
-                        <span className="text-gray-700">{supplier.address}</span>
-                      </div>
+                      {supplier.address && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-blue-600 font-medium min-w-[80px]">Địa chỉ:</span>
+                          <span className="text-gray-700">{supplier.address}</span>
+                        </div>
+                      )}
                     </div>
                   ) : null;
                 })()}
@@ -232,83 +364,101 @@ export default function PurchaseOrderForm({
 
         {/* Chọn sản phẩm */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
-              2
-            </span>
-            Chọn sản phẩm nhập
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                2
+              </span>
+              Chọn sản phẩm nhập {selectedProducts.length > 0 && `(${selectedProducts.length})`}
+            </h3>
+            <Button
+              type="button"
+              onClick={() => setIsProductSearchModalOpen(true)}
+              className="h-10"
+              variant="outline"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Thêm sản phẩm
+            </Button>
+          </div>
           
           <div className="pl-10 space-y-4">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Input
-                  placeholder="🔍 Tìm kiếm sản phẩm theo tên..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="h-12"
-                />
+            {selectedProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <Package className="w-12 h-12 text-gray-400 mb-3" />
+                <p className="text-gray-500 font-medium mb-1">Chưa có sản phẩm nào</p>
+                <p className="text-sm text-gray-400">Nhấn "Thêm sản phẩm" để bắt đầu</p>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {selectedProducts.map((product) => {
+                  const productVariants = selectedVariants.filter(
+                    (v) => product.variants.some((pv) => pv.id === v.productVariantId)
+                  );
+                  const isExpanded = expandedProductId === product.id;
 
-            {searchKeyword && (
-              <div className="space-y-3">
-                <Label className="text-base">Chọn sản phẩm</Label>
-                <Select onValueChange={handleProductSelect}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Chọn sản phẩm từ kết quả tìm kiếm" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingProducts ? (
-                      <SelectItem value="__loading__" disabled>
-                        Đang tải...
-                      </SelectItem>
-                    ) : products.length === 0 ? (
-                      <SelectItem value="__empty__" disabled>
-                        Không tìm thấy sản phẩm
-                      </SelectItem>
-                    ) : (
-                      products.map((product) => (
-                        <SelectItem key={product.id} value={product.id.toString()} className="py-2">
-                          {product.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {selectedProduct && selectedProduct.variants.length > 0 && (
-              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <Label className="text-base font-semibold">Chọn biến thể của "{selectedProduct.name}"</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {selectedProduct.variants.map((variant) => {
-                    const variantValues = variant.productVariantValues
-                      .map((pvv) => pvv.variantValue.value)
-                      .join(", ");
-                    const isAdded = selectedVariants.some(
-                      (v) => v.productVariantId === variant.id
-                    );
-
-                    return (
-                      <Button
-                        key={variant.id}
-                        variant={isAdded ? "secondary" : "outline"}
-                        className="justify-start h-auto py-3 px-4"
-                        onClick={() => handleAddVariant(variant.id)}
-                        disabled={isAdded}
-                      >
-                        <div className="text-left w-full">
-                          <p className="font-medium text-sm">{variantValues}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            SKU: {variant.sku} • Tồn kho: {variant.stock}
-                          </p>
+                  return (
+                    <div
+                      key={product.id}
+                      className="border border-gray-200 rounded-lg bg-white overflow-hidden"
+                    >
+                      {/* Product Header */}
+                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-gray-50 border-b border-gray-200">
+                        <div className="flex items-center gap-3 flex-1">
+                          <img
+                            src={product.thumbnail}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-lg border-2 border-blue-300"
+                          />
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">{product.name}</p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <p className="text-xs text-gray-500">
+                                {product.variants.length} biến thể có sẵn
+                              </p>
+                              {productVariants.length > 0 && (
+                                <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-0.5 rounded">
+                                  Đã chọn {productVariants.length} biến thể
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </Button>
-                    );
-                  })}
-                </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setExpandedProductId(isExpanded ? null : product.id)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            {isExpanded ? "Thu gọn" : "Chọn biến thể"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveProduct(product.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Variant Selector */}
+                      {isExpanded && product.variants.length > 0 && (
+                        <div className="p-4 bg-gray-50">
+                          <VariantSelector
+                            product={product}
+                            selectedVariantIds={productVariants.map((v) => v.productVariantId)}
+                            onSelectVariant={(variantId) => handleAddVariant(product.id, variantId)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -435,6 +585,13 @@ export default function PurchaseOrderForm({
           {isLoading ? "Đang tạo..." : submitButtonText}
         </Button>
       </div>
+
+      {/* Product Search Modal */}
+      <ProductSearchModal
+        open={isProductSearchModalOpen}
+        onOpenChange={setIsProductSearchModalOpen}
+        onSelectProduct={handleProductSelect}
+      />
     </>
   );
 }
