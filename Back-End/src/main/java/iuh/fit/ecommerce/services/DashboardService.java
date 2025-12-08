@@ -53,4 +53,20 @@ public interface DashboardService {
     
     // Thống kê tổng quan dashboard
     DashboardStatsResponse getDashboardStats(LocalDate startDate, LocalDate endDate);
+    
+    // Chi tiết voucher với danh sách đơn hàng
+    VoucherDetailResponse getVoucherDetail(Long voucherId, LocalDate startDate, LocalDate endDate);
+    
+    // ALL vouchers (không giới hạn top 5)
+    List<TopVoucherResponse> getAllVouchersByDay(LocalDate startDate, LocalDate endDate);
+    List<TopVoucherResponse> getAllVouchersByMonth(Integer year, Integer month);
+    List<TopVoucherResponse> getAllVouchersByYear(Integer year);
+    
+    // ALL promotions (không giới hạn top 5)
+    List<TopPromotionResponse> getAllPromotionsByDay(LocalDate startDate, LocalDate endDate);
+    List<TopPromotionResponse> getAllPromotionsByMonth(Integer year, Integer month);
+    List<TopPromotionResponse> getAllPromotionsByYear(Integer year);
+    
+    // Chi tiết promotion với danh sách đơn hàng
+    PromotionDetailResponse getPromotionDetail(Long promotionId, LocalDate startDate, LocalDate endDate);
 }

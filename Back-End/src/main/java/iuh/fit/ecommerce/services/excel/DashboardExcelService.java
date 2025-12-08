@@ -33,8 +33,8 @@ public class DashboardExcelService {
     private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
     private final PromotionUsageRepository promotionUsageRepository;
     
-    public byte[] exportDashboard(LocalDate startDate, LocalDate endDate) throws Exception {
-        log.info("Exporting dashboard from {} to {}", startDate, endDate);
+    public byte[] exportDashboard(LocalDate startDate, LocalDate endDate, String type) throws Exception {
+        log.info("Exporting dashboard type '{}' from {} to {}", type, startDate, endDate);
         
         Workbook workbook = new XSSFWorkbook();
         
@@ -44,20 +44,31 @@ public class DashboardExcelService {
         CellStyle currencyStyle = createCurrencyStyle(workbook);
         CellStyle numberStyle = createNumberStyle(workbook);
         
-        // Sheet 1: Summary Statistics
+        // Export based on type
+        boolean exportAll = "all".equalsIgnoreCase(type);
+        
+        // Sheet 1: Summary Statistics (always include)
         createSummarySheet(workbook, startDate, endDate, headerStyle, currencyStyle, numberStyle);
         
         // Sheet 2: Revenue Detail
-        createRevenueSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
+        if (exportAll || "revenue".equalsIgnoreCase(type)) {
+            createRevenueSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
+        }
         
         // Sheet 3: Voucher Usage
-        createVoucherSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
+        if (exportAll || "voucher".equalsIgnoreCase(type)) {
+            createVoucherSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
+        }
         
         // Sheet 4: Customer Promotions
-        createPromotionSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
+        if (exportAll || "promotion".equalsIgnoreCase(type)) {
+            createPromotionSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
+        }
         
         // Sheet 5: Products
-        createProductSheet(workbook, headerStyle, currencyStyle, numberStyle);
+        if (exportAll || "product".equalsIgnoreCase(type)) {
+            createProductSheet(workbook, headerStyle, currencyStyle, numberStyle);
+        }
         
         // Write to bytes
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
