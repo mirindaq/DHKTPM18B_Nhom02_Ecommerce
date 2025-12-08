@@ -83,6 +83,7 @@ import AddPromotion from "@/pages/admin/AddPromotion";
 import Banners from "@/pages/admin/Banner";
 import StaffSell from "@/pages/staff/StaffSell";
 import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
+import Suppliers from "@/pages/admin/Suppliers";
 
 const useRouteElements = () => {
   return useRoutes([
@@ -231,6 +232,7 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.BRANDS, element: <Brands /> },
         { path: ADMIN_PATH.BANNERS, element: <Banners /> },
         { path: ADMIN_PATH.CUSTOMERS, element: <Customers /> },
+        { path: ADMIN_PATH.SUPPLIERS, element: <Suppliers /> },
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },

@@ -38,6 +38,7 @@ import {
   Filter,
   MessageSquare,
   Star,
+  Truck,
 } from "lucide-react";
 import AdminChatListener from "@/components/admin/AdminChatListener";
 
@@ -137,6 +138,11 @@ const navigation = [
         title: "Nhân viên",
         href: "/admin/staffs",
         icon: UserCheck,
+      },
+      {
+        title: "Nhà cung cấp",
+        icon: Truck,
+        href: "/admin/suppliers",
       },
       {
         title: "Quản lý Chat",
