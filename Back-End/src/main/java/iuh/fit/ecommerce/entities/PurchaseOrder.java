@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,5 +37,8 @@ public class PurchaseOrder extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "staff_id")
     private Staff staff;
+
+    @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PurchaseOrderDetail> details;
 
 }

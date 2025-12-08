@@ -6,6 +6,7 @@ import iuh.fit.ecommerce.entities.Voucher;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.repositories.*;
 import iuh.fit.ecommerce.services.EmailService;
+import iuh.fit.ecommerce.services.NotificationWebSocketService;
 import iuh.fit.ecommerce.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -63,6 +64,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final ProductVariantRepository productVariantRepository;
     private final PayOS payOS;
     private final EmailService emailService;
+    private final NotificationWebSocketService notificationWebSocketService;
     private final int TIME_OUT = 15;
 
     @Override
@@ -170,8 +172,12 @@ public class PaymentServiceImpl implements PaymentService {
             if (!isStaffOrder && order.getCustomer() != null && order.getCustomer().getCart() != null) {
                 clearCart(order.getCustomer().getCart(), cartItemIds);
             }
-            // Gửi email xác nhận đơn hàng
             sendOrderConfirmationEmail(order);
+            notificationWebSocketService.sendOrderNotification(
+                order,
+                "CREATED",
+                String.format("Đơn hàng mới #%d đã được tạo", order.getId())
+            );
         } else {
             order.setStatus(PAYMENT_FAILED);
             restoreVariantStock(order);
@@ -242,8 +248,12 @@ public class PaymentServiceImpl implements PaymentService {
                 clearCart(order.getCustomer().getCart(), cartItemIds);
                 orderRepository.save(order);
                 
-                // Gửi email xác nhận đơn hàng
                 sendOrderConfirmationEmail(order);
+                notificationWebSocketService.sendOrderNotification(
+                    order,
+                    "CREATED",
+                    String.format("Đơn hàng mới #%d đã được tạo", order.getId())
+                );
                 
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
                 String payDate = formatter.format(new Date());

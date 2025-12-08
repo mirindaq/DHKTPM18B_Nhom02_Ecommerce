@@ -21,7 +21,7 @@ public class Supplier extends BaseEntity {
     @Column
     private String name;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String phone;
 
     @Column

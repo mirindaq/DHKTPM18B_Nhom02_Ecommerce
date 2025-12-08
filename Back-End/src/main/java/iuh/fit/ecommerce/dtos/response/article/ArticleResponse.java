@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.dtos.response.article;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,8 +21,13 @@ public class ArticleResponse {
     private String thumbnail;
     private String content;
     private Boolean status;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime modifiedAt;
+    
     private String staffName;
     private ArticleCategoryResponse category;
 }

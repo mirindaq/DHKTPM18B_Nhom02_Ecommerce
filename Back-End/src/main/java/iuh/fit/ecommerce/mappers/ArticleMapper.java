@@ -24,6 +24,4 @@ public interface ArticleMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "slug", ignore = true)
     Article toEntity(ArticleAddRequest request);
-
-
 }

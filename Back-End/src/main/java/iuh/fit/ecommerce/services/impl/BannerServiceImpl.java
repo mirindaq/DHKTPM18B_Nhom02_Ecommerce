@@ -1,5 +1,6 @@
 package iuh.fit.ecommerce.services.impl;
 
+import iuh.fit.ecommerce.configurations.CacheConfig;
 import iuh.fit.ecommerce.dtos.request.banner.BannerAddRequest;
 import iuh.fit.ecommerce.dtos.request.banner.BannerUpdateRequest;
 import iuh.fit.ecommerce.dtos.response.banner.BannerResponse;
@@ -12,6 +13,9 @@ import iuh.fit.ecommerce.repositories.BannerRepository;
 import iuh.fit.ecommerce.services.BannerService;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +40,7 @@ public class BannerServiceImpl implements BannerService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.BANNER_CACHE, key = "'display'")
     public BannerResponse addBanner(BannerAddRequest request) {
         Banner banner = bannerMapper.toEntity(request);
         Staff staff = securityUtils.getCurrentStaff();
@@ -44,6 +49,7 @@ public class BannerServiceImpl implements BannerService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.BANNER_CACHE, key = "'display'")
     public BannerResponse updateBanner(Long id, BannerUpdateRequest request) {
         Banner banner = getBannerEntityById(id);
 
@@ -76,6 +82,7 @@ public class BannerServiceImpl implements BannerService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.BANNER_CACHE, key = "'display'")
     public List<BannerResponse> getBannerToDisplay() {
         LocalDate today = LocalDate.now();
         List<Banner> banners = bannerRepository.findByIsActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(today, today);
