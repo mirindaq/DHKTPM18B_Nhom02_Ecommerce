@@ -17,6 +17,7 @@ import iuh.fit.ecommerce.repositories.DeliveryAssignmentRepository;
 import iuh.fit.ecommerce.repositories.DeliveryImageRepository;
 import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.services.DeliveryAssignmentService;
+import iuh.fit.ecommerce.services.NotificationWebSocketService;
 import iuh.fit.ecommerce.services.OrderService;
 import iuh.fit.ecommerce.services.StaffService;
 import iuh.fit.ecommerce.utils.SecurityUtils;
@@ -42,6 +43,7 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
     private final DeliveryImageRepository deliveryImageRepository;
     private final SecurityUtils securityUtils;
     private final DeliveryAssignmentMapper deliveryAssignmentMapper;
+    private final NotificationWebSocketService notificationWebSocketService;
 
     @Override
     public void assignShipperToOrder(AssignShipperRequest request) {
@@ -85,6 +87,13 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
         // Cập nhật status order thành ASSIGNED_SHIPPER
         order.setStatus(OrderStatus.ASSIGNED_SHIPPER);
         orderRepository.save(order);
+
+        // Gửi WebSocket notification
+        notificationWebSocketService.sendDeliveryNotification(
+            deliveryAssignment,
+            "ASSIGNED",
+            String.format("Đơn hàng #%d đã được gán cho bạn", order.getId())
+        );
     }
 
     @Override

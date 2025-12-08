@@ -248,7 +248,7 @@ export default function Home() {
               {topCategories.map((category) => (
                 <Link
                   key={category.id}
-                  to={`${PUBLIC_PATH.HOME}search?category=${category.slug}`}
+                  to={`${PUBLIC_PATH.HOME}search/${category.slug}`}
                   className="group flex items-center gap-3 p-3 md:p-4 rounded-xl bg-white border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-300"
                 >
                   <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50 group-hover:scale-105 transition-transform duration-300">

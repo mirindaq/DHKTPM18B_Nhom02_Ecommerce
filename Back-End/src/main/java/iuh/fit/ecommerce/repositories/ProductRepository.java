@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import iuh.fit.ecommerce.entities.Product;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
@@ -33,4 +34,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             @Param("maxPrice") Double maxPrice,
             Pageable pageable
     );
+
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.createdAt BETWEEN :startDate AND :endDate")
+    Long countNewProductsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

@@ -4,6 +4,7 @@ import { OrderTable, OrderDetailDialog, OrderFilter } from "@/components/admin/o
 import Pagination from "@/components/ui/pagination";
 import { useQuery, useMutation } from "@/hooks";
 import { orderService } from "@/services/order.service";
+import { useOrderWebSocket } from "@/hooks/useOrderWebSocket";
 import type {
   OrderResponse,
   OrderListResponse,
@@ -38,6 +39,13 @@ export default function Orders() {
       ],
     }
   );
+
+  useOrderWebSocket({
+    onOrderNotification: () => {
+      refetchOrders();
+    },
+    enabled: true,
+  });
 
   const pagination = ordersData?.data;
   const orders = ordersData?.data?.data || [];
