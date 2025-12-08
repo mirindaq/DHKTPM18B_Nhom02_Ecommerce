@@ -1,183 +1,73 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  DollarSign,
-  Loader2,
-  Package,
-  ShoppingCart,
-  TrendingDown,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-
-import { orderService } from "@/services/order.service";
-import { statisticsService } from "@/services/overview.service";
-import type { OrderResponse } from "@/types/order.type";
-import type {
-  DashboardStatsPayload,
-  MonthlyRevenue,
-} from "@/types/overview.type";
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
-};
-
-const formatNumber = (value: number) => {
-  return new Intl.NumberFormat("vi-VN").format(value);
-};
-
-const formatDate = (dateString: string) => {
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString;
-    return new Intl.DateTimeFormat("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }).format(date);
-  } catch (e) {
-    return dateString;
-  }
-};
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-3 border border-gray-100 shadow-lg rounded-lg">
-        <p className="text-sm font-semibold text-gray-700">{label}</p>
-        <p className="text-sm text-blue-600 font-bold">
-          {formatCurrency(payload[0].value)}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { BarChart3, Package, ShoppingCart, Users, DollarSign, TrendingUp, TrendingDown } from "lucide-react"
+import { useEffect, useState } from "react"
+import { dashboardService } from "@/services/dashboard.service"
+import type { DashboardStatsResponse } from "@/types/dashboard.type"
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<DashboardStatsPayload | null>(null);
-  const [recentOrders, setRecentOrders] = useState<OrderResponse[]>([]);
-  const [revenueData, setRevenueData] = useState<MonthlyRevenue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null)
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
       try {
-        setLoading(true);
-        const [statsResult, ordersResult, chartResult] = await Promise.all([
-          statisticsService.getDashboardStats(),
-          orderService.getAllOrdersForAdmin({
-            page: 1,
-            size: 4,
-            status: "COMPLETED",
-          }),
-          statisticsService.getMonthlyRevenue(),
-        ]);
-
-        setStats(statsResult);
-
-        if (ordersResult?.data?.data && Array.isArray(ordersResult.data.data)) {
-          setRecentOrders(ordersResult.data.data);
-        }
-
-        if (chartResult) {
-          setRevenueData(chartResult);
-        }
+        // Lấy stats từ đầu tháng đến hiện tại
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const startDate = startOfMonth.toISOString().split('T')[0]
+        const endDate = now.toISOString().split('T')[0]
+        
+        const response = await dashboardService.getDashboardStats(startDate, endDate)
+        setStats(response.data)
       } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching dashboard stats:', error)
       }
-    };
-    fetchData();
-  }, []);
+    }
 
-  const statsDisplay = stats
-    ? [
-        {
-          title: "Tổng doanh thu",
-          value: formatCurrency(stats.revenue.current),
-          description: `${Math.abs(stats.revenue.percentChange).toFixed(
-            1
-          )}% so với tháng trước`,
-          icon: DollarSign,
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-200",
-          trend: stats.revenue.trend,
-        },
-        {
-          title: "Đơn hàng",
-          value: formatNumber(stats.orders.current),
-          description: `${Math.abs(stats.orders.percentChange).toFixed(
-            1
-          )}% so với tháng trước`,
-          icon: ShoppingCart,
-          color: "text-blue-600",
-          bgColor: "bg-blue-50",
-          borderColor: "border-blue-200",
-          trend: stats.orders.trend,
-        },
-        {
-          title: "Sản phẩm",
-          value: formatNumber(stats.products.current),
-          description: `${Math.abs(stats.products.percentChange).toFixed(
-            1
-          )}% so với tháng trước`,
-          icon: Package,
-          color: "text-purple-600",
-          bgColor: "bg-purple-50",
-          borderColor: "border-purple-200",
-          trend: stats.products.trend,
-        },
-        {
-          title: "Khách hàng",
-          value: formatNumber(stats.customers.current),
-          description: `${Math.abs(stats.customers.percentChange).toFixed(
-            1
-          )}% so với tháng trước`,
-          icon: Users,
-          color: "text-orange-600",
-          bgColor: "bg-orange-50",
-          borderColor: "border-orange-200",
-          trend: stats.customers.trend,
-        },
-      ]
-    : [];
+    fetchStats()
+  }, [])
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-gray-500">Không thể tải dữ liệu thống kê.</p>
-      </div>
-    );
-  }
-
+  const statsCards = [
+    {
+      title: "Tổng doanh thu",
+      value: stats ? `₫${stats.totalRevenue.toLocaleString('vi-VN')}` : "...",
+      description: stats ? `${stats.revenueGrowth >= 0 ? '+' : ''}${stats.revenueGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      trend: stats && stats.revenueGrowth >= 0 ? "up" : "down"
+    },
+    {
+      title: "Đơn hàng",
+      value: stats ? stats.totalOrders.toString() : "...",
+      description: stats ? `${stats.ordersGrowth >= 0 ? '+' : ''}${stats.ordersGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      icon: ShoppingCart,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      trend: stats && stats.ordersGrowth >= 0 ? "up" : "down"
+    },
+    {
+      title: "Sản phẩm",
+      value: stats ? stats.totalProducts.toString() : "...",
+      description: stats ? `${stats.productsGrowth >= 0 ? '+' : ''}${stats.productsGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      icon: Package,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
+      trend: stats && stats.productsGrowth >= 0 ? "up" : "down"
+    },
+    {
+      title: "Khách hàng",
+      value: stats ? stats.totalCustomers.toString() : "...",
+      description: stats ? `${stats.customersGrowth >= 0 ? '+' : ''}${stats.customersGrowth.toFixed(1)}% so với kỳ trước` : "...",
+      icon: Users,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200",
+      trend: stats && stats.customersGrowth >= 0 ? "up" : "down"
+    }
+  ]
   return (
     <div className="space-y-3 p-2">
       <div className="space-y-1">
@@ -189,11 +79,8 @@ export default function Dashboard() {
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {statsDisplay.map((stat, index) => (
-          <Card
-            key={index}
-            className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm"
-          >
+        {statsCards.map((stat) => (
+          <Card key={stat.title} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div

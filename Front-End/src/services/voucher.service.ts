@@ -1,69 +1,64 @@
-
 import axiosClient from '@/configurations/axios.config';
 import type {
-  CreateVoucherRequest,
-  UpdateVoucherRequest,
-  VoucherResponse,
-  VoucherListResponse,
-  Voucher,
-  VoucherAvailableApiResponse
-} from '@/types/voucher.type';
+  ApiResponse,
+  TopVoucherResponse,
+  VoucherComparisonResponse
+} from '@/types/voucher-promotion.type';
 
 export const voucherService = {
-  getVouchers: async (
-    page: number = 1,
-    limit: number = 10,
-    name?: string,
-    type?: string,
-    active?: boolean,
-    startDate?: string,
-    endDate?: string
-  ) => {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-    });
-
-    if (name) params.append('name', name);
-    if (type) params.append('type', type);
-    if (active !== undefined) params.append('active', active.toString());
+  // Top vouchers by day
+  getTopVouchersByDay: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-
-    const response = await axiosClient.get<VoucherListResponse>(`/vouchers?${params.toString()}`);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<TopVoucherResponse[]>>(
+      `/dashboard/top-vouchers-by-day${queryString}`
+    );
     return response.data;
   },
 
-  getVoucherById: async (id: number) => {
-    const response = await axiosClient.get<VoucherResponse>(`/vouchers/${id}`);
+  // Top vouchers by month
+  getTopVouchersByMonth: async (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<TopVoucherResponse[]>>(
+      `/dashboard/top-vouchers-by-month${queryString}`
+    );
     return response.data;
   },
 
-  createVoucher: async (request: CreateVoucherRequest) => {
-    const response = await axiosClient.post<Voucher>('/vouchers', request);
+  // Top vouchers by year
+  getTopVouchersByYear: async (year?: number) => {
+    const params = year ? `?year=${year}` : '';
+    const response = await axiosClient.get<ApiResponse<TopVoucherResponse[]>>(
+      `/dashboard/top-vouchers-by-year${params}`
+    );
     return response.data;
   },
 
-  updateVoucher: async (id: number, request: UpdateVoucherRequest) => {
-    const response = await axiosClient.put<Voucher>(`/vouchers/${id}`, request);
+  // Compare vouchers between 2 periods
+  compareVoucher: async (
+    timeType: string,
+    startDate1: string,
+    endDate1: string,
+    startDate2: string,
+    endDate2: string
+  ) => {
+    const params = new URLSearchParams();
+    params.append('timeType', timeType);
+    params.append('startDate1', startDate1);
+    params.append('endDate1', endDate1);
+    params.append('startDate2', startDate2);
+    params.append('endDate2', endDate2);
+    
+    const response = await axiosClient.get<ApiResponse<VoucherComparisonResponse>>(
+      `/dashboard/compare-voucher?${params.toString()}`
+    );
     return response.data;
-  },
-
-  changeStatusVoucher: async (id: number) => {
-    await axiosClient.put(`/vouchers/change-status/${id}`);
-  },
-
-  sendVoucherToCustomers: async (id: number) => {
-    await axiosClient.put(`/vouchers/${id}/send`);
-  },
-
-  getAvailableVouchers: async () => {
-    const response = await axiosClient.get<VoucherAvailableApiResponse>('/vouchers/available');
-    return response.data.data;
-  },
-
-  getAvailableVouchersForCustomer: async (customerId: number) => {
-    const response = await axiosClient.get<VoucherAvailableApiResponse>(`/vouchers/available/${customerId}`);
-    return response.data.data;
   }
 };

@@ -21,6 +21,8 @@ export const ADMIN_PATH = {
   ORDERS: "/admin/orders",
   SETTINGS: "/admin/settings",
   ANALYTICS: "/admin/analytics",
+  REPORTS_VOUCHER: "/admin/reports/voucher",
+  REPORTS_PROMOTION: "/admin/reports/promotion",
   VARIANTS: "/admin/variants",
   STAFFS: "/admin/staffs",
   PROMOTIONS: "/admin/promotions",

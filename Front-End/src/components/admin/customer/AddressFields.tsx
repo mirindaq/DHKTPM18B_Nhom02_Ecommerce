@@ -55,21 +55,22 @@ export default function AddressFields({
         )}
       </div>{" "}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+  
+        <div className="space-y-1">
           <Label>Tên người nhận *</Label>
           <Input
             value={address.fullName || ""}
             onChange={(e) => onAddressChange(index, "fullName", e.target.value)}
           />
         </div>
-        <div>
+        <div className="space-y-1">
           <Label>SĐT người nhận *</Label>
           <Input
             value={address.phone || ""}
             onChange={(e) => onAddressChange(index, "phone", e.target.value)}
           />
         </div>
-        <div>
+        <div className="space-y-1">
           <Label>Tỉnh/Thành phố *</Label>
           <select
             className="w-full border rounded-md p-2"
@@ -78,13 +79,13 @@ export default function AddressFields({
           >
             <option value="">Chọn tỉnh/thành phố</option>
             {provinces.map((p) => (
-              <option key={p.code} value={p.code}>
+              <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
           </select>
         </div>
-        <div>
+        <div className="space-y-1">
           <Label>Phường/Xã *</Label>
           <select
             className="w-full border rounded-md p-2"
@@ -93,13 +94,13 @@ export default function AddressFields({
           >
             <option value="">Chọn phường/xã</option>
             {wards.map((w) => (
-              <option key={w.code} value={w.code}>
+              <option key={w.id} value={w.id}>
                 {w.name}
               </option>
             ))}
           </select>
         </div>
-        <div className="md:col-span-2 ">
+        <div className="md:col-span-2 space-y-1">
           <Label>Địa chỉ chi tiết (Số nhà, Tên đường) *</Label>
           <Input
             value={address.subAddress || ""}

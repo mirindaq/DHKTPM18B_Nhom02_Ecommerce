@@ -1,68 +1,64 @@
 import axiosClient from '@/configurations/axios.config';
 import type {
-  CreatePromotionRequest,
-  UpdatePromotionRequest,
-  PromotionListResponse,
-  PromotionResponse,
-} from "@/types/promotion.type";
-
-interface GetPromotionsParams {
-  page: number;
-  size: number;
-  name?: string;
-  type?: string;
-  active?: boolean;
-  startDate?: string;
-  priority?: number;
-}
+  ApiResponse,
+  TopPromotionResponse,
+  PromotionComparisonResponse
+} from '@/types/voucher-promotion.type';
 
 export const promotionService = {
-  getPromotions: async ({
-    page,
-    size,
-    name,
-    type,
-    active,
-    startDate,
-    priority,
-  }: GetPromotionsParams) => {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: size.toString(),
-    });
-
-    if (name) params.append("name", name);
-    if (type) params.append("type", type);
-    if (active !== undefined) params.append("active", active.toString());
-    if (startDate) params.append("startDate", startDate);
-    if (priority !== undefined) params.append("priority", priority.toString());
-
-    const response = await axiosClient.get<PromotionListResponse>(
-      `/promotions?${params.toString()}`
+  // Top promotions by day
+  getTopPromotionsByDay: async (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<TopPromotionResponse[]>>(
+      `/dashboard/top-promotions-by-day${queryString}`
     );
     return response.data;
   },
 
-  getPromotionById: async (id: number) => {
-    const response = await axiosClient.get<PromotionResponse>(`/promotions/${id}`);
+  // Top promotions by month
+  getTopPromotionsByMonth: async (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year.toString());
+    if (month) params.append('month', month.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get<ApiResponse<TopPromotionResponse[]>>(
+      `/dashboard/top-promotions-by-month${queryString}`
+    );
     return response.data;
   },
 
-  createPromotion: async (request: CreatePromotionRequest) => {
-    const response = await axiosClient.post<PromotionResponse>('/promotions', request);
+  // Top promotions by year
+  getTopPromotionsByYear: async (year?: number) => {
+    const params = year ? `?year=${year}` : '';
+    const response = await axiosClient.get<ApiResponse<TopPromotionResponse[]>>(
+      `/dashboard/top-promotions-by-year${params}`
+    );
     return response.data;
   },
 
-  updatePromotion: async (id: number, data: UpdatePromotionRequest) => {
-    const response = await axiosClient.put<PromotionResponse>(`/promotions/${id}`, data);
+  // Compare promotions between 2 periods
+  comparePromotion: async (
+    timeType: string,
+    startDate1: string,
+    endDate1: string,
+    startDate2: string,
+    endDate2: string
+  ) => {
+    const params = new URLSearchParams();
+    params.append('timeType', timeType);
+    params.append('startDate1', startDate1);
+    params.append('endDate1', endDate1);
+    params.append('startDate2', startDate2);
+    params.append('endDate2', endDate2);
+    
+    const response = await axiosClient.get<ApiResponse<PromotionComparisonResponse>>(
+      `/dashboard/compare-promotion?${params.toString()}`
+    );
     return response.data;
-  },
-
-  deletePromotion: async (id: number) => {
-    await axiosClient.delete(`/promotions/${id}`);
-  },
-
-  changeStatusPromotion: async (id: number) => {
-    await axiosClient.put(`/promotions/change-status/${id}`);
   }
 };

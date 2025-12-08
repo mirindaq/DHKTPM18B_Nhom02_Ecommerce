@@ -13,6 +13,8 @@ import ArticleCategories from "@/pages/admin/ArticleCategories";
 import Orders from "@/pages/admin/Orders";
 import Settings from "@/pages/admin/Settings";
 import Analytics from "@/pages/admin/Analytics";
+import VoucherAnalytics from "@/pages/admin/VoucherAnalytics";
+import PromotionAnalytics from "@/pages/admin/PromotionAnalytics";
 import Brands from "@/pages/admin/Brands";
 import Variants from "@/pages/admin/Variants";
 import Staffs from "@/pages/admin/Staff";
@@ -240,6 +242,8 @@ const useRouteElements = () => {
         { path: ADMIN_PATH.ORDERS, element: <Orders /> },
         { path: ADMIN_PATH.SETTINGS, element: <Settings /> },
         { path: ADMIN_PATH.ANALYTICS, element: <Analytics /> },
+        { path: ADMIN_PATH.REPORTS_VOUCHER, element: <VoucherAnalytics /> },
+        { path: ADMIN_PATH.REPORTS_PROMOTION, element: <PromotionAnalytics /> },
         { path: ADMIN_PATH.STAFFS, element: <Staffs /> },
         { path: ADMIN_PATH.PROMOTIONS, element: <Promotions /> },
         { path: ADMIN_PATH.PROMOTION_ADD, element: <AddPromotion /> },
