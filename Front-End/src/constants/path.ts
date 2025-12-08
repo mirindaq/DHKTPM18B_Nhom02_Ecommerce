@@ -35,6 +35,7 @@ export const ADMIN_PATH = {
   FILTER_CRITERIAS: "/admin/filter-criterias",
   CHAT: "/admin/chats",
   CARTS: "/admin/carts",
+  SUPPLIERS: "/admin/suppliers", 
 };
 
 // Staff paths
