@@ -183,6 +183,28 @@ export default function Orders() {
     }
   };
 
+  const handleExportPdf = (orderId: number) => {
+    const order = orders.find(o => o.id === orderId) || selectedOrder;
+    
+    if (!order) {
+      toast.error("Không tìm thấy thông tin đơn hàng.");
+      return;
+    }
+
+    if (order.status !== "COMPLETED") {
+      toast.error("Chỉ có thể xuất hóa đơn cho đơn hàng đã hoàn thành.");
+      return;
+    }
+
+    try {
+      generateAndDownloadInvoicePdf(order);
+      toast.success("Đã xuất hóa đơn PDF thành công!");
+    } catch (error) {
+      console.error("Lỗi khi xuất PDF:", error);
+      toast.error("Không thể xuất file PDF. Vui lòng thử lại.");
+    }
+  };
+
   const generateAndDownloadInvoicePdf = (order: OrderResponse) => {
     const doc = new jsPDF();
 
@@ -451,6 +473,7 @@ export default function Orders() {
         onCancelOrder={handleCancelOrder}
         onProcessOrder={handleProcessOrder}
         onCompleteOrder={handleCompleteOrder}
+        onExportPdf={handleExportPdf}
         isConfirming={confirmOrderMutation.isLoading}
         isCanceling={cancelOrderMutation.isLoading}
         isProcessing={processOrderMutation.isLoading}
