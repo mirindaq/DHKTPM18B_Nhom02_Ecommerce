@@ -168,6 +168,11 @@ const navigation = [
     href: "/admin/feedbacks",
   },
   {
+    title: "Quản lý Bình luận",
+    icon: MessageSquare,
+    href: "/admin/product-questions",
+  },
+  {
     title: "Báo cáo & Thống kê",
     icon: BarChart3,
     href: "/admin/analytics",
