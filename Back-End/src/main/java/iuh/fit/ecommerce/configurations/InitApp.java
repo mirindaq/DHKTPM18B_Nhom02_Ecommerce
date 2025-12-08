@@ -193,7 +193,7 @@ public class InitApp {
                     Ranking.builder().name("S-PLATINUM").description("Platinum Membership")
                             .minSpending(50000000.0).maxSpending(100000000.0).discountRate(5.0).build(),
                     Ranking.builder().name("S-DIAMOND").description("Diamond Membership")
-                            .minSpending(200000000.0).maxSpending(Double.MAX_VALUE).discountRate(7.0).build()
+                            .minSpending(100000000.0).maxSpending(Double.MAX_VALUE).discountRate(7.0).build()
             );
 
             for (Ranking r : rankings) {
