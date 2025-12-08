@@ -27,7 +27,10 @@ public class Endpoints {
             "/api/v1/customers/template",
             "/api/v1/customers/import",
             "/api/v1/customers/export",
-            "/api/v1/purchase-orders(?:/.*)?"
+            "/api/v1/purchase-orders(?:/.*)?",
+            "/api/v1/suppliers/template",
+            "/api/v1/suppliers/import",
+            "/api/v1/suppliers/export",
     };
 }
 

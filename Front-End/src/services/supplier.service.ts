@@ -60,4 +60,39 @@ export const supplierService = {
   changeStatusSupplier: async (id: string) => {
     await axiosClient.put(`/suppliers/change-status/${id}`)
   },
+
+  // --- CÁC HÀM XỬ LÝ EXCEL MỚI ---
+
+  /**
+   * Tải xuống file mẫu Excel để nhập liệu
+   */
+  downloadTemplate: async () => {
+    const response = await axiosClient.get("/suppliers/template", {
+      responseType: "blob", // Quan trọng: Báo cho axios biết đây là file binary
+    })
+    return response // Trả về response để component xử lý tạo link download
+  },
+
+  /**
+   * Import dữ liệu từ file Excel
+   * @param formData Chứa file excel đã chọn
+   */
+  importSuppliers: async (formData: FormData) => {
+    const response = await axiosClient.post("/suppliers/import", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Quan trọng khi upload file
+      },
+    })
+    return response.data
+  },
+
+  /**
+   * Xuất dữ liệu hiện tại ra file Excel
+   */
+  exportSuppliers: async () => {
+    const response = await axiosClient.get("/suppliers/export", {
+      responseType: "blob", // Quan trọng: Báo cho axios biết đây là file binary
+    })
+    return response // Trả về response để component xử lý tạo link download
+  },
 }
