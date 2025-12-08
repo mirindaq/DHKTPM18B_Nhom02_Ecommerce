@@ -20,7 +20,6 @@ export default function VoucherFormPage() {
   const [showSendNotificationDialog, setShowSendNotificationDialog] = useState(false);
   const [createdVoucherId, setCreatedVoucherId] = useState<number | null>(null);
 
-  // Get voucher by ID if editing
   const {
     data: voucherData,
     isLoading: isLoadingVoucher,

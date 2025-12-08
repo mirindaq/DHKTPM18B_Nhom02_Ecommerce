@@ -10,7 +10,6 @@ import type {
   CustomerSummary,
   CreateCustomerRequest,
   UpdateCustomerProfileRequest,
-  AddressRequest,
   AddressResponse,
 } from "@/types/customer.type";
 import { provinceService } from "@/services/province.service";

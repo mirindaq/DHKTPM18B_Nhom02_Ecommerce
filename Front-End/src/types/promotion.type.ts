@@ -19,10 +19,8 @@ export interface PromotionSummary {
   description?: string;
   startDate: string;
   endDate: string;
-  // Legacy/dialog compatibility properties
-  type?: string;
-  discountType?: "PERCENTAGE" | "FIXED_AMOUNT";
-  discountValue?: number;
+  promotionTargets?: PromotionTarget[];
+
 }
 
 export interface CreatePromotionRequest {
