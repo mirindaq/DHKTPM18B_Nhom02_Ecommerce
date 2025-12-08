@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Tag } from 'lucide-react'
-import PromotionStatsCards from '@/components/dashboard/promotion/PromotionStatsCards'
+import { useState } from 'react'
+import { Download, Tag } from 'lucide-react'
 import TopPromotionsChart from '@/components/dashboard/promotion/TopPromotionsChart'
 import AllPromotionsModal from '@/components/dashboard/promotion/AllPromotionsModal'
 import PromotionDetailModal from '@/components/dashboard/promotion/PromotionDetailModal'
@@ -8,6 +7,7 @@ import PromotionComparisonModal from '@/components/dashboard/promotion/Promotion
 import FilterSection, { type FilterValues } from '@/components/dashboard/FilterSection'
 import { promotionService } from '@/services/promotion.service'
 import type { TopPromotionResponse } from '@/types/voucher-promotion.type'
+import { Button } from '@/components/ui/button'
 
 export default function PromotionAnalytics() {
   const [topPromotions, setTopPromotions] = useState<TopPromotionResponse[]>([])
@@ -127,8 +127,18 @@ export default function PromotionAnalytics() {
           </div>
         </div>
         <Button
-          onClick={() => console.log('Export Excel')}
-          disabled={loading}
+          onClick={async () => {
+            try {
+              setLoading(true)
+              await promotionService.exportDashboardExcel(dateRange.startDate, dateRange.endDate)
+            } catch (error) {
+              console.error('Error exporting Excel:', error)
+              alert('Có lỗi xảy ra khi export Excel')
+            } finally {
+              setLoading(false)
+            }
+          }}
+          disabled={loading || !dateRange.startDate || !dateRange.endDate}
           className="bg-green-600 hover:bg-green-700 gap-2"
         >
           <Download className="h-4 w-4" />
@@ -139,17 +149,9 @@ export default function PromotionAnalytics() {
       {/* Filter Section */}
       <FilterSection
         onFilter={handleFilter}
-        onCompareToggle={handleCompareToggle}
-        compareMode={showComparison}
       />
 
-      {/* Stats Cards */}
-      <PromotionStatsCards
-        totalUsage={stats.totalUsage}
-        totalDiscount={stats.totalDiscount}
-        usageGrowth={stats.usageGrowth}
-        discountGrowth={stats.discountGrowth}
-      />
+
 
       {/* Top Promotions Chart */}
       {loading ? (

@@ -16,11 +16,9 @@ export interface FilterValues {
 
 interface FilterSectionProps {
   onFilter: (values: FilterValues) => void
-  onCompareToggle: (enabled: boolean) => void
-  compareMode: boolean
 }
 
-export default function FilterSection({ onFilter, onCompareToggle, compareMode }: FilterSectionProps) {
+export default function FilterSection({ onFilter }: FilterSectionProps) {
   const [timeType, setTimeType] = useState<TimeType>('month')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -150,15 +148,6 @@ export default function FilterSection({ onFilter, onCompareToggle, compareMode }
         <Button onClick={handleFilter} className="bg-blue-600 hover:bg-blue-700">
           <Calendar className="h-4 w-4 mr-2" />
           Lọc dữ liệu
-        </Button>
-        
-        <Button
-          variant={compareMode ? "default" : "outline"}
-          onClick={() => onCompareToggle(!compareMode)}
-          className={compareMode ? "bg-purple-600 hover:bg-purple-700" : ""}
-        >
-          <TrendingUp className="h-4 w-4 mr-2" />
-          {compareMode ? 'Đang so sánh' : 'So sánh'}
         </Button>
       </div>
     </div>

@@ -69,3 +69,34 @@ export interface DashboardStatsResponse {
   productsGrowth: number;
   customersGrowth: number;
 }
+
+export interface ProductOrderDetail {
+  orderId: number;
+  orderCode: string;
+  orderDate: string;
+  customerName: string;
+  quantityOrdered: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface ProductDetailResponse {
+  productId: number;
+  productName: string;
+  productImage: string;
+  totalQuantitySold: number;
+  totalRevenue: number;
+  orders: ProductOrderDetail[];
+}
+
+export interface OrderSummary {
+  orderId: number;
+  orderCode: string;
+  orderDate: string;
+  customerName: string;
+  customerPhone: string;
+  totalPrice: number;
+  finalTotalPrice: number;
+  paymentMethod: string;
+  status: string;
+}

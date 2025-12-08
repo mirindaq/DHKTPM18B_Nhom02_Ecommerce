@@ -108,5 +108,27 @@ export const promotionService = {
       `/dashboard/promotion-detail/${promotionId}${queryString}`
     );
     return response.data;
+  },
+
+  // Export promotion dashboard to Excel (uses common dashboard export endpoint)
+  exportDashboardExcel: async (startDate?: string, endDate?: string): Promise<void> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await axiosClient.get(`/dashboard/export-excel${queryString}`, {
+      responseType: 'blob',
+    });
+    
+    const blob = response.data;
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `promotion_dashboard_${startDate}_${endDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   }
 };

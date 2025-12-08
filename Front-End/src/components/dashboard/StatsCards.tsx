@@ -1,58 +1,43 @@
-import { DollarSign, ShoppingCart, Users, TrendingUp } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { DollarSign, ShoppingCart, TrendingUp } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatsCardsProps {
-  totalRevenue: number
-  totalOrders: number
-  totalCustomers: number
-  growthRate: number
+  totalRevenue: number;
+  totalOrders: number;
+  totalCustomers: number;
+  growthRate: number;
 }
 
-export default function StatsCards({ totalRevenue, totalOrders, totalCustomers, growthRate }: StatsCardsProps) {
+export default function StatsCards({
+  totalRevenue,
+  totalOrders,
+}: StatsCardsProps) {
   const stats = [
     {
-      title: 'Doanh thu tháng này',
-      value: `${totalRevenue.toLocaleString('vi-VN')} ₫`,
-      change: '+3.0% so với tháng trước',
+      title: "Doanh thu tháng này",
+      value: `${totalRevenue.toLocaleString("vi-VN")} ₫`,
+      change: "+3.0% so với tháng trước",
       icon: DollarSign,
-      iconBg: 'bg-green-50',
-      iconColor: 'text-green-600',
-      borderColor: 'border-l-green-500'
+      iconBg: "bg-green-50",
+      iconColor: "text-green-600",
+      borderColor: "border-l-green-500",
     },
     {
-      title: 'Đơn hàng tháng này',
+      title: "Đơn hàng tháng này",
       value: totalOrders.toString(),
-      change: '+12% so với tháng trước',
+      change: "+12% so với tháng trước",
       icon: ShoppingCart,
-      iconBg: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-l-blue-500'
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-600",
+      borderColor: "border-l-blue-500",
     },
-    {
-      title: 'Khách hàng mới',
-      value: totalCustomers.toString(),
-      change: '+11.1% so với tháng trước',
-      icon: Users,
-      iconBg: 'bg-purple-50',
-      iconColor: 'text-purple-600',
-      borderColor: 'border-l-purple-500'
-    },
-    {
-      title: 'Tỷ lệ chuyển đổi',
-      value: `${growthRate.toFixed(1)}%`,
-      change: '+0.2% so với tháng trước',
-      icon: TrendingUp,
-      iconBg: 'bg-orange-50',
-      iconColor: 'text-orange-600',
-      borderColor: 'border-l-orange-500'
-    }
-  ]
+  ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
       {stats.map((stat, index) => (
-        <Card 
-          key={index} 
+        <Card
+          key={index}
           className={`border-l-4 ${stat.borderColor} hover:shadow-lg transition-all duration-300`}
         >
           <CardContent className="p-6">
@@ -73,5 +58,5 @@ export default function StatsCards({ totalRevenue, totalOrders, totalCustomers, 
         </Card>
       ))}
     </div>
-  )
+  );
 }

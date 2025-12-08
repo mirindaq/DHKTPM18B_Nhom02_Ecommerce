@@ -173,7 +173,7 @@ const navigation = [
     isSubmenu: true,
     items: [
       {
-        title: "Dashboard Analytics",
+        title: "Thống kê Doanh thu",
         href: "/admin/analytics",
         icon: BarChart3,
       },

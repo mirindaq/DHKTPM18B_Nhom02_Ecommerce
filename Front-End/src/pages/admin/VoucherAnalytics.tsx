@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Ticket, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import VoucherStatsCards from '@/components/dashboard/voucher/VoucherStatsCards'
 import TopVouchersChart from '@/components/dashboard/voucher/TopVouchersChart'
 import VoucherDetailModal from '@/components/dashboard/voucher/VoucherDetailModal'
 import VoucherComparisonModal from '@/components/dashboard/voucher/VoucherComparisonModal'
@@ -154,17 +153,9 @@ export default function VoucherAnalytics() {
       {/* Filter Section */}
       <FilterSection
         onFilter={handleFilter}
-        onCompareToggle={handleCompareToggle}
-        compareMode={showComparison}
       />
 
-      {/* Stats Cards */}
-      <VoucherStatsCards
-        totalUsage={stats.totalUsage}
-        totalDiscount={stats.totalDiscount}
-        usageGrowth={stats.usageGrowth}
-        discountGrowth={stats.discountGrowth}
-      />
+      
 
       {/* Top Vouchers Chart */}
       {loading ? (

@@ -6,8 +6,11 @@ import StatsCards from '@/components/dashboard/StatsCards'
 import RevenueCard from '@/components/dashboard/RevenueCard'
 import TopProductsCard from '@/components/dashboard/TopProductsCard'
 import CompareSection, { type CompareParams } from '@/components/dashboard/CompareSection'
-import ExcelActions from '@/components/admin/common/ExcelActions'
-import { BarChart3 } from 'lucide-react'
+import AllProductsModal from '@/components/dashboard/product/AllProductsModal'
+import ProductDetailModal from '@/components/dashboard/product/ProductDetailModal'
+import RevenueDetailModal from '@/components/dashboard/revenue/RevenueDetailModal'
+import { BarChart3, Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function Analytics() {
   const [revenueData, setRevenueData] = useState<RevenueByMonthResponse[] | RevenueByDayResponse[] | RevenueByYearResponse[]>([])
@@ -19,6 +22,19 @@ export default function Analytics() {
   const [currentFilter, setCurrentFilter] = useState<FilterValues>({
     timeType: 'month',
     year: new Date().getFullYear()
+  })
+  const [showAllProducts, setShowAllProducts] = useState(false)
+  const [showProductDetail, setShowProductDetail] = useState(false)
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
+  const [dateRange, setDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  })
+  const [showRevenueDetail, setShowRevenueDetail] = useState(false)
+  const [revenueDetailParams, setRevenueDetailParams] = useState({
+    startDate: '',
+    endDate: '',
+    title: ''
   })
 
   const handleFilter = async (values: FilterValues) => {
@@ -34,6 +50,11 @@ export default function Analytics() {
         ])
         setRevenueData(revenueResponse.data)
         setTopProducts(productsResponse.data)
+        // Set date range for detail modal
+        setDateRange({ 
+          startDate: values.startDate || '', 
+          endDate: values.endDate || '' 
+        })
       } else if (values.timeType === 'month') {
         // Nếu month = undefined (chọn "Tất cả"), gọi API year
         const [revenueResponse, productsResponse] = await Promise.all([
@@ -44,6 +65,13 @@ export default function Analytics() {
         ])
         setRevenueData(revenueResponse.data)
         setTopProducts(productsResponse.data)
+        // Set date range for detail modal
+        if (values.month) {
+          const year = values.year || new Date().getFullYear()
+          const startDate = new Date(year, values.month - 1, 1).toISOString().split('T')[0]
+          const endDate = new Date(year, values.month, 0).toISOString().split('T')[0]
+          setDateRange({ startDate, endDate })
+        }
       } else {
         const [revenueResponse, productsResponse] = await Promise.all([
           dashboardService.getRevenueByYear(values.year),
@@ -51,12 +79,31 @@ export default function Analytics() {
         ])
         setRevenueData(revenueResponse.data)
         setTopProducts(productsResponse.data)
+        // Set date range for detail modal
+        const year = values.year || new Date().getFullYear()
+        const startDate = `${year}-01-01`
+        const endDate = `${year}-12-31`
+        setDateRange({ startDate, endDate })
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleViewProductDetail = (productId: number) => {
+    setSelectedProductId(productId)
+    setShowProductDetail(true)
+  }
+
+  const handleViewAllProducts = () => {
+    setShowAllProducts(true)
+  }
+
+  const handleViewRevenueDetail = (startDate: string, endDate: string, title: string) => {
+    setRevenueDetailParams({ startDate, endDate, title })
+    setShowRevenueDetail(true)
   }
 
   const handleCompare = async (period1: CompareParams, period2: CompareParams) => {
@@ -114,43 +161,65 @@ export default function Analytics() {
               <BarChart3 className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Thống kê & Phân tích</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Thống kê Doanh thu</h1>
               <p className="text-sm text-gray-600">Theo dõi hiệu suất kinh doanh và xu hướng thị trường</p>
             </div>
           </div>
-          <ExcelActions
-            onExport={() => {
-              // Determine parameters based on current filter
-              if (currentFilter.timeType === 'day') {
-                return dashboardService.exportExcel(currentFilter.startDate, currentFilter.endDate)
-              } else {
-                // For month/year, convert to date range
-                const year = currentFilter.year || new Date().getFullYear()
-                const month = currentFilter.month || 1
-                
-                if (currentFilter.timeType === 'month') {
-                  const start = `${year}-${String(month).padStart(2, '0')}-01`
-                  const lastDay = new Date(year, month, 0).getDate()
-                  const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
-                  return dashboardService.exportExcel(start, end)
+          <Button
+            onClick={async () => {
+              try {
+                setLoading(true)
+                let startDate: string
+                let endDate: string
+
+                // Determine parameters based on current filter
+                if (currentFilter.timeType === 'day' && currentFilter.startDate && currentFilter.endDate) {
+                  startDate = currentFilter.startDate
+                  endDate = currentFilter.endDate
                 } else {
-                  // year
-                  const start = `${year}-01-01`
-                  const end = `${year}-12-31`
-                  return dashboardService.exportExcel(start, end)
+                  // For month/year, convert to date range
+                  const year = currentFilter.year || new Date().getFullYear()
+                  const month = currentFilter.month || 1
+                  
+                  if (currentFilter.timeType === 'month') {
+                    startDate = `${year}-${String(month).padStart(2, '0')}-01`
+                    const lastDay = new Date(year, month, 0).getDate()
+                    endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+                  } else {
+                    // year
+                    startDate = `${year}-01-01`
+                    endDate = `${year}-12-31`
+                  }
                 }
+
+                const blob = await dashboardService.exportExcel(startDate, endDate)
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = `dashboard_${startDate}_${endDate}.xlsx`
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                window.URL.revokeObjectURL(url)
+              } catch (error) {
+                console.error('Error exporting Excel:', error)
+                alert('Có lỗi xảy ra khi export Excel')
+              } finally {
+                setLoading(false)
               }
             }}
-            exportFileName="dashboard_analytics.xlsx"
-          />
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-700 gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export Excel
+          </Button>
         </div>
       </div>
 
       {/* Filter Section */}
       <FilterSection 
-        onFilter={handleFilter} 
-        onCompareToggle={setCompareMode}
-        compareMode={compareMode}
+        onFilter={handleFilter}
       />
 
       {/* Compare Section */}
@@ -181,14 +250,47 @@ export default function Analytics() {
           data={revenueData} 
           timeType={currentFilter.timeType}
           loading={loading}
+          onViewDetail={handleViewRevenueDetail}
         />
         
         {/* Top Products Card - 1 column */}
         <TopProductsCard 
           data={topProducts}
           loading={loading}
+          onViewDetail={handleViewProductDetail}
+          onViewAll={handleViewAllProducts}
         />
       </div>
+
+      {/* All Products Modal */}
+      <AllProductsModal
+        open={showAllProducts}
+        onClose={() => setShowAllProducts(false)}
+        timeType={currentFilter.timeType}
+        startDate={currentFilter.startDate}
+        endDate={currentFilter.endDate}
+        year={currentFilter.year}
+        month={currentFilter.month}
+        onViewDetail={handleViewProductDetail}
+      />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        open={showProductDetail}
+        onClose={() => setShowProductDetail(false)}
+        productId={selectedProductId}
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+      />
+
+      {/* Revenue Detail Modal */}
+      <RevenueDetailModal
+        open={showRevenueDetail}
+        onClose={() => setShowRevenueDetail(false)}
+        startDate={revenueDetailParams.startDate}
+        endDate={revenueDetailParams.endDate}
+        title={revenueDetailParams.title}
+      />
     </div>
   )
 }
