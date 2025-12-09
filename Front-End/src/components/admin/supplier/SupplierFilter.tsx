@@ -1,49 +1,44 @@
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Search, X } from "lucide-react"
-import { DatePicker } from "@/components/ui/date-picker"
+} from "@/components/ui/select";
+import { Search, X } from "lucide-react";
 
 export default function SupplierFilter({
   onSearch,
 }: {
-  onSearch: (params: any) => void
+  onSearch: (params: any) => void;
 }) {
   const [filters, setFilters] = useState({
     name: "",
     phone: "",
     address: "",
     status: "",
-    startDate: "",
-    endDate: "",
-  })
+  });
+
 
   const handleChange = (field: string, value: string | undefined | null) => {
-    setFilters({ ...filters, [field]: value || "" })
-  }
+    setFilters({ ...filters, [field]: value || "" });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     const payload = {
       ...filters,
       status: filters.status === "all" ? null : filters.status,
-      // Gửi null nếu chuỗi rỗng để backend dễ xử lý
       name: filters.name || null,
       phone: filters.phone || null,
       address: filters.address || null,
-      startDate: filters.startDate || null,
-      endDate: filters.endDate || null,
-    }
-    onSearch(payload)
-  }
+    };
+    onSearch(payload);
+  };
 
   const handleClearFilters = () => {
     const resetState = {
@@ -51,19 +46,21 @@ export default function SupplierFilter({
       phone: "",
       address: "",
       status: "",
-      startDate: "",
-      endDate: "",
-    }
-    setFilters(resetState)
-    onSearch({ ...resetState, status: null })
-  }
+    };
+    setFilters(resetState);
+    onSearch({ ...resetState, status: null });
+  };
+
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        <h2 className="font-semibold text-gray-700 text-base mb-4">
-          Bộ lọc tìm kiếm (Nhà cung cấp)
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-semibold text-gray-700 text-base">
+            Bộ lọc
+          </h2>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1">
             <Label className="text-sm text-gray-600">Tên nhà cung cấp</Label>
@@ -120,26 +117,9 @@ export default function SupplierFilter({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1 md:col-span-2">
-            <Label className="text-sm text-gray-600">Ngày tạo</Label>
-            <div className="flex items-center gap-4">
-              <DatePicker
-                value={filters.startDate}
-                placeholder="Từ ngày"
-                onChange={(val) => handleChange("startDate", val)}
-                className="w-full"
-              />
-              <DatePicker
-                value={filters.endDate}
-                placeholder="Đến ngày"
-                onChange={(val) => handleChange("endDate", val)}
-                className="w-full"
-              />
-            </div>
-          </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 border-t mt-2">
           <Button
             type="button"
             variant="outline"
@@ -154,5 +134,5 @@ export default function SupplierFilter({
         </div>
       </form>
     </div>
-  )
+  );
 }

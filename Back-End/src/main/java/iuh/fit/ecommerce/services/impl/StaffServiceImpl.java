@@ -50,6 +50,7 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseWithPagination<List<StaffResponse>> getStaffs(
             int page,
             int size,
@@ -57,8 +58,8 @@ public class StaffServiceImpl implements StaffService {
             String email,
             String phone,
             Boolean status,
-            LocalDate startDate,
-            LocalDate endDate
+            LocalDate joinDate,
+            Long roleId
     ) {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
 
@@ -67,18 +68,43 @@ public class StaffServiceImpl implements StaffService {
                 (email != null && !email.isBlank()) ? email : null,
                 (phone != null && !phone.isBlank()) ? phone : null,
                 status,
-                startDate,
-                endDate,
+                joinDate,
+                roleId,
                 pageable
         );
+
+        // Fetch userRoles for all staff in the page
+        List<Staff> staffList = staffPage.getContent();
+        if (!staffList.isEmpty()) {
+            List<Long> staffIds = staffList.stream()
+                    .map(Staff::getId)
+                    .collect(Collectors.toList());
+            
+            List<Staff> staffsWithRoles = staffRepository.findAllWithUserRolesByIds(staffIds);
+            
+            // Create a map for quick lookup
+            java.util.Map<Long, Staff> staffMap = staffsWithRoles.stream()
+                    .collect(Collectors.toMap(Staff::getId, s -> s));
+            
+            // Map userRoles back to original list
+            for (Staff staff : staffList) {
+                Staff staffWithRoles = staffMap.get(staff.getId());
+                if (staffWithRoles != null && staffWithRoles.getUserRoles() != null) {
+                    staff.setUserRoles(staffWithRoles.getUserRoles());
+                }
+            }
+        }
 
         return ResponseWithPagination.fromPage(staffPage, staffMapper::toResponse);
     }
 
 
     @Override
+    @Transactional(readOnly = true)
     public StaffResponse getStaffById(Long id) {
-        return staffMapper.toResponse(getStaffEntityById(id));
+        Staff staff = staffRepository.findByIdWithUserRoles(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Staff not found with id: " + id));
+        return staffMapper.toResponse(staff);
     }
 
     @Override
@@ -118,8 +144,9 @@ public class StaffServiceImpl implements StaffService {
                 .workStatus(staffAddRequest.getWorkStatus())
                 .build();
 
-        List<UserRole> userRoles = mapRoleIdsToUserRoles(staffAddRequest.getRoleIds(), staff);
-        staff.setUserRoles(userRoles);
+        UserRole userRole = mapRoleIdToUserRole(staffAddRequest.getRoleId(), staff);
+        staff.setUserRoles(new ArrayList<>());
+        staff.getUserRoles().add(userRole);
 
         return staff;
     }
@@ -133,31 +160,27 @@ public class StaffServiceImpl implements StaffService {
         staff.setJoinDate(staffUpdateRequest.getJoinDate());
         staff.setWorkStatus(staffUpdateRequest.getWorkStatus());
 
-        // Map roles mới nếu có
-        if (staffUpdateRequest.getRoleIds() != null) {
-            List<UserRole> newUserRoles = mapRoleIdsToUserRoles(staffUpdateRequest.getRoleIds(), staff);
+        // Map role mới nếu có
+        if (staffUpdateRequest.getRoleId() != null) {
+            UserRole newUserRole = mapRoleIdToUserRole(staffUpdateRequest.getRoleId(), staff);
             staff.getUserRoles().clear();
-
-            staff.getUserRoles().addAll(newUserRoles);
+            staff.getUserRoles().add(newUserRole);
         }
     }
 
 
-    private List<UserRole> mapRoleIdsToUserRoles(List<Long> roleIds, Staff staff) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return new ArrayList<>();
+    private UserRole mapRoleIdToUserRole(Long roleId, Staff staff) {
+        if (roleId == null) {
+            throw new IllegalArgumentException("Role ID cannot be null");
         }
 
-        List<Role> roles = roleRepository.findAllByIdIn(roleIds);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + roleId));
 
-        return roles.stream()
-                .map(role -> {
-                    UserRole ur = new UserRole();
-                    ur.setRole(role);
-                    ur.setUser(staff); // gán staff để mapping 2 chiều
-                    return ur;
-                })
-                .collect(Collectors.toList());
+        UserRole userRole = new UserRole();
+        userRole.setRole(role);
+        userRole.setUser(staff);
+        return userRole;
     }
 
     @Override

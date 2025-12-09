@@ -1,14 +1,23 @@
 package iuh.fit.ecommerce.controllers;
 
+import iuh.fit.ecommerce.dtos.excel.ImportResult;
 import iuh.fit.ecommerce.dtos.request.supplier.SupplierRequest;
 import iuh.fit.ecommerce.dtos.response.base.ResponseSuccess;
 import iuh.fit.ecommerce.dtos.response.base.ResponseWithPagination;
 import iuh.fit.ecommerce.dtos.response.supplier.SupplierResponse;
 import iuh.fit.ecommerce.services.SupplierService;
+import iuh.fit.ecommerce.services.excel.SupplierExcelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +31,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class SupplierController {
 
     private final SupplierService supplierService;
+    private final SupplierExcelService supplierExcelService; // Inject Service Excel
 
     /**
      * API Lấy danh sách nhà cung cấp (có phân trang và tìm kiếm)
@@ -94,5 +104,86 @@ public class SupplierController {
                 "Thay đổi trạng thái nhà cung cấp thành công",
                 null
         ));
+    }
+
+    // ========================================================================
+    //                          EXCEL FUNCTIONALITY
+    // ========================================================================
+
+    /**
+     * API Download Excel Template cho Supplier
+     */
+    @GetMapping("/template")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Resource> downloadTemplate() {
+        try {
+            Workbook workbook = supplierExcelService.generateTemplate();
+            byte[] bytes = supplierExcelService.workbookToBytes(workbook);
+
+            ByteArrayResource resource = new ByteArrayResource(bytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=supplier_template.xlsx")
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(bytes.length)
+                    .body(resource);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate template: " + e.getMessage());
+        }
+    }
+
+    /**
+     * API Import Supplier từ file Excel
+     */
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseSuccess<ImportResult>> importSuppliers(
+            @RequestParam("file") MultipartFile file) {
+
+        try {
+            if (file == null || file.isEmpty()) {
+                throw new RuntimeException("File is null or empty! Please select a valid Excel file.");
+            }
+
+            // Có thể log ra console để debug như mẫu cũ nếu muốn
+            // System.out.println("Received file: " + file.getOriginalFilename());
+
+            ImportResult result = supplierExcelService.importExcel(file);
+
+            return ResponseEntity.ok(new ResponseSuccess<>(
+                    result.hasErrors() ? OK : CREATED,
+                    result.getMessage(),
+                    result));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Import failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * API Export danh sách Supplier ra Excel
+     */
+    @GetMapping("/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Resource> exportSuppliers() {
+        try {
+            Workbook workbook = supplierExcelService.exportAllSuppliers();
+            byte[] bytes = supplierExcelService.workbookToBytes(workbook);
+
+            ByteArrayResource resource = new ByteArrayResource(bytes);
+
+            String filename = "suppliers_" + LocalDate.now() + ".xlsx";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(bytes.length)
+                    .body(resource);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to export suppliers: " + e.getMessage());
+        }
     }
 }

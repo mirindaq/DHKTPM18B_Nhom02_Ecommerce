@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -33,7 +32,7 @@ public class StaffUpdateRequest {
 
     private WorkStatus workStatus;
 
-    @NotNull(message = "At least one role is required")
-    private List<Long> roleIds;
+    @NotNull(message = "Role is required")
+    private Long roleId;
 }
 

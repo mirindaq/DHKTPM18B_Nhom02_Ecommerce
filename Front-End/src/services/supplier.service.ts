@@ -60,4 +60,31 @@ export const supplierService = {
   changeStatusSupplier: async (id: string) => {
     await axiosClient.put(`/suppliers/change-status/${id}`)
   },
+
+  // Excel operations
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await axiosClient.get("/suppliers/template", {
+      responseType: "blob",
+    })
+    return response.data
+  },
+
+  importSuppliers: async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    const response = await axiosClient.post("/suppliers/import", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 300000, // 5 minutes for large files
+    })
+    return response.data
+  },
+
+  exportSuppliers: async (): Promise<Blob> => {
+    const response = await axiosClient.get("/suppliers/export", {
+      responseType: "blob",
+    })
+    return response.data
+  },
 }

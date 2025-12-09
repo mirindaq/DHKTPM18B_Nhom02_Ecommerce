@@ -13,10 +13,11 @@ export interface UserRole {
   name: string
 }
 
-// Bảng trung gian staff-userRole (như backend cung cấp)
-export interface StaffUserRole {
+// Role Response (đồng bộ với backend RoleResponse)
+export interface RoleResponse {
   id: number
-  role: UserRole
+  name: string
+  description?: string
 }
 
 // Work status
@@ -34,7 +35,7 @@ export interface Staff {
   joinDate?: string
   active: boolean
   workStatus?: WorkStatus
-  userRole: StaffUserRole[]
+  role?: RoleResponse
   createdAt?: string
   modifiedAt?: string
 }
@@ -60,7 +61,7 @@ export interface CreateStaffRequest {
   joinDate?: string
   active: boolean
   workStatus?: WorkStatus
-  roleIds: number[] // backend nhận roleIds
+  roleId: number // backend nhận roleId
 }
 
 export interface UpdateStaffRequest {
@@ -71,5 +72,5 @@ export interface UpdateStaffRequest {
   dateOfBirth?: string
   joinDate?: string
   workStatus?: WorkStatus
-  roleIds?: number[]
+  roleId?: number
 }

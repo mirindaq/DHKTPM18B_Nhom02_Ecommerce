@@ -126,22 +126,15 @@ export default function StaffTable({
                     {staff.phone || "—"}
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {staff.userRole?.length ? (
-                        staff.userRole.map((ur) => (
-                          <CustomBadge
-                            key={ur.id}
-                            variant="info"
-                          >
-                            {ur.role?.name}
-                          </CustomBadge>
-                        ))
-                      ) : (
-                        <span className="text-gray-400 text-sm">
-                          Chưa phân quyền
-                        </span>
-                      )}
-                    </div>
+                    {staff.role ? (
+                      <CustomBadge variant="info">
+                        {staff.role.name}
+                      </CustomBadge>
+                    ) : (
+                      <span className="text-gray-400 text-sm">
+                        Chưa phân quyền
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className="text-gray-600">
                     {formatDate(staff.joinDate)}

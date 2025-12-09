@@ -142,6 +142,7 @@ export default function Customers() {
               setEditingCustomer(null);
               setIsAddEditDialogOpen(true);
             }}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="mr-2 h-4 w-4" /> Thêm khách hàng
           </Button>

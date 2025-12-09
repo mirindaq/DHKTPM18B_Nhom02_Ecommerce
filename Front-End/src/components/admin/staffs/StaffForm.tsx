@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import type {
   CreateStaffRequest,
   UpdateStaffRequest,
@@ -44,7 +43,7 @@ const getInitialFormData = (
       dateOfBirth: staff.dateOfBirth ?? "",
       joinDate: staff.joinDate ?? "",
       workStatus: staff.workStatus ?? "ACTIVE",
-      roleIds: staff.userRole?.map((ur) => ur.role.id) || [],
+      roleId: staff.role?.id,
       avatar: staff.avatar ?? "",
       password: "",
       active: staff.active ?? true,
@@ -60,7 +59,7 @@ const getInitialFormData = (
     dateOfBirth: "",
     joinDate: "",
     workStatus: "ACTIVE",
-    roleIds: [],
+    roleId: undefined,
     avatar: "",
     active: true,
   };
@@ -122,8 +121,8 @@ export default function StaffForm({
       return false;
     }
 
-    if (!formData.roleIds || formData.roleIds.length === 0) {
-      toast.error("Vui lòng chọn ít nhất một vai trò");
+    if (!formData.roleId) {
+      toast.error("Vui lòng chọn vai trò");
       return false;
     }
 
@@ -178,7 +177,7 @@ export default function StaffForm({
         dateOfBirth: formData.dateOfBirth,
         joinDate: formData.joinDate,
         workStatus: formData.workStatus as WorkStatus,
-        roleIds: formData.roleIds,
+        roleId: formData.roleId,
       };
       onSubmit(payload);
     } else {
@@ -191,7 +190,7 @@ export default function StaffForm({
         dateOfBirth: formData.dateOfBirth,
         joinDate: formData.joinDate,
         workStatus: formData.workStatus as WorkStatus,
-        roleIds: formData.roleIds,
+        roleId: formData.roleId,
         avatar: finalAvatarUrl,
         active: true,
       };
@@ -309,28 +308,23 @@ export default function StaffForm({
           </Select>
         </div>
 
-        <div className="space-y-1 md:col-span-2">
-          <Label>Vai trò</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {roles.map((role) => (
-              <label key={role.id} className="flex items-center space-x-2">
-                <Checkbox
-                  checked={(formData.roleIds || []).includes(role.id)}
-                  onCheckedChange={(checked) =>
-                    handleValueChange(
-                      "roleIds",
-                      checked
-                        ? [...(formData.roleIds || []), role.id]
-                        : (formData.roleIds || []).filter(
-                            (id) => id !== role.id
-                          )
-                    )
-                  }
-                />
-                <span>{role.name}</span>
-              </label>
-            ))}
-          </div>
+        <div className="space-y-1">
+          <Label>Vai trò *</Label>
+          <Select
+            value={formData.roleId?.toString() || ""}
+            onValueChange={(value) => handleValueChange("roleId", parseInt(value))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={role.id.toString()}>
+                  {role.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

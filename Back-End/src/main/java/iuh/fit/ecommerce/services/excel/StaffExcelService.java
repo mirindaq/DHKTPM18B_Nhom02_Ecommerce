@@ -47,7 +47,8 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
             "Địa chỉ",
             "Ngày sinh (dd/MM/yyyy)",
             "Ngày vào làm (dd/MM/yyyy)",
-            "Team leader(true/false)"
+            "Team leader(true/false)",
+            "Vai trò*(STAFF/SHIPPER/ADMIN)"
         };
     }
     
@@ -75,6 +76,7 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
                     .dateOfBirth(parseDateCell(row.getCell(4)))
                     .joinDate(parseDateCell(row.getCell(5)))
                     .isLeader(parseBooleanCell(row.getCell(6)))
+                    .role(getCellValueAsString(row.getCell(7)))
                     .build();
                 
                 dataList.add(dto);
@@ -113,19 +115,25 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
                 result.addError(rowIndex, "Ngày sinh", "Ngày sinh không hợp lệ");
             }
         }
-     
-        if (data.getJoinDate() != null && data.getJoinDate().isAfter(LocalDate.now())) {
-            result.addError(rowIndex, "Ngày vào làm", "Ngày vào làm không được là ngày tương lai");
+
+        // Validate role
+        if (data.getRole() == null || data.getRole().isBlank()) {
+            result.addError(rowIndex, "Vai trò", "Vai trò không được để trống");
+        } else {
+            String roleUpper = data.getRole().trim().toUpperCase();
+            if (!roleUpper.equals("STAFF") && !roleUpper.equals("SHIPPER") && !roleUpper.equals("ADMIN")) {
+                result.addError(rowIndex, "Vai trò", "Vai trò phải là một trong: STAFF, SHIPPER, hoặc ADMIN");
+            } else {
+                // Normalize role name
+                data.setRole(roleUpper);
+            }
         }
+
     }
     
     @Override
     @Transactional
     public void saveData(List<StaffExcelDTO> dataList) throws Exception {
-        Role staffRole = roleRepository.findByName("STAFF")
-            .orElseThrow(() -> new RuntimeException("Role STAFF not found"));
-        
-     
         String encodedPassword = passwordEncoder.encode("123456");
         
         int CHUNK_SIZE = 100; // Process 100 records per chunk
@@ -141,6 +149,11 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
             List<Staff> staffList = new ArrayList<>();
             
             for (StaffExcelDTO dto : chunk) {
+                // Get role by name
+                String roleName = dto.getRole() != null ? dto.getRole().trim().toUpperCase() : "STAFF";
+                Role role = roleRepository.findByName(roleName)
+                    .orElseThrow(() -> new RuntimeException("Role " + roleName + " not found"));
+                
                 Staff staff = Staff.builder()
                     .email(dto.getEmail())
                     .fullName(dto.getFullName())
@@ -157,7 +170,7 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
                 staff.setUserRoles(new ArrayList<>());
                 
                 UserRole userRole = UserRole.builder()
-                    .role(staffRole)
+                    .role(role)
                     .user(staff)
                     .build();
                 
@@ -186,22 +199,32 @@ public class StaffExcelService extends BaseExcelHandler<StaffExcelDTO> {
             data.getAddress(),
             data.getDateOfBirth() != null ? data.getDateOfBirth().format(DATE_FORMATTER) : "",
             data.getJoinDate() != null ? data.getJoinDate().format(DATE_FORMATTER) : "",
-            data.getIsLeader() != null ? data.getIsLeader() : false
+            data.getIsLeader() != null ? data.getIsLeader() : false,
+            data.getRole() != null ? data.getRole() : "STAFF"
         };
     }
   
     public Workbook exportAllStaff() throws Exception {
         List<Staff> staffList = staffRepository.findAll();
         List<StaffExcelDTO> dtoList = staffList.stream()
-            .map(staff -> StaffExcelDTO.builder()
-                .email(staff.getEmail())
-                .fullName(staff.getFullName())
-                .phone(staff.getPhone())
-                .address(staff.getAddress())
-                .dateOfBirth(staff.getDateOfBirth())
-                .joinDate(staff.getJoinDate())
-                .isLeader(staff.getLeader())
-                .build())
+            .map(staff -> {
+                // Get first role (should only have one)
+                String roleName = "STAFF"; // default
+                if (staff.getUserRoles() != null && !staff.getUserRoles().isEmpty()) {
+                    roleName = staff.getUserRoles().get(0).getRole().getName();
+                }
+                
+                return StaffExcelDTO.builder()
+                    .email(staff.getEmail())
+                    .fullName(staff.getFullName())
+                    .phone(staff.getPhone())
+                    .address(staff.getAddress())
+                    .dateOfBirth(staff.getDateOfBirth())
+                    .joinDate(staff.getJoinDate())
+                    .isLeader(staff.getLeader())
+                    .role(roleName)
+                    .build();
+            })
             .toList();
         
         return generateExcel(dtoList);

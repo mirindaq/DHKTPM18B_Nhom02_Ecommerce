@@ -19,4 +19,5 @@ public class StaffExcelDTO {
     private LocalDate dateOfBirth;  // Optional
     private LocalDate joinDate;
     private Boolean isLeader;
+    private String role; // STAFF, SHIPPER, or ADMIN
 }

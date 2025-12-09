@@ -14,10 +14,6 @@ import java.util.Optional;
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
-    /**
-     * Tìm kiếm nhà cung cấp tương tự như CustomerRepository
-     * Lọc theo name, phone, address, status, và khoảng ngày tạo
-     */
     @Query("SELECT s FROM Supplier s WHERE " +
             "(:name IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:phone IS NULL OR s.phone LIKE CONCAT('%', :phone, '%')) AND " +
@@ -33,10 +29,9 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
                                    @Param("endDate") LocalDate endDate,
                                    Pageable pageable);
 
-    // Dùng để kiểm tra (validate) khi tạo mới
+    // Chỉ giữ lại các hàm liên quan đến Phone (vì Entity có field này)
     boolean existsByPhone(String phone);
 
-    // Dùng để kiểm tra (validate) khi cập nhật
     boolean existsByPhoneAndIdNot(String phone, Long id);
 
     Optional<Supplier> findByPhone(String phone);
