@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Calendar, Filter, RefreshCw } from 'lucide-react'
 
 interface VoucherFilterSectionProps {
@@ -55,11 +56,10 @@ export default function VoucherFilterSection({ onFilterChange, onCompareClick }:
                 <Calendar className="inline h-4 w-4 mr-1" />
                 Từ ngày
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={setStartDate}
+                placeholder="Chọn từ ngày"
               />
             </div>
             <div>
@@ -67,11 +67,10 @@ export default function VoucherFilterSection({ onFilterChange, onCompareClick }:
                 <Calendar className="inline h-4 w-4 mr-1" />
                 Đến ngày
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={setEndDate}
+                placeholder="Chọn đến ngày"
               />
             </div>
           </div>

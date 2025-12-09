@@ -18,15 +18,15 @@ public class PromotionUpdateRequest {
     @Size(max = 255, message = "Promotion name must be at most 255 characters")
     private String name;
 
-    @NotBlank(message = "Promotion type must not be blank")
-    private PromotionType type;
+    @NotNull(message = "Promotion type must not be blank")
+    private PromotionType promotionType;
 
-    @NotBlank(message = "Discount type must not be blank")
-    private DiscountType discountType;
+    @NotNull(message = "Discount must not be null")
+    @Positive(message = "Discount must be greater than 0")
+    private Double discount;
 
-    @NotNull(message = "Discount value must not be null")
-    @Positive(message = "Discount value must be greater than 0")
-    private Double discountValue;
+    @NotNull(message = "Active status must not be null")
+    private Boolean active;
 
     @NotNull(message = "Priority must not be null")
     @Min(value = 1, message = "Priority must be at least 1")
@@ -36,11 +36,11 @@ public class PromotionUpdateRequest {
     private String description;
 
     @NotNull(message = "Start date must not be null")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @NotNull(message = "End date must not be null")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     @Valid
-    private List<PromotionTargetRequest> targets;
+    private List<PromotionTargetRequest> promotionTargets;
 }

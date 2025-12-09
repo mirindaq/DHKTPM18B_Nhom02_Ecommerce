@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 
 export type TimeType = 'day' | 'month' | 'year'
 
@@ -69,20 +69,18 @@ export default function FilterSection({ onFilter }: FilterSectionProps) {
           <>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Từ ngày</label>
-              <Input
-                type="date"
+              <DatePicker
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
+                onChange={setStartDate}
+                placeholder="Chọn từ ngày"
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Đến ngày</label>
-              <Input
-                type="date"
+              <DatePicker
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
+                onChange={setEndDate}
+                placeholder="Chọn đến ngày"
               />
             </div>
           </>

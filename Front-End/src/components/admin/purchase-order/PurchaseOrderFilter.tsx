@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 
 import { Search, X } from "lucide-react";
 import type { PurchaseOrderFilter } from "@/types/purchase-order.type";
@@ -50,21 +51,19 @@ export default function PurchaseOrderFilterComponent({
 
         <div>
           <label className="text-sm font-medium mb-2 block">Từ ngày</label>
-          <Input
-            type="date"
+          <DatePicker
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            disabled={isLoading}
+            onChange={setStartDate}
+            placeholder="Chọn từ ngày"
           />
         </div>
 
         <div>
           <label className="text-sm font-medium mb-2 block">Đến ngày</label>
-          <Input
-            type="date"
+          <DatePicker
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            disabled={isLoading}
+            onChange={setEndDate}
+            placeholder="Chọn đến ngày"
           />
         </div>
       </div>

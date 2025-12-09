@@ -104,6 +104,8 @@ export function DatePicker({
             captionLayout="dropdown"
             month={month}
             onMonthChange={setMonth}
+            fromYear={1900}
+            toYear={2100}
             onSelect={(d) => {
               setDate(d);
               onChange(d ? formatDateSubmit(d) : "");

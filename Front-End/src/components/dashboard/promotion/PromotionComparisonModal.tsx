@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Calendar, TrendingUp, TrendingDown, X } from 'lucide-react'
 import { promotionService } from '@/services/promotion.service'
 import type { PromotionComparisonResponse } from '@/types/voucher-promotion.type'
@@ -68,11 +69,10 @@ export default function PromotionComparisonModal({ open, onClose }: PromotionCom
                       <Calendar className="inline h-3 w-3 mr-1" />
                       Từ ngày
                     </label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={startDate1}
-                      onChange={(e) => setStartDate1(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      onChange={setStartDate1}
+                      placeholder="Chọn từ ngày"
                     />
                   </div>
                   <div>
@@ -80,11 +80,10 @@ export default function PromotionComparisonModal({ open, onClose }: PromotionCom
                       <Calendar className="inline h-3 w-3 mr-1" />
                       Đến ngày
                     </label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={endDate1}
-                      onChange={(e) => setEndDate1(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      onChange={setEndDate1}
+                      placeholder="Chọn đến ngày"
                     />
                   </div>
                 </div>
@@ -101,11 +100,10 @@ export default function PromotionComparisonModal({ open, onClose }: PromotionCom
                       <Calendar className="inline h-3 w-3 mr-1" />
                       Từ ngày
                     </label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={startDate2}
-                      onChange={(e) => setStartDate2(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      onChange={setStartDate2}
+                      placeholder="Chọn từ ngày"
                     />
                   </div>
                   <div>
@@ -113,11 +111,10 @@ export default function PromotionComparisonModal({ open, onClose }: PromotionCom
                       <Calendar className="inline h-3 w-3 mr-1" />
                       Đến ngày
                     </label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={endDate2}
-                      onChange={(e) => setEndDate2(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      onChange={setEndDate2}
+                      placeholder="Chọn đến ngày"
                     />
                   </div>
                 </div>
