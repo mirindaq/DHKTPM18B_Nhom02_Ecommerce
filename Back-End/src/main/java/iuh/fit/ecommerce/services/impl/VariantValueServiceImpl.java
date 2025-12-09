@@ -91,6 +91,7 @@ public class VariantValueServiceImpl implements VariantValueService {
                      value.setValue(val);
                      value.setVariant(variant);
                      value.setStatus(true);
+                     value.setSlug(StringUtils.normalizeString(val));
                      return value;
                  })
                  .collect(Collectors.toList());

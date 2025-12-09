@@ -483,10 +483,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String generateSku(String spu, List<Long> variantValueIds) {
-        // Get variant values and use their existing slug field
+        // Get variant values and use their existing slug field, fallback to value if slug is null
         List<String> slugs = variantValueIds.stream()
                 .map(id -> variantValueService.getVariantValueEntityById(id))
-                .map(VariantValue::getSlug)
+                .map(vv -> {
+                    String slug = vv.getSlug();
+                    return (slug != null && !slug.isEmpty()) ? slug : vv.getValue();
+                })
+                .filter(s -> s != null && !s.isEmpty())
                 .sorted()
                 .collect(Collectors.toList());
         
