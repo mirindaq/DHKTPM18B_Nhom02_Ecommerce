@@ -93,66 +93,56 @@ export default function Home() {
       icon: Truck,
       title: "Giao hàng miễn phí",
       desc: "Đơn từ 300.000đ",
-      gradient: "from-blue-500 to-cyan-500",
-      bg: "bg-blue-50",
     },
     {
       icon: Shield,
       title: "Bảo hành chính hãng",
       desc: "Lên đến 24 tháng",
-      gradient: "from-green-500 to-emerald-500",
-      bg: "bg-green-50",
     },
     {
       icon: RefreshCcw,
       title: "Đổi trả dễ dàng",
       desc: "Trong vòng 30 ngày",
-      gradient: "from-orange-500 to-red-500",
-      bg: "bg-orange-50",
     },
     {
       icon: Headphones,
       title: "Hỗ trợ 24/7",
       desc: "Tư vấn miễn phí",
-      gradient: "from-purple-500 to-pink-500",
-      bg: "bg-purple-50",
     },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Banner */}
-      <section className="relative bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <section className="relative">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:items-stretch">
             {/* Main Banner */}
-            <div className="lg:col-span-3">
-              <div className="rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <HeroBanner />
-              </div>
+            <div className="lg:col-span-3 flex">
+              <HeroBanner />
             </div>
 
             {/* Side Member Banner */}
-            <div className="hidden lg:block">
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden h-full border border-gray-100 hover:shadow-xl transition-all duration-300">
+            <div className="hidden lg:flex">
+              <div className="bg-white rounded-2xl overflow-hidden w-full border border-red-300 transition-all duration-300 flex flex-col">
                 {/* Header */}
                 {isAuthenticated && user ? (
                   // Đã đăng nhập
-                  <div className="bg-gradient-to-br from-red-600 via-red-500 to-rose-500 p-5 text-white relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-red-500 to-rose-600 p-4 text-white relative overflow-hidden">
                     {/* Decorative circles */}
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                     <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
 
                     <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg border-2 border-white/50">
-                          <Crown className="w-7 h-7 text-yellow-300" />
+                      <div className="flex items-center gap-2.5 mb-2.5">
+                        <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg border-2 border-white/50">
+                          <Crown className="w-6 h-6 text-yellow-300" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg leading-tight">
+                          <h3 className="font-bold text-base leading-tight">
                             {user.fullName}
                           </h3>
-                          <p className="text-sm opacity-90 mt-0.5">
+                          <p className="text-xs opacity-90 mt-0.5">
                             {user.phone?.replace(
                               /(\d{3})(\d{4})(\d+)/,
                               "$1****$3"
@@ -161,70 +151,70 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="bg-yellow-400 text-red-700 px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <span className="bg-yellow-400 text-red-700 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-md">
                           {user.rank?.name?.toUpperCase() || "MEMBER"}
                         </span>
-                        <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                        <span className="bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
                           <Percent className="w-3 h-3" />-
                           {user.rank?.discountRate || 0}%
                         </span>
                       </div>
 
-                      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mb-3">
-                        <p className="text-xs font-semibold mb-1">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2.5 mb-2.5">
+                        <p className="text-xs font-semibold mb-0.5">
                           🎁 Ưu đãi của bạn
                         </p>
-                        <p className="text-sm font-bold">
+                        <p className="text-xs font-bold">
                           Giảm {user.rank?.discountRate || 0}% mọi đơn hàng
                         </p>
                       </div>
 
                       <Link
                         to={USER_PATH.MEMBERSHIP}
-                        className="flex items-center justify-center gap-2 bg-white text-red-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-yellow-50 transition-colors shadow-md"
+                        className="flex items-center justify-center gap-2 bg-white text-red-600 py-2 rounded-lg font-semibold text-xs hover:bg-yellow-50 transition-colors shadow-md"
                       >
-                        <Gift className="w-4 h-4" />
+                        <Gift className="w-3.5 h-3.5" />
                         Xem tất cả ưu đãi
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>
                 ) : (
                   // Chưa đăng nhập
-                  <div className="bg-gradient-to-br from-red-600 via-red-500 to-rose-500 p-5 text-white relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-red-500 to-rose-600 p-4 text-white relative overflow-hidden">
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                     <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
 
                     <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                          <Gift className="w-7 h-7" />
+                      <div className="flex items-center gap-2.5 mb-2.5">
+                        <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
+                          <Gift className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg leading-tight">
+                          <h3 className="font-bold text-base leading-tight">
                             Chào mừng đến
                           </h3>
-                          <p className="font-bold text-lg">CellphoneS</p>
+                          <p className="font-bold text-base">CellphoneS</p>
                         </div>
                       </div>
 
-                      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mb-3">
-                        <p className="text-sm font-medium">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2.5 mb-2.5">
+                        <p className="text-xs font-medium">
                           🎉 Nhận ngay ưu đãi khi trở thành Smember
                         </p>
                       </div>
 
-                      <div className="flex gap-2 mb-3">
+                      <div className="flex gap-2 mb-2.5">
                         <Link
                           to="/login"
-                          className="flex-1 bg-white text-red-600 py-2.5 rounded-xl font-bold text-sm hover:bg-yellow-50 transition-colors text-center shadow-md"
+                          className="flex-1 bg-white text-red-600 py-2 rounded-lg font-bold text-xs hover:bg-yellow-50 transition-colors text-center shadow-md"
                         >
                           Đăng nhập
                         </Link>
                         <Link
                           to="/register"
-                          className="flex-1 bg-yellow-400 text-red-700 py-2.5 rounded-xl font-bold text-sm hover:bg-yellow-300 transition-colors text-center shadow-md"
+                          className="flex-1 bg-yellow-400 text-red-700 py-2 rounded-lg font-bold text-xs hover:bg-yellow-300 transition-colors text-center shadow-md"
                         >
                           Đăng ký
                         </Link>
@@ -232,11 +222,11 @@ export default function Home() {
 
                       <Link
                         to={PUBLIC_PATH.MEMBERSHIP}
-                        className="flex items-center justify-center gap-1 text-sm hover:underline opacity-90"
+                        className="flex items-center justify-center gap-1 text-xs hover:underline opacity-90"
                       >
-                        <Gift className="w-4 h-4" />
+                        <Gift className="w-3.5 h-3.5" />
                         Tìm hiểu về Smember
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>
@@ -322,8 +312,8 @@ export default function Home() {
       </section>
 
       {/* Categories Grid Section */}
-      <section className="container mx-auto px-4 max-w-7xl mt-8">
-        <div className="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-8">
+      <section className="max-w-7xl mx-auto px-4 mt-8">
+        <div className="bg-white rounded-xl p-5 md:p-6 mb-8 border border-gray-200">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
@@ -340,7 +330,7 @@ export default function Home() {
             </div>
           ) : topCategories.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
-              {topCategories.map((category) => (
+              {topCategories.slice(0, 8).map((category) => (
                 <Link
                   key={category.id}
                   to={`${PUBLIC_PATH.HOME}search/${category.slug}`}
@@ -371,7 +361,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 max-w-7xl mt-8">
+      <div className="max-w-7xl mx-auto px-4 mt-8">
         {/* Category Product Sections - Hiển thị sản phẩm theo category */}
         {loadingCategories ? (
           <div className="flex justify-center items-center py-16 mb-8">
@@ -388,72 +378,64 @@ export default function Home() {
 
         {/* Trust Badges */}
         <section className="mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {trustBadges.map((badge, index) => (
-              <div
-                key={index}
-                className={`group relative overflow-hidden bg-white rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1`}
-              >
-                {/* Background decoration */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {trustBadges.map((badge, index) => (
                 <div
-                  className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${badge.gradient} opacity-5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500`}
-                ></div>
-
-                <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left">
-                  <div
-                    className={`w-14 h-14 bg-gradient-to-br ${badge.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 flex-shrink-0`}
-                  >
-                    <badge.icon className="w-7 h-7 text-white" />
+                  key={index}
+                  className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-red-300 hover:bg-red-50/50 transition-all duration-200"
+                >
+                  <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <badge.icon className="w-5 h-5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-800 text-base mb-1 leading-tight">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-sm mb-0.5 leading-tight">
                       {badge.title}
                     </h3>
-                    <p className="text-gray-500 text-sm leading-snug">
+                    <p className="text-gray-500 text-xs leading-snug">
                       {badge.desc}
                     </p>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Article Section */}
-        <section className="bg-white rounded-2xl shadow-lg p-6 md:p-7 mb-8 border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
+        <section className="bg-white rounded-xl p-6 mb-8 border border-gray-200">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-1.5 h-10 bg-gradient-to-b from-red-600 via-orange-500 to-yellow-500 rounded-full shadow-md" />
+              <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
+                <h2 className="text-xl font-bold text-gray-800">
                   Tin tức & Khuyến mãi
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  📰 Cập nhật mới nhất mỗi ngày
-                </p>
+                <p className="text-sm text-gray-500">Cập nhật mới nhất mỗi ngày</p>
               </div>
             </div>
-            <a
-              href="/news"
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl text-sm font-bold hover:from-red-600 hover:to-rose-600 transition-all group shadow-md hover:shadow-lg"
+            <Link
+              to={PUBLIC_PATH.NEWS}
+              className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 font-semibold px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
             >
               Xem tất cả
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </a>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {loadingArticles ? (
             <div className="flex justify-center items-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 className="w-10 h-10 animate-spin text-red-500" />
-                <p className="text-gray-500 font-medium">Đang tải tin tức...</p>
-              </div>
+              <Loader2 className="w-8 h-8 animate-spin text-red-600" />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          ) : articles.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
               {articles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <p>Chưa có tin tức nào</p>
             </div>
           )}
         </section>

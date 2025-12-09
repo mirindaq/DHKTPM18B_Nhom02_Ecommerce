@@ -35,43 +35,47 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     return (
         <div 
             onClick={handleClick}
-            className="cursor-pointer overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-white group h-full flex flex-col border border-gray-100 hover:border-red-200"
+            className="group relative overflow-hidden bg-white rounded-sm border border-gray-200 hover:border-red-400 transition-all duration-200 cursor-pointer h-full flex flex-col"
         >
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
-                {/* Category Badge */}
-                <div className="absolute top-3 left-3 z-10">
-                    <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg">
-                        {article.category?.title || "Tin tức"}
-                    </span>
-                </div>
+            {/* Article Image */}
+            <div className="relative aspect-[4/3] overflow-hidden bg-gray-50">
                 <img
                     src={article.thumbnail}
                     alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200 p-2"
                     onError={(e) => {
                         e.currentTarget.src = "https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image";
                     }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                {/* Category Badge */}
+                <div className="absolute top-2 left-2 z-10">
+                    <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-semibold">
+                        {article.category?.title || "Tin tức"}
+                    </span>
+                </div>
             </div>
 
-            <div className="p-4 md:p-5 flex-grow flex flex-col">
+            {/* Article Content */}
+            <div className="p-4 space-y-2.5 flex-grow flex flex-col">
+                {/* Title */}
                 <h3
-                    className="text-base md:text-lg font-bold text-gray-900 break-words leading-tight line-clamp-3 group-hover:text-red-600 transition-colors mb-3"
+                    className="font-semibold text-lg text-gray-800 line-clamp-2 leading-snug min-h-[3.25rem] group-hover:text-red-600 transition-colors"
                     title={article.title}
                 >
                     {article.title}
                 </h3>
                 
-                <div className="mt-auto flex items-center justify-between text-xs text-gray-500">
+                {/* Author & Date */}
+                <div className="flex items-center justify-between text-sm text-gray-500 pt-1">
                     <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-gradient-to-br from-red-600 to-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                             {article.staffName?.charAt(0).toUpperCase() || "A"}
                         </div>
                         <span className="font-medium text-gray-600">{article.staffName || "Tác giả"}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <Clock size={12} />
+                        <Clock size={14} />
                         <span>{formatDate(article.createdAt)}</span>
                     </div>
                 </div>

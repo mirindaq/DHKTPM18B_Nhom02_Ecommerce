@@ -78,7 +78,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-b from-red-600 to-rose-400 text-white shadow-md py-2">
+    <header className="sticky top-0 z-50 bg-gradient-to-b from-red-500 to-rose-600 text-white shadow-md py-2">
       <div className="max-w-7xl mx-auto px-4">
         {/* Top Banner */}
         <div className="text-white text-sm py-2">

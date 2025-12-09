@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router";
 import {
-  ChevronRight,
   Home,
   Loader2,
   Newspaper,
@@ -10,13 +9,11 @@ import {
   Smartphone,
   Megaphone,
   Users,
-  Clock,
 } from "lucide-react";
 import { articleService } from "@/services/article.service";
 import { articleCategoryService } from "@/services/article-category.service";
 import { useQuery } from "@/hooks";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import ArticleCard from "@/components/user/ArticleCard";
 import type { ArticleListResponse } from "@/types/article.type";
 import type {
   ArticleCategoryResponse,
@@ -38,21 +35,6 @@ const getCategoryIcon = (slug: string) => {
   return iconMap[slug] || Newspaper;
 };
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return (
-    date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }) +
-    " " +
-    date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  );
-};
 
 export default function NewsCategory() {
   const { slug } = useParams<{ slug: string }>();
@@ -136,149 +118,107 @@ export default function NewsCategory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-          {/* Left Sidebar - Categories */}
-          <aside className="sticky top-4 hidden lg:block h-fit">
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <Button
-                  asChild
-                  variant="ghost"
-                  className={`
-                    w-full justify-start gap-3 rounded-none !text-base !font-medium !py-6 !px-4
-                    transition-all duration-200 ease-in-out
-                    ${
-                      location.pathname === PUBLIC_PATH.NEWS
-                        ? "!bg-red-50 !text-red-600 !border-l-4 !border-red-600 hover:!bg-red-100 hover:!text-red-700"
-                        : "!text-gray-700 !border-l-4 !border-transparent hover:!bg-gray-100 hover:!text-gray-900 hover:!border-l-4 hover:!border-red-300"
-                    }
-                  `}
-                >
-                  <Link to={PUBLIC_PATH.NEWS}>
-                    <Home size={22} />
-                    <span>Trang chủ</span>
-                  </Link>
-                </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
+          {/* Left Sidebar */}
+          <aside className="sticky top-28 hidden lg:block h-fit">
+            <div className="space-y-1">
+              <Link
+                to={PUBLIC_PATH.NEWS}
+                className={`
+                  flex items-center gap-3 px-3 py-2 transition-colors
+                  ${
+                    location.pathname === PUBLIC_PATH.NEWS
+                      ? "text-red-600"
+                      : "text-gray-700 hover:text-red-600"
+                  }
+                `}
+              >
+                <Home size={20} />
+                <span className="font-medium">Trang chủ</span>
+              </Link>
 
-                {categories.map((cat) => {
-                  const Icon = getCategoryIcon(cat.slug);
-                  const isActive = category?.id === cat.id;
-                  return (
-                    <Button
-                      key={cat.id}
-                      asChild
-                      variant="ghost"
-                      className={`
-                        w-full justify-start gap-3 rounded-none !text-base !font-medium !py-6 !px-4
-                        transition-all duration-200 ease-in-out
-                        ${
-                          isActive
-                            ? "!bg-red-50 !text-red-600 !border-l-4 !border-red-600 hover:!bg-red-100 hover:!text-red-700"
-                            : "!text-gray-700 !border-l-4 !border-transparent hover:!bg-gray-100 hover:!text-gray-900 hover:!border-l-4 hover:!border-red-300"
-                        }
-                      `}
-                    >
-                      <Link to={`${PUBLIC_PATH.NEWS_CATEGORY.replace(":slug", cat.slug)}`}>
-                        <Icon size={22} />
-                        <span>{cat.title}</span>
-                      </Link>
-                    </Button>
-                  );
-                })}
-              </CardContent>
-            </Card>
+              {categories.map((cat) => {
+                const Icon = getCategoryIcon(cat.slug);
+                const isActive = category?.id === cat.id;
+                return (
+                  <Link
+                    key={cat.id}
+                    to={`${PUBLIC_PATH.NEWS_CATEGORY.replace(":slug", cat.slug)}`}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 transition-colors
+                      ${
+                        isActive
+                          ? "text-red-600"
+                          : "text-gray-700 hover:text-red-600"
+                      }
+                    `}
+                  >
+                    <Icon size={20} />
+                    <span className="font-medium">{cat.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </aside>
 
           {/* Main Content */}
-          <main className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            {/* Breadcrumb */}
-            <div className="flex items-center space-x-2 text-sm text-gray-600 mb-5 pb-4 border-b border-gray-200">
-              <Home size={14} className="text-gray-400" />
-              <Link to={PUBLIC_PATH.NEWS} className="hover:text-red-600 transition-colors font-medium">
-                Trang chủ
-              </Link>
-              <ChevronRight size={12} className="text-gray-400" />
-              <span className="text-gray-900 font-semibold">{category?.title}</span>
-            </div>
-
+          <main className="space-y-6">
             {/* Category Header */}
-            <div className="mb-6">
-              <div className="flex items-center mb-3">
-                <div className="h-8 w-1 bg-gradient-to-b from-red-600 to-red-400 rounded-full mr-3"></div>
-                <h1 className="text-2xl font-bold text-gray-900">{category?.title}</h1>
-              </div>
-            </div>
-
-            {loadingArticles ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-red-600" />
-              </div>
-            ) : articles.length === 0 ? (
-              <div className="bg-gray-50 rounded-xl p-12 text-center border-2 border-dashed border-gray-200">
-                <p className="text-gray-500 text-lg font-medium">Chưa có bài viết nào trong chuyên mục này</p>
-              </div>
-            ) : (
-              <>
-                {/* Articles List */}
-                <div className="space-y-4">
-                  {articles.map((article) => (
-                    <Link
-                      key={article.id}
-                      to={`${PUBLIC_PATH.NEWS_DETAIL.replace(":slug", article.slug)}`}
-                      className="flex gap-4 bg-white rounded-xl p-5 hover:shadow-lg transition-all duration-300 group border border-gray-200 hover:border-red-200 hover:-translate-y-0.5"
-                    >
-                      <img
-                        src={article.thumbnail}
-                        alt={article.title}
-                        className="w-44 h-32 object-cover rounded-lg flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image";
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 mb-3">
-                          {article.title}
-                        </h3>
-                        <div className="flex items-center space-x-3 text-sm text-gray-500">
-                          <span className="text-red-600 font-semibold bg-red-50 px-2.5 py-1 rounded-lg">{category?.title}</span>
-                          <span className="text-gray-300">•</span>
-                          <div className="flex items-center">
-                            <Clock size={14} className="mr-1.5" />
-                            <span>{formatDate(article.createdAt)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+            <section className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800">{category?.title}</h1>
+                  <p className="text-sm text-gray-500">Các bài viết trong chuyên mục</p>
                 </div>
+              </div>
+            </section>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center mt-8 gap-2">
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-red-300 transition-all font-medium shadow-sm hover:shadow-md"
-                    >
-                      Trước
-                    </button>
-                    <span className="px-5 py-2.5 bg-red-600 text-white border border-red-600 rounded-lg font-semibold shadow-md">
-                      Trang {currentPage} / {totalPages}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-red-300 transition-all font-medium shadow-sm hover:shadow-md"
-                    >
-                      Sau
-                    </button>
+            {/* Articles Grid */}
+            <section className="bg-white rounded-xl p-6 border border-gray-200">
+              {loadingArticles ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                </div>
+              ) : articles.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <p>Chưa có bài viết nào trong chuyên mục này</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+                    {articles.map((article) => (
+                      <ArticleCard key={article.id} article={article} />
+                    ))}
                   </div>
-                )}
-              </>
-            )}
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center mt-8 gap-2">
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-red-300 transition-all font-medium"
+                      >
+                        Trước
+                      </button>
+                      <span className="px-5 py-2.5 bg-red-600 text-white border border-red-600 rounded-lg font-semibold">
+                        Trang {currentPage} / {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-red-300 transition-all font-medium"
+                      >
+                        Sau
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
           </main>
         </div>
       </div>

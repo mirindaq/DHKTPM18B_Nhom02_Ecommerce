@@ -18,8 +18,6 @@ import {
 import { articleService } from "@/services/article.service";
 import { articleCategoryService } from "@/services/article-category.service";
 import { useQuery } from "@/hooks";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import type { ArticleResponse, ArticleListResponse } from "@/types/article.type";
 import type { ArticleCategoryListResponse } from "@/types/article-category.type";
 import { PUBLIC_PATH } from "@/constants/path";
@@ -129,7 +127,7 @@ export default function NewsDetail() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-sm p-12 flex items-center justify-center">
+          <div className="flex justify-center items-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-red-600" />
           </div>
         </div>
@@ -141,7 +139,7 @@ export default function NewsDetail() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-sm p-12 flex flex-col items-center justify-center text-center">
+          <div className="bg-white rounded-xl p-12 border border-gray-200 flex flex-col items-center justify-center text-center">
             <p className="text-red-600 mb-4 text-lg">
               {error ? "Không thể tải bài viết. Vui lòng thử lại sau." : "Không tìm thấy bài viết"}
             </p>
@@ -161,60 +159,52 @@ export default function NewsDetail() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-          {/* Left Sidebar - Categories */}
-          <aside className="sticky top-4 hidden lg:block h-fit">
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <Button
-                  asChild
-                  variant="ghost"
-                  className={`
-                    w-full justify-start gap-3 rounded-none !text-base !font-medium !py-6 !px-4
-                    transition-all duration-200 ease-in-out
-                    ${location.pathname === PUBLIC_PATH.NEWS
-                      ? "!bg-red-50 !text-red-600 !border-l-4 !border-red-600 hover:!bg-red-100 hover:!text-red-700"
-                      : "!text-gray-700 !border-l-4 !border-transparent hover:!bg-gray-100 hover:!text-gray-900 hover:!border-l-4 hover:!border-red-300"
-                    }
-                  `}
-                >
-                  <Link to={PUBLIC_PATH.NEWS}>
-                    <Home size={22} />
-                    <span>Trang chủ</span>
-                  </Link>
-                </Button>
+          {/* Left Sidebar */}
+          <aside className="sticky top-28 hidden lg:block h-fit">
+            <div className="space-y-1">
+              <Link
+                to={PUBLIC_PATH.NEWS}
+                className={`
+                  flex items-center gap-3 px-3 py-2 transition-colors
+                  ${
+                    location.pathname === PUBLIC_PATH.NEWS
+                      ? "text-red-600"
+                      : "text-gray-700 hover:text-red-600"
+                  }
+                `}
+              >
+                <Home size={20} />
+                <span className="font-medium">Trang chủ</span>
+              </Link>
 
-                {categories.map((category) => {
-                  const Icon = getCategoryIcon(category.slug);
-                  const isActive = article?.category.id === category.id;
-                  return (
-                    <Button
-                      key={category.id}
-                      asChild
-                      variant="ghost"
-                      className={`
-                        w-full justify-start gap-3 rounded-none !text-base !font-medium !py-6 !px-4
-                        transition-all duration-200 ease-in-out
-                        ${isActive
-                          ? "!bg-red-50 !text-red-600 !border-l-4 !border-red-600 hover:!bg-red-100 hover:!text-red-700"
-                          : "!text-gray-700 !border-l-4 !border-transparent hover:!bg-gray-100 hover:!text-gray-900 hover:!border-l-4 hover:!border-red-300"
-                        }
-                      `}
-                    >
-                      <Link to={`${PUBLIC_PATH.NEWS_CATEGORY.replace(":slug", category.slug)}`}>
-                        <Icon size={22} />
-                        <span>{category.title}</span>
-                      </Link>
-                    </Button>
-                  );
-                })}
-              </CardContent>
-            </Card>
+              {categories.map((category) => {
+                const Icon = getCategoryIcon(category.slug);
+                const isActive = article?.category.id === category.id;
+                return (
+                  <Link
+                    key={category.id}
+                    to={`${PUBLIC_PATH.NEWS_CATEGORY.replace(":slug", category.slug)}`}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 transition-colors
+                      ${
+                        isActive
+                          ? "text-red-600"
+                          : "text-gray-700 hover:text-red-600"
+                      }
+                    `}
+                  >
+                    <Icon size={20} />
+                    <span className="font-medium">{category.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </aside>
 
           {/* Main Content Area */}
           <div className="flex-1 overflow-hidden">
             {/* Hero Section with Featured Image */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
               <div className="relative w-full h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden">
                 <img
                   src={article.thumbnail}
@@ -229,7 +219,7 @@ export default function NewsDetail() {
             </div>
 
             {/* White Content Box */}
-            <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 lg:p-12">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8 lg:p-12">
               <div className="max-w-4xl mx-auto">
                 {/* Category Badge & Back Button */}
                 <div className="flex items-center justify-between mb-6">

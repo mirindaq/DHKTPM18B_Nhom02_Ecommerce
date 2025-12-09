@@ -4,7 +4,6 @@ import { productService } from '@/services/product.service'
 import { categoryBrandService } from '@/services/categoryBrand.service'
 import ProductCard from '@/components/user/ProductCard'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ChevronRight } from 'lucide-react'
 import type { Product } from '@/types/product.type'
@@ -15,10 +14,11 @@ interface CategoryProductSectionProps {
   category: Category
   sideBanners?: {
     image: string
-    title: string
-    subtitle: string
-    buttonText: string
-    gradient: string
+    link?: string
+    title?: string
+    subtitle?: string
+    buttonText?: string
+    gradient?: string
   }[]
 }
 
@@ -60,25 +60,27 @@ export default function CategoryProductSection({ category, sideBanners }: Catego
     fetchProducts()
   }, [category.id])
 
-  // Default side banners if not provided
+  // Default side banners with images - chỉ 2 banner
   const defaultBanners = [
     {
-      image: '',
-      title: category.name,
-      subtitle: 'Giảm đến 30%',
-      buttonText: 'MUA NGAY',
-      gradient: 'from-blue-600 via-blue-700 to-indigo-800'
+      image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:321:795/q:90/plain/https://media-asset.cellphones.com.vn/page_configs/01KAT2MC172RE7DNF84QSF6PFP.png',
+      link: '/search/laptop',
+      title: '',
+      subtitle: '',
+      buttonText: '',
+      gradient: ''
     },
     {
-      image: '',
-      title: 'Ưu đãi HOT',
-      subtitle: 'S-Student giảm thêm',
-      buttonText: 'XEM NGAY',
-      gradient: 'from-purple-600 via-purple-700 to-pink-600'
+      image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:321:795/q:90/plain/https://media-asset.cellphones.com.vn/page_configs/01K8AK76MB2NCC8QHS16T26ES2.png',
+      link: '/search/phone',
+      title: '',
+      subtitle: '',
+      buttonText: '',
+      gradient: ''
     }
   ]
 
-  const banners = sideBanners || defaultBanners
+  const banners = (sideBanners || defaultBanners).slice(0, 2)
 
   // Loading skeleton
   const ProductSkeleton = () => (
@@ -104,117 +106,120 @@ export default function CategoryProductSection({ category, sideBanners }: Catego
 
   return (
     <section className="mb-8">
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        {/* Header Tabs */}
-        <div className="border-b border-gray-100">
-          <div className="flex items-center">
-            <Link 
-              to={`/search/${category.slug}`}
-              className="px-6 py-4 text-lg font-bold text-red-600 border-b-2 border-red-600 bg-white hover:bg-gray-50 transition-colors"
-            >
-              {category.name.toUpperCase()}
-            </Link>
-            <div className="flex-1" />
-          </div>
-        </div>
-
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="flex">
-          {/* Side Banners */}
-          <div className="hidden lg:block w-[200px] flex-shrink-0 p-3 space-y-3">
+          {/* Side Banners - Smaller Width */}
+          <div className="hidden lg:flex lg:flex-col w-[200px] flex-shrink-0 border-r border-gray-200">
             {banners.map((banner, index) => (
-              <div
+              <Link
                 key={index}
-                className={`relative h-[280px] rounded-xl bg-gradient-to-b ${banner.gradient} p-4 text-white overflow-hidden cursor-pointer group`}
+                to={banner.link || '#'}
+                className={`flex-1 overflow-hidden group hover:opacity-90 transition-opacity duration-300 ${
+                  index === 0 ? 'border-b border-gray-200' : ''
+                }`}
               >
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-                <div className="relative z-10 h-full flex flex-col">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium opacity-90">{banner.subtitle}</h3>
-                    <h2 className="text-xl font-bold mt-1 leading-tight">{banner.title}</h2>
+                <div className="w-full h-full p-2">
+                  <div className="w-full h-full rounded-lg overflow-hidden border border-gray-200 group-hover:border-red-300 transition-colors">
+                    <img
+                      src={banner.image}
+                      alt={banner.title || `Banner ${index + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/assets/avatar.jpg";
+                      }}
+                    />
                   </div>
-                  <button className="mt-auto bg-white text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-100 transition-colors">
-                    {banner.buttonText}
-                  </button>
                 </div>
-                {/* Decorative circles */}
-                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full" />
-                <div className="absolute -top-5 -left-5 w-20 h-20 bg-white/10 rounded-full" />
-              </div>
+              </Link>
             ))}
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 p-4">
-            {/* Brand Tabs */}
-            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-              <Button
-                variant="default"
-                size="sm"
-                className="flex-shrink-0 rounded-full bg-gray-900 text-white hover:bg-gray-800"
-                asChild
-              >
-                <Link to={`/search/${category.slug}`}>
-                  Tất cả
+          <div className="flex-1 flex flex-col">
+            {/* Category Name Header - Centered */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-center">
+                <Link 
+                  to={`/search/${category.slug}`}
+                  className="text-xl font-bold text-red-600 hover:text-red-700 transition-colors"
+                >
+                  {category.name.toUpperCase()}
                 </Link>
-              </Button>
-              
-              {brands.slice(0, 10).map((brand) => (
+              </div>
+            </div>
+
+            {/* Brand Tabs */}
+            <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <Button
-                  key={brand.id}
-                  variant="outline"
+                  variant="default"
                   size="sm"
-                  className="flex-shrink-0 rounded-full border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                  className="flex-shrink-0 rounded-full "
                   asChild
                 >
-                  <Link to={`/search/${category.slug}?brands=${brand.slug || brand.name.toLowerCase()}`}>
-                    {brand.name}
+                  <Link to={`/search/${category.slug}`}>
+                    Tất cả
                   </Link>
                 </Button>
-              ))}
-              
+                
+                {brands.slice(0, 10).map((brand) => (
+                  <Button
+                    key={brand.id}
+                    variant="outline"
+                    size="sm"
+                    className="flex-shrink-0 rounded-full border-gray-300 bg-white hover:border-red-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                    asChild
+                  >
+                    <Link to={`/search/${category.slug}?brands=${brand.slug || brand.name.toLowerCase()}`}>
+                      {brand.name}
+                    </Link>
+                  </Button>
+                ))}
+              </div>
             </div>
 
             {/* Products Grid */}
-            {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {[...Array(8)].map((_, index) => (
-                  <ProductSkeleton key={index} />
-                ))}
-              </div>
-            ) : products.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-gray-500 text-center">Không có sản phẩm nào trong danh mục này</p>
-                  <Button variant="outline" className="mt-4" asChild>
+            <div className="flex-1 p-6">
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {[...Array(8)].map((_, index) => (
+                    <ProductSkeleton key={index} />
+                  ))}
+                </div>
+              ) : products.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 border border-dashed border-gray-300 rounded-xl">
+                  <p className="text-gray-500 text-center mb-4">Không có sản phẩm nào trong danh mục này</p>
+                  <Button variant="outline" asChild>
                     <Link to={`/search/${category.slug}`}>
                       Khám phá danh mục
                     </Link>
                   </Button>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
 
-            {/* View All Button */}
-            {products.length > 0 && (
-              <div className="flex justify-center mt-6">
-                <Button
-                  variant="outline"
-                  className="px-8 py-2 rounded-full border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 font-semibold"
-                  asChild
-                >
-                  <Link to={`/search/${category.slug}`}>
-                    Xem tất cả {category.name}
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </Button>
-              </div>
-            )}
+              {/* View All Button */}
+              {products.length > 0 && (
+                <div className="flex justify-center mt-6">
+                  <Button
+                    variant="outline"
+                    className="px-8 py-2 rounded-full border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 font-semibold"
+                    asChild
+                  >
+                    <Link to={`/search/${category.slug}`}>
+                      Xem tất cả {category.name}
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

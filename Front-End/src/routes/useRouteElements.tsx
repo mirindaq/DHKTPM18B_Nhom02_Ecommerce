@@ -90,6 +90,8 @@ import Banners from "@/pages/admin/Banner";
 import StaffSell from "@/pages/staff/StaffSell";
 import StaffPaymentStatus from "@/pages/staff/StaffPaymentStatus";
 import Suppliers from "@/pages/admin/Suppliers";
+import Error404 from "@/pages/error/Error404";
+
 
 const useRouteElements = () => {
   return useRoutes([
@@ -314,7 +316,7 @@ const useRouteElements = () => {
     },
     {
       path: "*",
-      element: <Home />,
+      element: <Error404 />,
     },
   ]);
 };

@@ -1,10 +1,11 @@
+import { useState, useEffect } from 'react'
 import { bannerService } from '@/services/banner.service'
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@/hooks'
 import type { BannerDisplayResponse } from '@/types/banner.type'
 
 export default function HeroBanner() {
+  const [currentIndex, setCurrentIndex] = useState(0)
   const {
     data: bannersData,
     isLoading: loading,
@@ -17,24 +18,44 @@ export default function HeroBanner() {
 
   const banners = bannersData?.data || []
 
+  // Auto slide
+  useEffect(() => {
+    if (banners.length <= 1) return
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [banners.length])
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index)
+  }
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length)
+  }
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % banners.length)
+  }
+
   if (loading) {
     return (
-      <div className="w-full mb-8">
-        <div className="w-full h-64 md:h-80 lg:h-[400px] bg-gray-200 rounded-xl flex items-center justify-center shadow-sm">
-          <Loader2 className="w-10 h-10 animate-spin text-gray-400" />
-        </div>
+      <div className="w-full h-[300px] md:h-[350px] lg:h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
+        <Loader2 className="w-12 h-12 animate-spin text-gray-400" />
       </div>
     )
   }
 
   if (banners.length === 0) {
     return (
-      <div className="w-full mb-8">
-        <div className="w-full h-64 md:h-80 lg:h-[400px] bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-          <div className="text-center text-white px-4">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">Chào mừng đến với cửa hàng</h1>
-            <p className="text-base md:text-lg lg:text-xl">Sản phẩm chính hãng, giá tốt nhất</p>
-          </div>
+      <div className="w-full h-[300px] md:h-[350px] lg:h-full bg-gradient-to-r from-red-500 via-red-600 to-rose-600 rounded-2xl flex items-center justify-center overflow-hidden relative">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="text-center text-white px-4 relative z-10">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">Chào mừng đến CellphoneS</h1>
+          <p className="text-base md:text-lg lg:text-xl drop-shadow-md">Sản phẩm chính hãng, giá tốt nhất</p>
         </div>
       </div>
     )
@@ -43,61 +64,105 @@ export default function HeroBanner() {
   if (banners.length === 1) {
     const banner = banners[0]
     return (
-      <div className="w-full mb-8">
+      <div className="w-full h-[300px] md:h-[350px] lg:h-full rounded-2xl overflow-hidden relative group">
         <a
           href={banner.linkUrl || '#'}
-          className="block w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden relative group shadow-lg hover:shadow-xl transition-shadow duration-300"
+          className="block w-full h-full"
         >
           <img
             src={banner.imageUrl}
             alt={banner.title || 'Banner'}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 will-change-transform"
-            style={{
-              imageRendering: 'crisp-edges',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-            }}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             loading="eager"
           />
+          {(banner.title || banner.description) && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-8 left-8 right-8 text-white">
+                {banner.title && (
+                  <h2 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">{banner.title}</h2>
+                )}
+                {banner.description && (
+                  <p className="text-lg md:text-xl drop-shadow-md">{banner.description}</p>
+                )}
+              </div>
+            </div>
+          )}
         </a>
       </div>
     )
   }
 
   return (
-    <div className="w-full mb-8">
-      <Carousel 
-        className="w-full"
-        opts={{
-          align: "start",
-          loop: true,
-        }}
-      >
-        <CarouselContent>
-          {banners.map((banner) => (
-            <CarouselItem key={banner.id}>
-              <a
-                href={banner.linkUrl || '#'}
-                className="block w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden relative group shadow-lg hover:shadow-xl transition-shadow duration-300"
-              >
-                <img
-                  src={banner.imageUrl}
-                  alt={banner.title || 'Banner'}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 will-change-transform"
-                  style={{
-                    imageRendering: 'crisp-edges',
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                  }}
-                  loading="eager"
-                />
-              </a>
-            </CarouselItem>
+    <div className="w-full h-[300px] md:h-[350px] lg:h-full rounded-2xl overflow-hidden relative group">
+      {/* Banner Images */}
+      <div className="relative w-full h-full">
+        {banners.map((banner, index) => (
+          <a
+            key={banner.id}
+            href={banner.linkUrl || '#'}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <img
+              src={banner.imageUrl}
+              alt={banner.title || 'Banner'}
+              className="w-full h-full object-cover"
+              loading={index === 0 ? "eager" : "lazy"}
+            />
+            {(banner.title || banner.description) && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                <div className="absolute bottom-8 left-8 right-8 text-white">
+                  {banner.title && (
+                    <h2 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">{banner.title}</h2>
+                  )}
+                  {banner.description && (
+                    <p className="text-lg md:text-xl drop-shadow-md">{banner.description}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </a>
+        ))}
+      </div>
+
+      {/* Navigation Arrows */}
+      {banners.length > 1 && (
+        <>
+          <button
+            onClick={goToPrevious}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+            aria-label="Previous banner"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            onClick={goToNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all hover:scale-110 opacity-0 group-hover:opacity-100"
+            aria-label="Next banner"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </>
+      )}
+
+      {/* Dots Indicator */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`transition-all rounded-full ${
+                index === currentIndex
+                  ? 'w-8 h-2 bg-white'
+                  : 'w-2 h-2 bg-white/50 hover:bg-white/75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
           ))}
-        </CarouselContent>
-        <CarouselPrevious className="left-4 md:left-6 bg-white/90 hover:bg-white shadow-lg border-0" />
-        <CarouselNext className="right-4 md:right-6 bg-white/90 hover:bg-white shadow-lg border-0" />
-      </Carousel>
+        </div>
+      )}
     </div>
   )
 }

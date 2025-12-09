@@ -8,8 +8,7 @@ export default function UserLayout() {
   return (
     <>
       <Header />
-      {/* <main style={{ backgroundImage: "url('/images/background.webp')" }}> */}
-      <main className="min-h-screen my-3 mx-auto max-w-7xl bg-gray-100 rounded-lg shadow-sm">
+      <main className="min-h-screen bg-gray-100">
         <Outlet />
       </main>
       <FloatingButtons />
