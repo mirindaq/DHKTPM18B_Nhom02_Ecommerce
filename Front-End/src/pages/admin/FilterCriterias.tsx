@@ -144,6 +144,7 @@ export default function FilterCriterias() {
           onClick={handleOpenAddDialog}
           size="lg"
           disabled={!selectedCategoryId}
+          className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm tiêu chí lọc

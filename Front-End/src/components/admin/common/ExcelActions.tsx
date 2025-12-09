@@ -284,7 +284,12 @@ export default function ExcelActions({
     <>
       <div className="flex gap-2">
         {onDownloadTemplate && (
-          <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            onClick={handleDownloadTemplate}
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+          >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             Tải Template
           </Button>
@@ -294,9 +299,10 @@ export default function ExcelActions({
           <>
             <Button
               variant="outline"
-              size="sm"
+              size="lg"
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting || isExporting}
+              className="border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 disabled:opacity-50"
             >
               {isImporting ? (
                 <>
@@ -323,9 +329,10 @@ export default function ExcelActions({
         {onExport && (
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={handleExport}
             disabled={isExporting || isImporting}
+            className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 disabled:opacity-50"
           >
             {isExporting ? (
               <>

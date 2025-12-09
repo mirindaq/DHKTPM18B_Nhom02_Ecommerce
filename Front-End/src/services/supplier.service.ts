@@ -61,38 +61,30 @@ export const supplierService = {
     await axiosClient.put(`/suppliers/change-status/${id}`)
   },
 
-  // --- CÁC HÀM XỬ LÝ EXCEL MỚI ---
-
-  /**
-   * Tải xuống file mẫu Excel để nhập liệu
-   */
-  downloadTemplate: async () => {
+  // Excel operations
+  downloadTemplate: async (): Promise<Blob> => {
     const response = await axiosClient.get("/suppliers/template", {
-      responseType: "blob", // Quan trọng: Báo cho axios biết đây là file binary
-    })
-    return response // Trả về response để component xử lý tạo link download
-  },
-
-  /**
-   * Import dữ liệu từ file Excel
-   * @param formData Chứa file excel đã chọn
-   */
-  importSuppliers: async (formData: FormData) => {
-    const response = await axiosClient.post("/suppliers/import", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // Quan trọng khi upload file
-      },
+      responseType: "blob",
     })
     return response.data
   },
 
-  /**
-   * Xuất dữ liệu hiện tại ra file Excel
-   */
-  exportSuppliers: async () => {
-    const response = await axiosClient.get("/suppliers/export", {
-      responseType: "blob", // Quan trọng: Báo cho axios biết đây là file binary
+  importSuppliers: async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    const response = await axiosClient.post("/suppliers/import", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 300000, // 5 minutes for large files
     })
-    return response // Trả về response để component xử lý tạo link download
+    return response.data
+  },
+
+  exportSuppliers: async (): Promise<Blob> => {
+    const response = await axiosClient.get("/suppliers/export", {
+      responseType: "blob",
+    })
+    return response.data
   },
 }

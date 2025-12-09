@@ -40,14 +40,13 @@ public class StaffController {
                 @RequestParam(required = false) String staffName,
                 @RequestParam(required = false) String email,
                 @RequestParam(required = false) String phone,
-                @RequestParam(required = false) Boolean status, // true/false
-                @RequestParam(required = false) LocalDate startDate,
-                @RequestParam(required = false) LocalDate endDate) {
+                @RequestParam(required = false) Boolean status,
+                @RequestParam(required = false) LocalDate joinDate,
+                @RequestParam(required = false) Long roleId) {
                 return ResponseEntity.ok(new ResponseSuccess<>(
                         OK,
                         "Get staff success",
-                        staffService.getStaffs(page, size, staffName, email, phone, status, startDate,
-                                endDate)));
+                        staffService.getStaffs(page, size, staffName, email, phone, status, joinDate, roleId)));
         }
 
         @GetMapping("/{id}")

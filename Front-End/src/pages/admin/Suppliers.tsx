@@ -15,6 +15,7 @@ import type {
 import SupplierTable from "@/components/admin/supplier/SupplierTable"
 import SupplierDialog from "@/components/admin/supplier/SupplierDialog"
 import SupplierFilter from "@/components/admin/supplier/SupplierFilter"
+import ExcelActions from "@/components/admin/common/ExcelActions"
 
 export default function Suppliers() {
   const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false)
@@ -127,15 +128,26 @@ export default function Suppliers() {
             Quản lý thông tin các nhà cung cấp.
           </p>
         </div>
-        <Button
-          size="lg"
-          onClick={() => {
-            setEditingSupplier(null)
-            setIsAddEditDialogOpen(true)
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Thêm nhà cung cấp
-        </Button>
+        <div className="flex gap-2">
+          <ExcelActions
+            onDownloadTemplate={supplierService.downloadTemplate}
+            onImport={supplierService.importSuppliers}
+            onExport={supplierService.exportSuppliers}
+            onImportSuccess={refetchSuppliers}
+            templateFileName="supplier_template.xlsx"
+            exportFileName="suppliers.xlsx"
+          />
+          <Button
+            size="lg"
+            onClick={() => {
+              setEditingSupplier(null)
+              setIsAddEditDialogOpen(true)
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Thêm nhà cung cấp
+          </Button>
+        </div>
       </div>
 
       <SupplierFilter onSearch={handleSearch} />

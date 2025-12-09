@@ -136,7 +136,11 @@ export default function Brands() {
             Quản lý các thương hiệu sản phẩm trong hệ thống
           </p>
         </div>
-        <Button onClick={handleOpenAddDialog} size="lg">
+        <Button 
+          onClick={handleOpenAddDialog} 
+          size="lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Thêm thương hiệu
         </Button>

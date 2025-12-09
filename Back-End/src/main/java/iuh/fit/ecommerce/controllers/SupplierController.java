@@ -140,7 +140,7 @@ public class SupplierController {
     @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseSuccess<ImportResult>> importSuppliers(
-            @RequestParam(value = "file", required = false) MultipartFile file) {
+            @RequestParam("file") MultipartFile file) {
 
         try {
             if (file == null || file.isEmpty()) {

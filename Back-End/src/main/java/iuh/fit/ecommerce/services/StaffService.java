@@ -19,8 +19,8 @@ public interface StaffService {
             String email,
             String phone,
             Boolean status,
-            LocalDate startDate,
-            LocalDate endDate
+            LocalDate joinDate,
+            Long roleId
     );
 
     StaffResponse getStaffById(Long id);

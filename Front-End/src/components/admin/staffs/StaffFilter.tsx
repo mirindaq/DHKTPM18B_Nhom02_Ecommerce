@@ -11,19 +11,22 @@ import {
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
+import type { UserRole } from "@/types/staff.type";
 
 export default function StaffFilter({
   onSearch,
+  roles = [],
 }: {
   onSearch: (params: any) => void;
+  roles?: UserRole[];
 }) {
   const [filters, setFilters] = useState({
     staffName: "",
     email: "",
     phone: "",
     status: "",
-    startDate: "",
-    endDate: "",
+    joinDate: "",
+    roleId: "",
   });
 
   const handleChange = (field: string, value: string) => {
@@ -35,6 +38,7 @@ export default function StaffFilter({
     const payload = {
       ...filters,
       status: filters.status === "all" ? null : filters.status,
+      roleId: filters.roleId === "all" || filters.roleId === "" ? null : parseInt(filters.roleId),
     };
     onSearch(payload);
   };
@@ -45,16 +49,16 @@ export default function StaffFilter({
       email: "",
       phone: "",
       status: "",
-      startDate: "",
-      endDate: "",
+      joinDate: "",
+      roleId: "",
     });
     onSearch({
       staffName: "",
       email: "",
       phone: "",
       status: null,
-      startDate: "",
-      endDate: "",
+      joinDate: "",
+      roleId: null,
     });
   };
 
@@ -115,27 +119,17 @@ export default function StaffFilter({
           </div>
         </div>
 
-        {/* Row 2: Date and Status */}
+        {/* Row 2: Date, Status and Role */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2 space-y-1">
+          <div className="space-y-1">
             <Label className="text-sm text-gray-600">Ngày vào làm</Label>
-            <div className="flex items-center gap-4">
-              {" "}
-              <DatePicker
-                id="filterStartDate"
-                value={filters.startDate}
-                placeholder="Từ ngày"
-                onChange={(val) => handleChange("startDate", val)}
-                className="w-full" // đổi từ flex-1 thành w-full
-              />
-              <DatePicker
-                id="filterEndDate"
-                value={filters.endDate}
-                placeholder="Đến ngày"
-                onChange={(val) => handleChange("endDate", val)}
-                className="w-full" // đổi từ flex-1 thành w-full
-              />
-            </div>
+            <DatePicker
+              id="filterJoinDate"
+              value={filters.joinDate}
+              placeholder="Chọn ngày vào làm"
+              onChange={(val) => handleChange("joinDate", val)}
+              className="w-full"
+            />
           </div>
 
           <div className="space-y-1">
@@ -153,6 +147,28 @@ export default function StaffFilter({
                 <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="true">Hoạt động</SelectItem>
                 <SelectItem value="false">Ngừng hoạt động</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="filterRole" className="text-sm text-gray-600">
+              Vai trò
+            </Label>
+            <Select
+              value={filters.roleId}
+              onValueChange={(val) => handleChange("roleId", val)}
+            >
+              <SelectTrigger id="filterRole" className="w-full">
+                <SelectValue placeholder="Tất cả vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.id.toString()}>
+                    {role.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

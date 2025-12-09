@@ -16,22 +16,36 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
 
     Page<Staff> findByFullNameContainingIgnoreCase(String fullName, Pageable pageable);
 
-    @Query("SELECT s FROM Staff s " +
+    @Query("SELECT DISTINCT s FROM Staff s " +
+            "LEFT JOIN s.userRoles ur " +
+            "LEFT JOIN ur.role r " +
             "WHERE (:name IS NULL OR LOWER(s.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) " +
             "AND (:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) " +
             "AND (:phone IS NULL OR s.phone LIKE CONCAT('%', :phone, '%')) " +
             "AND (:status IS NULL OR s.active = :status) " +
-            "AND (:startDate IS NULL OR s.joinDate >= :startDate) " +
-            "AND (:endDate IS NULL OR s.joinDate <= :endDate)")
+            "AND (:joinDate IS NULL OR s.joinDate = :joinDate) " +
+            "AND (:roleId IS NULL OR r.id = :roleId)")
     Page<Staff> findAllWithFilters(
             @Param("name") String name,
             @Param("email") String email,
             @Param("phone") String phone,
             @Param("status") Boolean status,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
+            @Param("joinDate") LocalDate joinDate,
+            @Param("roleId") Long roleId,
             Pageable pageable
     );
+    
+    @Query("SELECT s FROM Staff s " +
+            "LEFT JOIN FETCH s.userRoles ur " +
+            "LEFT JOIN FETCH ur.role " +
+            "WHERE s.id IN :ids")
+    List<Staff> findAllWithUserRolesByIds(@Param("ids") List<Long> ids);
+    
+    @Query("SELECT s FROM Staff s " +
+            "LEFT JOIN FETCH s.userRoles ur " +
+            "LEFT JOIN FETCH ur.role " +
+            "WHERE s.id = :id")
+    Optional<Staff> findByIdWithUserRoles(@Param("id") Long id);
 
     @Query("SELECT DISTINCT s FROM Staff s " +
             "JOIN s.userRoles ur " +

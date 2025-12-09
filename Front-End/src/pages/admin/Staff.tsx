@@ -160,6 +160,7 @@ export default function Staffs() {
           <Button
             onClick={handleOpenAddDialog}
             size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="mr-2 h-4 w-4" />
             Thêm nhân viên
@@ -168,7 +169,7 @@ export default function Staffs() {
       </div>
 
       {/* Bộ lọc */}
-      <StaffFilter onSearch={handleSearch} />
+      <StaffFilter onSearch={handleSearch} roles={roles} />
 
       {/* Bảng */}
       <StaffTable

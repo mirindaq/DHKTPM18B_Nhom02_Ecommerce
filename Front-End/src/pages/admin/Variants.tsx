@@ -133,24 +133,20 @@ export default function Variants() {
       <div className="flex justify-between items-center">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Quản lý variant
+            Quản lý biến thể
           </h1>
           <p className="text-lg text-gray-600">
-            Quản lý các variant sản phẩm trong hệ thống
+            Quản lý các biến thể sản phẩm trong hệ thống
           </p>
         </div>
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => navigate(ADMIN_PATH.CATEGORY_ASSIGNMENT)}
+          <Button 
+            onClick={handleOpenAddDialog} 
             size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Link2 className="mr-2 h-4 w-4" />
-            Liên kết Danh mục
-          </Button>
-          <Button onClick={handleOpenAddDialog} size="lg">
             <Plus className="mr-2 h-4 w-4" />
-            Thêm variant
+            Thêm biến thể
           </Button>
         </div>
       </div>
