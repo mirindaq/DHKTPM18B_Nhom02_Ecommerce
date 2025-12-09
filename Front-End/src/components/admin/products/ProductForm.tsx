@@ -106,6 +106,9 @@ export default function ProductForm({
     [variantId: number]: number[];
   }>({});
 
+  // Track deleted variant combinations by their variant value IDs (key)
+  const [deletedVariantKeys, setDeletedVariantKeys] = useState<Set<string>>(new Set());
+
   const [filterCriterias, setFilterCriterias] = useState<FilterCriteria[]>([]);
   const [selectedFilterValueIds, setSelectedFilterValueIds] = useState<
     number[]
@@ -380,7 +383,7 @@ export default function ProductForm({
     );
 
     setFormData((prev) => {
-      // Tạo map để tìm nhanh hơn thay vì dùng find trong loop
+      // Tạo map của các variants hiện tại (bao gồm cả những cái đã xóa)
       const existingMap = new Map<
         string,
         { price: number; stock: number; variantValueIds: number[] }
@@ -392,7 +395,7 @@ export default function ProductForm({
         });
       }
 
-      // Giữ lại giá/stock cũ nếu combo id khớp (tránh mất dữ liệu khi click thêm option)
+      // Giữ lại giá/stock cũ nếu combo đã tồn tại (từ database hoặc đã nhập)
       const newVariants = combos.map((combo) => {
         const key = [...combo.variantValueIds].sort().join(",");
         const existing = existingMap.get(key);
@@ -402,6 +405,22 @@ export default function ProductForm({
           variantValueIds: combo.variantValueIds,
         };
       });
+      
+      // KHÔNG reset deleted keys - giữ nguyên trạng thái xóa
+      // Chỉ loại bỏ các key không còn tồn tại
+      setDeletedVariantKeys(prevDeleted => {
+        const newSet = new Set<string>();
+        const validKeys = new Set(
+          newVariants.map(v => [...v.variantValueIds].sort().join(","))
+        );
+        prevDeleted.forEach(key => {
+          if (validKeys.has(key)) {
+            newSet.add(key);
+          }
+        });
+        return newSet;
+      });
+      
       return { ...prev, variants: newVariants };
     });
   }, [
@@ -565,10 +584,15 @@ export default function ProductForm({
         thumbnail: finalThumbnail,
         description: editorHtml,
         productImages: finalProductImages,
-        variants: formData.variants?.map((v) => {
-          const { sku, ...rest } = v as any;
-          return rest;
-        }),
+        variants: formData.variants
+          ?.filter((v) => {
+            const variantKey = [...v.variantValueIds].sort().join(",");
+            return !deletedVariantKeys.has(variantKey);
+          })
+          .map((v) => {
+            const { sku, ...rest } = v as any;
+            return rest;
+          }),
       };
 
       onSubmit(submitData);
@@ -583,9 +607,11 @@ export default function ProductForm({
     if (!formData.variants || formData.variants.length === 0) return [];
 
     const variantValueMap = new Map<number, string>();
+    const variantValueSlugMap = new Map<number, string>();
     availableVariants.forEach((variant) => {
       variant.variantValues.forEach((vv) => {
         variantValueMap.set(vv.id, vv.value);
+        variantValueSlugMap.set(vv.id, vv.slug);
       });
     });
 
@@ -595,11 +621,13 @@ export default function ProductForm({
     });
 
     return formData.variants
-      .map((v, originalIndex) => ({ v, originalIndex }))
-      .filter(({ v }) => {
-        return v.variantValueIds.every((id) => allSelectedValueIds.has(id));
+      .filter((v) => {
+        const variantKey = [...v.variantValueIds].sort().join(",");
+        // Filter out deleted variants (by key) and variants with unselected values
+        return !deletedVariantKeys.has(variantKey) && 
+               v.variantValueIds.every((id) => allSelectedValueIds.has(id));
       })
-      .map(({ v, originalIndex }) => {
+      .map((v, displayIndex) => {
         const names = v.variantValueIds.map(
           (id) => variantValueMap.get(id) || "?"
         );
@@ -607,7 +635,23 @@ export default function ProductForm({
         const variantKey = [...v.variantValueIds].sort().join(",");
         const sku = product ? variantSkus[variantKey] || "" : "";
 
-        return { ...v, names, index: originalIndex, sku };
+        // Generate SKU using existing slugs: SPU-slug1-slug2-slug3
+        const slugs = v.variantValueIds
+          .map(id => variantValueSlugMap.get(id) || "")
+          .filter(slug => slug !== "")
+          .sort();
+        const generatedSkuFromSlugs = formData.spu && slugs.length > 0
+          ? `${formData.spu}-${slugs.join("-")}`
+          : "";
+
+        return { 
+          ...v, 
+          names, 
+          variantKey, 
+          displayIndex,
+          sku, 
+          generatedSkuFromSlugs 
+        };
       });
   }, [
     formData.variants,
@@ -615,6 +659,7 @@ export default function ProductForm({
     product,
     variantSkus,
     selectedVariantValues,
+    deletedVariantKeys,
   ]);
 
   return (
@@ -840,8 +885,33 @@ export default function ProductForm({
                   </div>
 
                   {/* Bảng Variants */}
-                  {variantsForRender && variantsForRender.length > 0 && (
+                  {formData.variants && formData.variants.length > 0 && (
                     <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">
+                          <span className="font-semibold text-blue-600">
+                            {variantsForRender.length}
+                          </span>{" "}
+                          / {formData.variants.length} phân loại
+                          {deletedVariantKeys.size > 0 && (
+                            <span className="ml-2 text-orange-600">
+                              ({deletedVariantKeys.size} đã xóa)
+                            </span>
+                          )}
+                        </div>
+                        {deletedVariantKeys.size > 0 && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDeletedVariantKeys(new Set())}
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                          >
+                            Khôi phục tất cả
+                          </Button>
+                        )}
+                      </div>
+
                       <div className="flex flex-wrap items-end gap-3 p-4 bg-gray-100 rounded-lg border">
                         <div className="flex-1 min-w-[120px]">
                           <Label className="text-xs mb-1 block">
@@ -889,65 +959,131 @@ export default function ProductForm({
                               <th className="px-4 py-3 text-left font-medium text-gray-700">
                                 Phân loại
                               </th>
+                              <th className="px-4 py-3 text-left font-medium text-gray-700 w-48">
+                                SKU
+                              </th>
                               <th className="px-4 py-3 w-40 font-medium text-gray-700">
                                 Giá bán *
                               </th>
                               <th className="px-4 py-3 w-32 font-medium text-gray-700">
                                 Kho *
                               </th>
+                              <th className="px-4 py-3 w-20 font-medium text-gray-700 text-center">
+                                Xóa
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {variantsForRender.map((item, i) => (
-                              <tr
-                                key={i}
-                                className="group hover:bg-gray-50 transition-colors"
-                              >
-                                <td className="px-4 py-2 text-gray-700 font-medium">
-                                  {item.names.join(" / ")}
-                                </td>
-                                <td className="px-4 py-2">
-                                  <Input
-                                    type="number"
-                                    value={item.price}
-                                    onChange={(e) => {
-                                      const newVariants = [
-                                        ...(formData.variants || []),
-                                      ];
-                                      newVariants[item.index].price = Number(
-                                        e.target.value
-                                      );
-                                      setFormData({
-                                        ...formData,
-                                        variants: newVariants,
-                                      });
-                                    }}
-                                    className="h-8"
-                                    placeholder="0"
-                                  />
-                                </td>
-                                <td className="px-4 py-2">
-                                  <Input
-                                    type="number"
-                                    value={item.stock}
-                                    onChange={(e) => {
-                                      const newVariants = [
-                                        ...(formData.variants || []),
-                                      ];
-                                      newVariants[item.index].stock = Number(
-                                        e.target.value
-                                      );
-                                      setFormData({
-                                        ...formData,
-                                        variants: newVariants,
-                                      });
-                                    }}
-                                    className="h-8"
-                                    placeholder="0"
-                                  />
-                                </td>
-                              </tr>
-                            ))}
+                            {variantsForRender.map((item, i) => {
+                              // Generate SKU for display using slugs
+                              const displaySku = product && item.sku
+                                ? item.sku
+                                : item.generatedSkuFromSlugs || "Nhập SPU trước";
+
+                              return (
+                                <tr
+                                  key={i}
+                                  className="group hover:bg-gray-50 transition-colors"
+                                >
+                                  <td className="px-4 py-2 text-gray-700 font-medium">
+                                    {item.names.join(" / ")}
+                                  </td>
+                                  <td className="px-4 py-2 text-gray-500 text-xs font-mono">
+                                    {displaySku}
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    <Input
+                                      type="number"
+                                      value={item.price}
+                                      onChange={(e) => {
+                                        const updatedVariants = formData.variants?.map(v => {
+                                          const vKey = [...v.variantValueIds].sort().join(",");
+                                          if (vKey === item.variantKey) {
+                                            return { ...v, price: Number(e.target.value) };
+                                          }
+                                          return v;
+                                        });
+                                        setFormData({
+                                          ...formData,
+                                          variants: updatedVariants,
+                                        });
+                                      }}
+                                      className="h-8"
+                                      placeholder="0"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    <Input
+                                      type="number"
+                                      value={item.stock}
+                                      onChange={(e) => {
+                                        const updatedVariants = formData.variants?.map(v => {
+                                          const vKey = [...v.variantValueIds].sort().join(",");
+                                          if (vKey === item.variantKey) {
+                                            return { ...v, stock: Number(e.target.value) };
+                                          }
+                                          return v;
+                                        });
+                                        setFormData({
+                                          ...formData,
+                                          variants: updatedVariants,
+                                        });
+                                      }}
+                                      className="h-8"
+                                      placeholder="0"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 text-center">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        const variantKey = item.variantKey;
+                                        const variantValueIds = item.variantValueIds;
+                                        
+                                        // Add to deleted set using key
+                                        setDeletedVariantKeys(prev => {
+                                          const newSet = new Set(prev);
+                                          newSet.add(variantKey);
+                                          
+                                          // Check if any variant value should be deactivated
+                                          setTimeout(() => {
+                                            variantValueIds.forEach(valueId => {
+                                              // Count remaining combinations using this value
+                                              const remainingCombos = formData.variants?.filter(v => {
+                                                const vKey = [...v.variantValueIds].sort().join(",");
+                                                return !newSet.has(vKey) && v.variantValueIds.includes(valueId);
+                                              }).length || 0;
+                                              
+                                              // If no combinations left, uncheck this variant value
+                                              if (remainingCombos === 0) {
+                                                setSelectedVariantValues(prevValues => {
+                                                  const newValues = { ...prevValues };
+                                                  Object.keys(newValues).forEach(variantIdStr => {
+                                                    const variantId = parseInt(variantIdStr);
+                                                    if (newValues[variantId]?.includes(valueId)) {
+                                                      newValues[variantId] = newValues[variantId].filter(id => id !== valueId);
+                                                    }
+                                                  });
+                                                  return newValues;
+                                                });
+                                              }
+                                            });
+                                          }, 0);
+                                          
+                                          return newSet;
+                                        });
+                                        toast.success("Đã xóa phân loại");
+                                      }}
+                                      className="h-7 w-7 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

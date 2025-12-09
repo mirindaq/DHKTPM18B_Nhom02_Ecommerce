@@ -483,11 +483,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String generateSku(String spu, List<Long> variantValueIds) {
-        String idsPart = variantValueIds.stream()
+        // Get variant values and use their existing slug field
+        List<String> slugs = variantValueIds.stream()
+                .map(id -> variantValueService.getVariantValueEntityById(id))
+                .map(VariantValue::getSlug)
                 .sorted()
-                .map(String::valueOf)
-                .collect(Collectors.joining("-"));
-        return spu + "-" + idsPart;
+                .collect(Collectors.toList());
+        
+        String slugsPart = String.join("-", slugs);
+        return spu + "-" + slugsPart;
     }
 
     private void saveFilterValues(List<Long> filterValueIds, Product product) {

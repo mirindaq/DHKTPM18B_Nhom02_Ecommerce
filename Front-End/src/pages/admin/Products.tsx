@@ -8,7 +8,7 @@ import type {
 } from "@/types/product.type";
 import type { BrandListResponse } from "@/types/brand.type";
 import type { CategoryListResponse } from "@/types/category.type";
-import { ProductTable } from "@/components/admin/products";
+import { ProductTable, ProductDetailDialog } from "@/components/admin/products";
 import Pagination from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { productService } from "@/services/product.service";
@@ -22,6 +22,8 @@ export default function Products() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, _] = useState(7);
   const [filters, setFilters] = useState<ProductFilters>({});
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const {
     data: productsData,
@@ -81,6 +83,11 @@ export default function Products() {
     navigate(`/admin/products/edit/${product.id}`);
   };
 
+  const handleViewDetail = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDetailDialogOpen(true);
+  };
+
   const handleDelete = async (_id: number) => {
     // TODO: Implement delete API when available
     toast.error("Chức năng xóa chưa được hỗ trợ");
@@ -111,7 +118,11 @@ export default function Products() {
             Quản lý các sản phẩm sản phẩm trong hệ thống
           </p>
         </div>
-        <Button onClick={handleOpenAddDialog} size="lg">
+        <Button
+          onClick={handleOpenAddDialog}
+          size="lg"
+          className="bg-blue-600 hover:bg-blue-700"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Thêm sản phẩm
         </Button>
@@ -122,12 +133,20 @@ export default function Products() {
         onEdit={handleOpenEditDialog}
         onDelete={handleDelete}
         onToggleStatus={handleToggleStatus}
+        onViewDetail={handleViewDetail}
         isLoading={isLoadingProducts}
         onFilterChange={handleFilterChange}
         currentPage={currentPage}
         pageSize={pageSize}
         brands={brands}
         categories={categories}
+      />
+
+      {/* Product Detail Dialog */}
+      <ProductDetailDialog
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+        product={selectedProduct}
       />
 
       {/* Pagination */}

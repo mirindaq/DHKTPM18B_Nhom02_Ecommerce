@@ -27,6 +27,7 @@ import {
   Image as ImageIcon,
   Package,
   X,
+  Eye,
 } from "lucide-react";
 import type { Product, ProductFilters } from "@/types/product.type";
 import type { Brand } from "@/types/brand.type";
@@ -37,6 +38,7 @@ interface ProductTableProps {
   onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
   onToggleStatus: (id: number) => void;
+  onViewDetail: (product: Product) => void;
   isLoading?: boolean;
   onFilterChange: (filters: ProductFilters) => void;
   currentPage?: number;
@@ -50,6 +52,7 @@ export default function ProductTable({
   onEdit,
   onDelete,
   onToggleStatus,
+  onViewDetail,
   onFilterChange,
   isLoading,
   currentPage = 1,
@@ -160,7 +163,7 @@ export default function ProductTable({
           )}
         </div>
 
-        <div className="grid grid-cols-6 gap-3">
+        <div className="grid grid-cols-7 gap-3">
           {/* Keyword */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-600">Từ khóa</label>
@@ -296,17 +299,19 @@ export default function ProductTable({
               className="h-9"
             />
           </div>
-        </div>
 
-        <div className="flex justify-end">
-          <Button
-            onClick={handleSearch}
-            disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-          >
-            <Search className="h-4 w-4 mr-2" />
-            Tìm kiếm
-          </Button>
+          {/* Search Button */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 invisible">Tìm</label>
+            <Button
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white w-full h-9"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Tìm kiếm
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -464,9 +469,20 @@ export default function ProductTable({
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => onViewDetail(product)}
+                        className="border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+                        disabled={isLoading}
+                        title="Xem chi tiết"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => onEdit(product)}
                         className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                         disabled={isLoading}
+                        title="Sửa"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -480,6 +496,7 @@ export default function ProductTable({
                             : "border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
                         }`}
                         disabled={isLoading}
+                        title={product.status ? "Tạm dừng" : "Kích hoạt"}
                       >
                         {product.status ? (
                           <PowerOff className="h-4 w-4" />
@@ -493,6 +510,7 @@ export default function ProductTable({
                         onClick={() => onDelete(product.id)}
                         className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                         disabled={isLoading}
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
