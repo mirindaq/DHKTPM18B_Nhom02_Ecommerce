@@ -7,23 +7,25 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
-      <Link to="/" className="hover:text-red-600 flex items-center">
-        <Home size={16} className="mr-1" />
-        <span>Trang chủ</span>
-      </Link>
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center space-x-2">
-          <ChevronRight size={14} />
-          {item.href ? (
-            <Link to={item.href} className="hover:text-red-600">
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-gray-900">{item.label}</span>
-          )}
-        </div>
-      ))}
+    <div className="bg-white rounded-lg shadow-sm px-4 py-3 mb-6">
+      <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <Link to="/" className="hover:text-red-600 flex items-center transition-colors">
+          <Home size={16} className="mr-1" />
+          <span>Trang chủ</span>
+        </Link>
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <ChevronRight size={14} className="text-gray-400" />
+            {item.href ? (
+              <Link to={item.href} className="hover:text-red-600 transition-colors">
+                {item.label}
+              </Link>
+            ) : (
+              <span className="text-gray-900 font-medium">{item.label}</span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

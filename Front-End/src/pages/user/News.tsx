@@ -102,8 +102,12 @@ export default function News() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="bg-white rounded-lg shadow-sm p-12 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -112,8 +116,8 @@ export default function News() {
   const sideArticles = featuredArticles.slice(1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white -mx-4 -my-10 px-4 md:px-6 lg:px-8 py-6 md:py-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
           {/* Left Sidebar */}
           <aside className="sticky top-4 hidden lg:block h-fit">
@@ -172,12 +176,15 @@ export default function News() {
           {/* Main Content */}
           <main className="space-y-10 md:space-y-12">
             {/* CHỦ ĐỀ HOT */}
-            <section>
-              <div className="flex items-center mb-6 md:mb-8">
-                <div className="h-10 w-1.5 bg-gradient-to-b from-red-600 to-red-400 rounded-full mr-4"></div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  Chủ đề hot
-                </h2>
+            <section className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Chủ đề hot
+                  </h2>
+                  <p className="text-sm text-gray-500">Khám phá các chủ đề nổi bật</p>
+                </div>
               </div>
 
               <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1">
@@ -231,12 +238,15 @@ export default function News() {
 
             {/* NỘI BẬT NHẤT */}
             {mainFeatured && (
-              <section>
-                <div className="flex items-center mb-6 md:mb-8">
-                  <div className="h-10 w-1.5 bg-gradient-to-b from-red-600 to-red-400 rounded-full mr-4"></div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                    Nổi bật nhất
-                  </h2>
+              <section className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">
+                      Nổi bật nhất
+                    </h2>
+                    <p className="text-sm text-gray-500">Những bài viết được quan tâm nhất</p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
@@ -333,13 +343,16 @@ export default function News() {
 
             {/* XEM NHIỀU TUẦN QUA */}
             {moreArticles.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-6 md:mb-8 flex-wrap gap-4">
-                  <div className="flex items-center">
-                    <div className="h-10 w-1.5 bg-gradient-to-b from-red-600 to-red-400 rounded-full mr-4"></div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                      Xem nhiều tuần qua
-                    </h2>
+              <section className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">
+                        Xem nhiều tuần qua
+                      </h2>
+                      <p className="text-sm text-gray-500">Các bài viết được đọc nhiều nhất</p>
+                    </div>
                   </div>
                   {moreArticles.length > 8 && (
                     <button

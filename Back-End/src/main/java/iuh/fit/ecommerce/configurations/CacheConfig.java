@@ -28,7 +28,6 @@ public class CacheConfig {
     public static final String BANNER_CACHE = "banners";
     public static final String RANKING_CACHE = "rankings";
     public static final String ARTICLE_CATEGORY_CACHE = "article-categories";
-    public static final String VARIANT_CACHE = "variants";
     public static final String CATEGORY_BRAND_CACHE = "category-brands";
     public static final String FILTER_CRITERIA_CACHE = "filter-criteria";
 
@@ -82,7 +81,6 @@ public class CacheConfig {
         cacheConfigurations.put(ARTICLE_CATEGORY_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
 
         // Các cache có List trực tiếp → dùng listConfig (không có type info)
-        cacheConfigurations.put(VARIANT_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
         cacheConfigurations.put(CATEGORY_BRAND_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
         cacheConfigurations.put(FILTER_CRITERIA_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
 

@@ -17,12 +17,10 @@ public interface VariantCategoryRepository extends JpaRepository<VariantCategory
     void deleteAllByVariantId(Long variantId);
 
     @Query("""
-    SELECT v
-    FROM Variant v 
-    JOIN VariantCategory vc ON vc.variant = v
-    JOIN Category c ON vc.category = c
-    WHERE v.status = :status 
-      AND c.id = :categoryId
+    SELECT vc.variant
+    FROM VariantCategory vc
+    WHERE vc.variant.status = :status 
+      AND vc.category.id = :categoryId
 """)
     List<Variant> findByStatusAndCategoryId(Boolean status, Long categoryId);
 

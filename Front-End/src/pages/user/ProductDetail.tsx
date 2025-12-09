@@ -20,6 +20,7 @@ import {
   Send,
   Loader2,
   User,
+  Home,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { cartService } from "@/services/cart.service";
@@ -253,6 +254,21 @@ export default function ProductDetail() {
     }
   );
 
+  const buyNowMutation = useMutation(
+    (data: { productVariantId: number; quantity: number }) =>
+      cartService.addProductToCart(data),
+    {
+      onSuccess: () => {
+        toast.success("Đã thêm vào giỏ hàng thành công!");
+        // Chuyển tới trang giỏ hàng sau khi thêm thành công
+        navigate(PUBLIC_PATH.CART);
+      },
+      onError: () => {
+        toast.error("Không thể thêm vào giỏ hàng");
+      },
+    }
+  );
+
   const createQuestionMutation = useMutation(
     (data: { content: string; productId: number }) =>
       productQuestionService.createProductQuestion(data),
@@ -321,14 +337,15 @@ export default function ProductDetail() {
 
     if (!matchingVariant) {
       console.error("Không tìm thấy variant phù hợp với lựa chọn hiện tại");
+      toast.error("Không tìm thấy sản phẩm phù hợp");
       return;
     }
 
-    console.log("Buy now - Selected variants:", selectedVariants);
-    console.log("Buy now - Matching variant ID:", matchingVariant.id);
-
-    // Logic mua ngay - có thể lưu variant ID vào state hoặc localStorage
-    navigate(`${PUBLIC_PATH.HOME}checkout`);
+    // Thêm vào giỏ hàng và chuyển tới trang giỏ hàng
+    buyNowMutation.mutate({
+      productVariantId: matchingVariant.id,
+      quantity: 1,
+    });
   };
 
   const handleSubmitQuestion = async () => {
@@ -397,7 +414,7 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
@@ -440,7 +457,7 @@ export default function ProductDetail() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -465,37 +482,33 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100">
-      {/* Breadcrumb */}
-      <div className="bg-white/80 backdrop-blur-sm border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <nav className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
-              Trang chủ
-            </span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <div className="bg-white rounded-lg shadow-sm px-4 py-3 mb-6">
+          <nav className="flex items-center space-x-2 text-sm text-gray-600">
+            <Link to="/" className="hover:text-red-600 flex items-center transition-colors">
+              <Home size={16} className="mr-1" />
+              <span>Trang chủ</span>
+            </Link>
             <ChevronRight className="w-4 h-4 text-gray-400" />
             <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
-              Laptop
-            </span>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
-              ASUS
+              Sản phẩm
             </span>
             <ChevronRight className="w-4 h-4 text-gray-400" />
             <span className="text-gray-900 font-medium truncate">
-              {product.name}
+              {product?.name}
             </span>
           </nav>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column - Product Images & Info */}
           <div className="lg:col-span-7 space-y-8">
             {/* Product Title */}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {product.name}
+              {product?.name}
             </h1>
             <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
               <button
@@ -538,8 +551,12 @@ export default function ProductDetail() {
             {/* Featured Section */}
             <Card className="overflow-hidden">
               <img
-                src={product.thumbnail}
-                alt={product.name}
+                src={
+                  product?.productImages && product.productImages.length > 0
+                    ? product.productImages[currentImageIndex] || product?.thumbnail
+                    : product?.thumbnail
+                }
+                alt={product?.name}
                 className="w-full h-90 object-cover rounded-xl transition-transform group-hover:scale-105"
               />
             </Card>
@@ -554,7 +571,7 @@ export default function ProductDetail() {
               </CardHeader>
               <CardContent>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                  {product.productImages.map((image, index) => (
+                  {product?.productImages?.map((image, index) => (
                     <div
                       key={index}
                       className={`relative shrink-0 cursor-pointer group transition-all duration-200 ${
@@ -567,7 +584,7 @@ export default function ProductDetail() {
                       <div className="relative overflow-hidden rounded-lg">
                         <img
                           src={image}
-                          alt={`${product.name} ${index + 1}`}
+                          alt={`${product?.name} ${index + 1}`}
                           className="w-24 h-24 object-cover transition-transform group-hover:scale-110"
                         />
                         {index === currentImageIndex && (
@@ -647,7 +664,7 @@ export default function ProductDetail() {
             </Card>
 
             {/* Product Description */}
-            {product.description && (
+            {product?.description && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -677,8 +694,6 @@ export default function ProductDetail() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-3">
-                  {" "}
-                  {/* Thay đổi: Chỉ giữ gap-3 để tách biệt giá mới và giá cũ */}
                   <span className="text-4xl font-bold text-red-600">
                     {formatPrice(selectedVariant?.price || 0)}
                   </span>
@@ -694,7 +709,7 @@ export default function ProductDetail() {
                     Tiết kiệm:{" "}
                     <span className="font-semibold text-green-700">
                       {formatPrice(
-                        selectedVariant.oldPrice - (selectedVariant?.price || 0)
+                        (selectedVariant.oldPrice || 0) - (selectedVariant?.price || 0)
                       )}
                     </span>
                   </div>
@@ -778,25 +793,24 @@ export default function ProductDetail() {
             {/* Action Buttons */}
             <Card>
               <CardContent>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <Button
-                    variant="outline"
-                    className="h-16 border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500 hover:ring-2 hover:ring-blue-200 font-semibold py-3 rounded-xl transition-all duration-300"
+                    className="h-16 bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-bold text-lg py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                     onClick={handleBuyNow}
+                    disabled={buyNowMutation.isLoading || addToCartMutation.isLoading}
                   >
-                    <Zap className="w-5 h-5 mr-1" />
-                    Trả góp 0%
-                  </Button>
-
-                  <Button
-                    className="col-span-1 h-16 bg-linear-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-bold text-lg py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                    onClick={handleBuyNow}
-                  >
-                    <div className="text-center">
-                      <div className="text-xl font-extrabold mb-1">
-                        MUA NGAY
+                    {buyNowMutation.isLoading || addToCartMutation.isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Đang thêm...
+                      </>
+                    ) : (
+                      <div className="text-center">
+                        <div className="text-xl font-extrabold mb-1">
+                          MUA NGAY
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </Button>
 
                   {/* Nút Thêm vào giỏ */}
@@ -886,7 +900,7 @@ export default function ProductDetail() {
         <Card className="mt-8">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-800">
-              Đánh giá & nhận xét {product.name}
+              Đánh giá & nhận xét {product?.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1234,6 +1248,7 @@ export default function ProductDetail() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Login Modal */}

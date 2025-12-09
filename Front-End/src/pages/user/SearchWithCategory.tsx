@@ -219,8 +219,8 @@ export default function SearchWithCategory() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <Breadcrumb
           items={[
             { label: 'Trang chủ', href: '/' },
@@ -281,7 +281,7 @@ export default function SearchWithCategory() {
       />
 
       {loading ? (
-        <div className="flex justify-center items-center py-12">
+        <div className="bg-white rounded-lg shadow-sm p-12 flex justify-center items-center">
           <Loader2 className="w-8 h-8 animate-spin text-red-600" />
         </div>
       ) : (
@@ -294,36 +294,46 @@ export default function SearchWithCategory() {
       )}
 
       <div className="mt-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Kết quả tìm kiếm
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">
+              Kết quả tìm kiếm
+            </h2>
             {products.length > 0 && (
-              <span className="text-gray-500 text-lg ml-2">
+              <p className="text-sm text-gray-500">
                 ({products.length} sản phẩm)
-              </span>
+              </p>
             )}
-          </h2>
+          </div>
         </div>
         
         <SortSection sortBy={currentSort} onSortChange={handleSortChange} />
 
         {productsLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <ProductSkeleton key={index} />
-            ))}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <ProductSkeleton key={index} />
+              ))}
+            </div>
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <p className="text-gray-500 text-lg mb-2">
               Không tìm thấy sản phẩm nào phù hợp với bộ lọc của bạn
+            </p>
+            <p className="text-gray-400 text-sm">
+              Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           </div>
         )}
       </div>
