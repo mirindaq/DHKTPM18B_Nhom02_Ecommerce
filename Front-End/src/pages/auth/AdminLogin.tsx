@@ -90,7 +90,7 @@ export default function AdminLogin() {
       <div className="hidden lg:flex lg:w-3/5 bg-linear-to-br from-blue-800 to-indigo-800 p-12 flex-col justify-center">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
-            Hệ thống quản trị <span className="text-yellow-300">Ecommerce Store</span>
+            Hệ thống quản trị <span className="text-yellow-300">EcomStore</span>
           </h1>
           <p className="text-lg text-blue-100">
             Quản lý toàn bộ hoạt động kinh doanh và vận hành cửa hàng
@@ -251,10 +251,10 @@ export default function AdminLogin() {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
-              Hệ thống quản trị Ecommerce Store
+              Hệ thống quản trị EcomStore
             </p>
             <p className="text-center text-xs text-gray-500 mt-1">
-              © 2024 Ecommerce Store. All rights reserved.
+              © 2024 EcomStore. All rights reserved.
             </p>
           </div>
         </div>

@@ -24,7 +24,6 @@ export default function VoucherFormPage() {
   const {
     data: voucherData,
     isLoading: isLoadingVoucher,
-    refetch: refetchVoucher,
   } = useQuery<VoucherResponse>(
     () => voucherService.getVoucherById(parseInt(id!)),
     {
@@ -41,13 +40,15 @@ export default function VoucherFormPage() {
     {
       onSuccess: (response) => {
         toast.success("Tạo voucher thành công");
+        // Navigate to edit page with the created voucher ID
+        navigate(`/admin/vouchers/edit/${response.id}`);
         // Show notification dialog for GROUP type
         if (response.voucherType === "GROUP") {
           setCreatedVoucherId(response.id);
           setShowSendNotificationDialog(true);
         } else {
-          // Navigate to vouchers list after successful creation
-          navigate(ADMIN_PATH.VOUCHERS);
+          // Reload the page to show the created voucher
+          window.location.reload();
         }
       },
       onError: (error) => {
@@ -69,7 +70,8 @@ export default function VoucherFormPage() {
           setCreatedVoucherId(response.id);
           setShowSendNotificationDialog(true);
         } else {
-          refetchVoucher();
+          // Reload the page to show updated voucher
+          window.location.reload();
         }
       },
       onError: (error) => {
@@ -85,8 +87,8 @@ export default function VoucherFormPage() {
     {
       onSuccess: () => {
         toast.success("Gửi thông báo voucher thành công");
-        // Navigate to vouchers list after sending notification
-        navigate(ADMIN_PATH.VOUCHERS);
+        // Reload the page to stay on the same page
+        window.location.reload();
       },
       onError: (error) => {
         console.error("Error sending notification:", error);
@@ -121,15 +123,15 @@ export default function VoucherFormPage() {
   const handleCancelSendNotification = () => {
     setShowSendNotificationDialog(false);
     setCreatedVoucherId(null);
-    // Navigate to vouchers list after canceling
-    navigate(ADMIN_PATH.VOUCHERS);
+    // Reload the page to stay on the same page
+    window.location.reload();
   };
 
   if (isEdit && isLoadingVoucher) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 animate-spin text-red-600 mx-auto mb-4" />
           <p className="text-gray-600">Đang tải thông tin voucher...</p>
         </div>
       </div>

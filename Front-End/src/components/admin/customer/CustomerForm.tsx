@@ -139,14 +139,6 @@ const [deletedAddressIds, setDeletedAddressIds] = useState<number[]>([]);
     [addresses]
   );
 
-  const normalize = (s?: string) =>
-    !s
-      ? ""
-      : s
-          .normalize?.("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim();
 
   useEffect(() => {
     if (step === 2 || customer) {

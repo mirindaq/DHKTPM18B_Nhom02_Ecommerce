@@ -88,5 +88,16 @@ export const productService = {
       `/products/search?${params.toString()}`
     )
     return response.data
+  },
+
+  getAutoCompleteSuggestions: async (query: string, limit: number = 5) => {
+    const params = new URLSearchParams({
+      query: query,
+      limit: limit.toString()
+    })
+    const response = await axiosClient.get<{ data: string[] }>(
+      `/products/search/autocomplete?${params.toString()}`
+    )
+    return response.data.data
   }
 }

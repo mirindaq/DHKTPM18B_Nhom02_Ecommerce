@@ -9,8 +9,10 @@ import iuh.fit.ecommerce.entities.Ranking;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.mappers.RankingMapper;
 import iuh.fit.ecommerce.repositories.CustomerRepository;
+import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.repositories.RankingRepository;
 import iuh.fit.ecommerce.services.RankingService;
+import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,8 @@ public class RankingServiceImpl implements RankingService {
     private final RankingRepository rankingRepository;
     private final RankingMapper rankingMapper;
     private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
+    private final SecurityUtils securityUtils;
 
     @Override
     public Ranking getRankingEntityById(Long id) {
@@ -70,5 +74,18 @@ public class RankingServiceImpl implements RankingService {
         customer.setRanking(newRank);
 
         customerRepository.save(customer);
+    }
+
+    @Override
+    public RankResponse getMyRank() {
+        Customer currentCustomer = securityUtils.getCurrentCustomer();
+        Double totalSpending = orderRepository.getTotalSpendingByCustomerId(currentCustomer.getId());
+        if (totalSpending == null) {
+            totalSpending = 0.0;
+        }
+        
+        // Lấy rank dựa trên tổng tiền tích lũy
+        Ranking ranking = getRankingForSpending(totalSpending);
+        return rankingMapper.toRankResponse(ranking);
     }
 }

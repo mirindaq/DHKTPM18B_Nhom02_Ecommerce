@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQuery, useDebounce } from "@/hooks";
 import { brandService } from "@/services/brand.service";
-import type { Brand } from "@/types/brand.type";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 

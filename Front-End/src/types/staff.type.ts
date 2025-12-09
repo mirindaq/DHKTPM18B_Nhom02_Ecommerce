@@ -1,19 +1,16 @@
 // src/types/staff.type.ts
 
-// Generic wrapper (backend trả về { status, message, data })
 export interface ApiResponse<T> {
   status: number
   message: string
   data: T
 }
 
-// Role
 export interface UserRole {
   id: number
   name: string
 }
 
-// Role Response (đồng bộ với backend RoleResponse)
 export interface RoleResponse {
   id: number
   name: string
@@ -61,7 +58,7 @@ export interface CreateStaffRequest {
   joinDate?: string
   active: boolean
   workStatus?: WorkStatus
-  roleId: number // backend nhận roleId
+  roleId: number
 }
 
 export interface UpdateStaffRequest {

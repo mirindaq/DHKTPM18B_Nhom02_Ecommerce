@@ -243,7 +243,7 @@ export default function Carts() {
                 <TableRow>
                   <TableCell colSpan={8} className="py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                      <Loader2 className="h-8 w-8 animate-spin text-red-600" />
                       <p className="text-gray-500 font-medium">
                         Đang tải dữ liệu...
                       </p>

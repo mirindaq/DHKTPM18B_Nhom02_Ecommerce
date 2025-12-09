@@ -14,4 +14,6 @@ public interface RankingService {
     List<RankResponse> getAllRankings();
     
     void updateCustomerRanking(Order order);
+    
+    RankResponse getMyRank();
 }

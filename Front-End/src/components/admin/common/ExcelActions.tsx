@@ -432,7 +432,7 @@ export default function ExcelActions({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <Loader2 className="h-5 w-5 animate-spin text-red-600" />
               Đang import dữ liệu
             </DialogTitle>
             <DialogDescription>
@@ -491,7 +491,7 @@ export default function ExcelActions({
           onClick={() => updateProgress({ isMinimized: false })}
         >
           <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-600 flex-shrink-0" />
+            <Loader2 className="h-5 w-5 animate-spin text-red-600 flex-shrink-0" />
             <div className="flex-1 min-w-[220px]">
               <p className="font-semibold text-sm text-gray-900">Đang import dữ liệu</p>
               <p className="text-xs text-gray-600 mt-0.5">

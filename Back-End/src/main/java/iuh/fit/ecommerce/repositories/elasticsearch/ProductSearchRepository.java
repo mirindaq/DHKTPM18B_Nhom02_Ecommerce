@@ -10,15 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ProductSearchRepository extends ElasticsearchRepository<ProductDocument, String> {
-    
-    Page<ProductDocument> findByNameContainingIgnoreCase(String name, Pageable pageable);
-    
-    Page<ProductDocument> findByDescriptionContainingIgnoreCase(String description, Pageable pageable);
-    
-    Page<ProductDocument> findByCategorySlug(String categorySlug, Pageable pageable);
-    
-    Page<ProductDocument> findByBrandIdIn(List<Long> brandIds, Pageable pageable);
-    
-    Page<ProductDocument> findByCategoryId(Long categoryId, Pageable pageable);
+
 }
 

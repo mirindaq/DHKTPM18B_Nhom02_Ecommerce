@@ -144,7 +144,7 @@ export default function UserRegister() {
               Đăng ký trở thành <span className="text-red-600">SMEMBER</span>
             </h1>
             <p className="text-lg text-gray-700">
-              Để không bỏ lỡ các ưu đãi hấp dẫn từ Ecommerce Store
+              Để không bỏ lỡ các ưu đãi hấp dẫn từ EcomStore
             </p>
           </div>
 
@@ -389,7 +389,7 @@ export default function UserRegister() {
             <p className="text-center text-sm text-gray-600">
               Mua sắm, sửa chữa tại{' '}
               <a href="#" className="text-red-600 hover:text-red-700">
-                ecommerce.com.vn
+                ecomstore.com.vn
               </a>
             </p>
           </div>

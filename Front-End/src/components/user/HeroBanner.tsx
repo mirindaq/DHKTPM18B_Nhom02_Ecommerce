@@ -44,7 +44,7 @@ export default function HeroBanner() {
   if (loading) {
     return (
       <div className="w-full h-[300px] md:h-[350px] lg:h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
-        <Loader2 className="w-12 h-12 animate-spin text-gray-400" />
+        <Loader2 className="w-12 h-12 animate-spin text-red-600" />
       </div>
     )
   }
@@ -54,7 +54,7 @@ export default function HeroBanner() {
       <div className="w-full h-[300px] md:h-[350px] lg:h-full bg-gradient-to-r from-red-500 via-red-600 to-rose-600 rounded-2xl flex items-center justify-center overflow-hidden relative">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="text-center text-white px-4 relative z-10">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">Chào mừng đến CellphoneS</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">Chào mừng đến EcomStore</h1>
           <p className="text-base md:text-lg lg:text-xl drop-shadow-md">Sản phẩm chính hãng, giá tốt nhất</p>
         </div>
       </div>
@@ -75,18 +75,6 @@ export default function HeroBanner() {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             loading="eager"
           />
-          {(banner.title || banner.description) && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="absolute bottom-8 left-8 right-8 text-white">
-                {banner.title && (
-                  <h2 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">{banner.title}</h2>
-                )}
-                {banner.description && (
-                  <p className="text-lg md:text-xl drop-shadow-md">{banner.description}</p>
-                )}
-              </div>
-            </div>
-          )}
         </a>
       </div>
     )
@@ -110,18 +98,6 @@ export default function HeroBanner() {
               className="w-full h-full object-cover"
               loading={index === 0 ? "eager" : "lazy"}
             />
-            {(banner.title || banner.description) && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                <div className="absolute bottom-8 left-8 right-8 text-white">
-                  {banner.title && (
-                    <h2 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">{banner.title}</h2>
-                  )}
-                  {banner.description && (
-                    <p className="text-lg md:text-xl drop-shadow-md">{banner.description}</p>
-                  )}
-                </div>
-              </div>
-            )}
           </a>
         ))}
       </div>

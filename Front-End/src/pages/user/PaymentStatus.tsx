@@ -178,7 +178,7 @@ export default function PaymentStatus() {
           {isSuccess ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <p className="text-green-800 text-sm leading-relaxed">
-                ✅ Cảm ơn bạn đã mua sắm tại <b>CellphoneS</b>! Chúng tôi sẽ xử
+                ✅ Cảm ơn bạn đã mua sắm tại <b>EcomStore</b>! Chúng tôi sẽ xử
                 lý đơn hàng của bạn trong thời gian sớm nhất. Bạn có thể kiểm
                 tra trạng thái đơn hàng trong phần "Đơn hàng của tôi".
               </p>

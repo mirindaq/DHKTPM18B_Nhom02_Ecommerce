@@ -28,7 +28,7 @@ import { rankingService } from "@/services/ranking.service";
 import { useQuery } from "@/hooks";
 import Overview from "./Overview";
 import type { OrderListResponse } from "@/types/order.type";
-import type { RankResponse } from "@/types/ranking.type";
+import type { RankResponse, Rank } from "@/types/ranking.type";
 
 type MenuItem = {
   icon: React.ReactNode;
@@ -139,23 +139,44 @@ export default function Profile() {
     }
   );
 
+  // Lấy rank hiện tại từ API (dựa trên tổng tiền tích lũy từ đơn hàng COMPLETED)
+  const {
+    data: myRankData,
+    isLoading: loadingMyRank,
+  } = useQuery<{ status: number; message: string; data: Rank }>(
+    () => rankingService.getMyRank(),
+    {
+      queryKey: ["my-rank", "profile"],
+    }
+  );
+
   // Tính toán thống kê
   const orders = ordersData?.data?.data || [];
   const totalOrders = orders.length;
-  const totalSpent = orders.reduce((sum, order) => sum + (order.finalTotalPrice || 0), 0);
+  // Chỉ tính tổng tiền tích lũy từ các đơn hàng đã hoàn thành
+  const totalSpent = orders
+    .filter(order => order.status === "COMPLETED")
+    .reduce((sum, order) => sum + (order.finalTotalPrice || 0), 0);
   
-  // Lấy rank hiện tại và rank tiếp theo
-  const currentRank = user?.rank?.name || "MEMBER";
+  // Lấy rank hiện tại từ API getMyRank, fallback về user.rank nếu chưa có
   const ranks = ranksData?.data || [];
   const sortedRanks = [...ranks].sort((a, b) => a.minSpending - b.minSpending);
-  const currentRankIndex = sortedRanks.findIndex(r => r.name === currentRank);
+  
+  let currentRankObj: Rank | undefined = myRankData?.data;
+  if (!currentRankObj && user?.rank?.name) {
+    // Fallback: tìm rank theo name từ user.rank
+    currentRankObj = sortedRanks.find(r => r.name === user.rank?.name);
+  }
+  
+  const currentRank = currentRankObj?.name || user?.rank?.name || "MEMBER";
+  const currentRankIndex = sortedRanks.findIndex(r => r.id === currentRankObj?.id || r.name === currentRank);
   const nextRank = currentRankIndex >= 0 && currentRankIndex < sortedRanks.length - 1 
     ? sortedRanks[currentRankIndex + 1] 
     : null;
   const requiredSpending = nextRank ? nextRank.minSpending : 0;
   const remainingSpending = Math.max(0, requiredSpending - totalSpent);
 
-  const isLoadingStats = loadingOrders || loadingRanks;
+  const isLoadingStats = loadingOrders || loadingRanks || loadingMyRank;
 
   // Mask phone number
   const maskPhone = (phone: string | undefined) => {
@@ -304,46 +325,50 @@ export default function Profile() {
             </div>
 
             {/* Right: Stats */}
-            <div className="flex items-center gap-8">
-              <div className="text-center pr-8">
+            <div className="flex items-start gap-8">
+              <div className="text-center pr-8 relative">
                 <Separator
                   orientation="vertical"
-                  className="absolute right-0 h-12"
+                  className="absolute right-0 top-0 h-full"
                 />
                 {isLoadingStats ? (
-                  <Loader2 className="w-6 h-6 animate-spin text-red-600 mx-auto" />
+                  <div className="flex items-center justify-center h-16">
+                    <Loader2 className="w-6 h-6 animate-spin text-red-600" />
+                  </div>
                 ) : (
-                  <>
+                  <div className="flex flex-col items-center">
                     <div className="flex items-center gap-2 mb-1">
                       <ShoppingCart size={20} className="text-red-600" />
                       <span className="text-2xl font-bold text-gray-900">
                         {totalOrders}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600">Tổng số đơn hàng đã mua</p>
-                  </>
+                    <p className="text-xs text-gray-600 whitespace-nowrap">Tổng số đơn hàng đã mua</p>
+                  </div>
                 )}
               </div>
               <div className="text-center pr-8 relative">
                 <Separator
                   orientation="vertical"
-                  className="absolute right-0 h-12"
+                  className="absolute right-0 top-0 h-full"
                 />
                 {isLoadingStats ? (
-                  <Loader2 className="w-6 h-6 animate-spin text-red-600 mx-auto" />
+                  <div className="flex items-center justify-center h-16">
+                    <Loader2 className="w-6 h-6 animate-spin text-red-600" />
+                  </div>
                 ) : (
-                  <>
+                  <div className="flex flex-col items-center">
                     <div className="flex items-center gap-2 mb-1">
                       <Ticket size={20} className="text-red-600" />
-                      <span className="text-2xl font-bold text-gray-900">
+                      <span className="text-2xl font-bold text-gray-900 whitespace-nowrap">
                         {totalSpent.toLocaleString("vi-VN")}đ
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 whitespace-nowrap">
                       Tổng tiền tích lũy
                     </p>
                     {nextRank && remainingSpending > 0 && (
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="text-xs text-gray-600 mt-1 text-center max-w-[200px]">
                         Cần chi tiêu thêm{" "}
                         <span className="font-semibold text-red-600">
                           {remainingSpending.toLocaleString("vi-VN")}đ
@@ -351,7 +376,7 @@ export default function Profile() {
                         để lên hạng <span className="font-semibold">{nextRank.name}</span>
                       </p>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -392,41 +417,7 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* App Download Section */}
-            <Card className="mt-6 text-center">
-              <CardContent className="p-4">
-                <p className="text-sm text-gray-700 mb-3">
-                  Mua sắm dễ dàng - Ưu đãi ngập tràn cùng app CellphoneS
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center">
-                    <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-xs text-gray-500">QR Code</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                    </svg>
-                    Tải về trên App Store
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
-                    </svg>
-                    Tải dụng trên Google Play
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
 
           {/* Main Content Area */}

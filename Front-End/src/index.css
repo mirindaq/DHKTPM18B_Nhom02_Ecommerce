@@ -232,57 +232,91 @@
     scrollbar-width: none;
   }
 
-  /* Article content typography */
+  /* Article content typography - QuillJS styles */
   .article-content {
-    @apply text-[1.0625rem] leading-[1.8] text-gray-700;
+    @apply text-sm leading-relaxed text-gray-700;
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.625; /* 26px */
+  }
+  
+  .article-content h1 {
+    @apply text-xl font-bold text-gray-900 mt-6 mb-3 leading-tight;
   }
   
   .article-content h2 {
-    @apply text-[1.75rem] font-bold text-gray-900 mt-8 mb-4 leading-tight;
+    @apply text-lg font-bold text-gray-900 mt-5 mb-3 leading-tight;
   }
   
   .article-content h3 {
-    @apply text-2xl font-bold text-gray-900 mt-7 mb-3.5;
+    @apply text-base font-semibold text-gray-900 mt-4 mb-2 leading-tight;
+  }
+  
+  .article-content h4 {
+    @apply text-sm font-semibold text-gray-900 mt-4 mb-2 leading-tight;
   }
   
   .article-content p {
-    @apply mb-5;
+    @apply mb-3 text-sm leading-relaxed;
   }
   
   .article-content img {
-    @apply w-full h-auto rounded-sm my-6;
+    @apply w-full h-auto rounded-lg my-4 max-w-full;
   }
   
   .article-content blockquote {
-    @apply border-l-4 border-red-600 pl-5 my-6 italic text-gray-600 bg-gray-50 p-5 rounded-lg;
+    @apply border-l-4 border-red-600 pl-4 my-4 italic text-gray-600 bg-gray-50 py-3 rounded-r-lg;
+    font-size: 0.875rem;
   }
 
   .article-content ul,
   .article-content ol {
-    @apply ml-7 mb-5;
+    @apply ml-5 mb-3 space-y-1.5;
   }
 
   .article-content li {
-    @apply mb-2.5;
+    @apply text-sm leading-relaxed;
   }
 
   .article-content a {
-    @apply text-red-600 underline hover:text-red-700;
+    @apply text-red-600 underline hover:text-red-700 transition-colors;
+    font-size: 0.875rem;
   }
 
   .article-content strong {
-    @apply font-bold text-gray-900;
+    @apply font-semibold text-gray-900;
+  }
+
+  .article-content em {
+    @apply italic;
   }
 
   .article-content code {
-    @apply bg-gray-100 px-1.5 py-0.5 rounded text-[0.875em] font-mono;
+    @apply bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono text-gray-800;
   }
 
   .article-content pre {
-    @apply bg-gray-800 text-gray-50 p-4 rounded-lg overflow-x-auto my-6;
+    @apply bg-gray-800 text-gray-50 p-3 rounded-lg overflow-x-auto my-4;
+    font-size: 0.8125rem; /* 13px */
   }
 
   .article-content pre code {
     @apply bg-transparent p-0 text-inherit;
+  }
+
+  .article-content table {
+    @apply w-full border-collapse my-4 text-sm;
+  }
+
+  .article-content table th,
+  .article-content table td {
+    @apply border border-gray-300 px-3 py-2;
+  }
+
+  .article-content table th {
+    @apply bg-gray-50 font-semibold text-gray-900;
+  }
+
+  .article-content hr {
+    @apply border-t border-gray-200 my-4;
   }
 }

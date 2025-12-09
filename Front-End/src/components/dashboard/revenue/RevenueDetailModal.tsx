@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Calendar, User, ShoppingCart, DollarSign } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 
 interface Order {

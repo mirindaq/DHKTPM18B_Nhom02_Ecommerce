@@ -93,4 +93,8 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = 'COMPLETED' AND o.orderDate BETWEEN :startDate AND :endDate")
     Long countCompletedOrdersByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    // Tính tổng tiền tích lũy từ đơn hàng COMPLETED của một customer
+    @Query("SELECT COALESCE(SUM(o.finalTotalPrice), 0.0) FROM Order o WHERE o.customer.id = :customerId AND o.status = 'COMPLETED'")
+    Double getTotalSpendingByCustomerId(@Param("customerId") Long customerId);
 }

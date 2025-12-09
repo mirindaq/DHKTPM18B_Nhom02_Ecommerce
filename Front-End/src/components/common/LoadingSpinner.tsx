@@ -1,32 +1,33 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  color?: 'blue' | 'gray' | 'green';
+  color?: 'red' | 'gray' | 'white';
   fullScreen?: boolean;
   className?: string;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'lg',
-  color = 'blue',
+  color = 'red',
   fullScreen = true,
   className = ''
 }) => {
   const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-16 w-16',
-    lg: 'h-32 w-32'
+    sm: 'h-6 w-6',
+    md: 'h-12 w-12',
+    lg: 'h-16 w-16'
   };
 
   const colorClasses = {
-    blue: 'border-blue-900',
-    gray: 'border-gray-900',
-    green: 'border-green-900'
+    red: 'text-red-600',
+    gray: 'text-gray-600',
+    white: 'text-white'
   };
 
   const spinner = (
-    <div className={`animate-spin rounded-full border-b-2 ${sizeClasses[size]} ${colorClasses[color]} ${className}`}></div>
+    <Loader2 className={`animate-spin ${sizeClasses[size]} ${colorClasses[color]} ${className}`} />
   );
 
   if (fullScreen) {

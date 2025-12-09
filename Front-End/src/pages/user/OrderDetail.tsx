@@ -45,7 +45,7 @@ export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
 
   // Store address constant
-  const STORE_ADDRESS = "CellphoneS - 125 Trần Phú, Hải Châu, Đà Nẵng";
+  const STORE_ADDRESS = "EcomStore - 125 Trần Phú, Hải Châu, Đà Nẵng";
 
   // Feedback states
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);

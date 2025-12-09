@@ -49,7 +49,7 @@ const policyItems: PolicyItem[] = [
     icon: <Mail className="w-6 h-6 text-red-600" />,
     title: "Liên hệ qua email",
     description:
-      "Email: support@ecommerce.vn. Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc.",
+      "Email: support@ecomstore.vn. Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc.",
   },
 ];
 

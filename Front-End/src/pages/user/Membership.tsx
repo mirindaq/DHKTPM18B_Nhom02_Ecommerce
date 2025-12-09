@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { rankingService } from '@/services/ranking.service';
+import { orderService } from '@/services/order.service';
 import type { Rank } from '@/types/ranking.type';
+import type { OrderListResponse } from '@/types/order.type';
 import {
   Heart,
   Lock,
@@ -9,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useQuery } from '@/hooks';
 
 export default function Membership() {
   const [rankings, setRankings] = useState<Rank[]>([]);
@@ -17,8 +20,27 @@ export default function Membership() {
   const [nextRank, setNextRank] = useState<Rank | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Mock data - sẽ được thay thế bằng data thực từ API
-  const totalSpent = 1828000;
+  // Lấy tổng tiền tích lũy từ đơn hàng COMPLETED
+  const { data: ordersData } = useQuery<OrderListResponse>(
+    () => orderService.getMyOrders(1, 1000),
+    {
+      queryKey: ["my-orders", "membership-stats"],
+    }
+  );
+
+  // Lấy rank hiện tại từ API
+  const { data: myRankData } = useQuery<{ status: number; message: string; data: Rank }>(
+    () => rankingService.getMyRank(),
+    {
+      queryKey: ["my-rank"],
+    }
+  );
+
+  // Tính tổng tiền tích lũy từ đơn hàng COMPLETED
+  const orders = ordersData?.data?.data || [];
+  const totalSpent = orders
+    .filter(order => order.status === "COMPLETED")
+    .reduce((sum, order) => sum + (order.finalTotalPrice || 0), 0);
 
   useEffect(() => {
     const fetchRankings = async () => {
@@ -29,14 +51,23 @@ export default function Membership() {
           const sortedRankings = [...response.data].sort((a: Rank, b: Rank) => a.minSpending - b.minSpending);
           setRankings(sortedRankings);
 
-          // Xác định hạng hiện tại và hạng tiếp theo
-          const current = sortedRankings.find(
-            (rank: Rank) => totalSpent >= rank.minSpending && totalSpent < rank.maxSpending
-          );
+          // Sử dụng rank từ API getMyRank nếu có, nếu không thì tính từ totalSpent
+          let current: Rank | undefined;
+          if (myRankData?.data) {
+            current = sortedRankings.find((r: Rank) => r.id === myRankData.data.id);
+          }
+          
+          if (!current) {
+            // Fallback: tính từ totalSpent
+            current = sortedRankings.find(
+              (rank: Rank) => totalSpent >= rank.minSpending && totalSpent < rank.maxSpending
+            );
+          }
+          
           setCurrentRank(current || sortedRankings[0]);
 
           if (current) {
-            const currentIndex = sortedRankings.findIndex((r: Rank) => r.id === current.id);
+            const currentIndex = sortedRankings.findIndex((r: Rank) => r.id === current!.id);
             if (currentIndex < sortedRankings.length - 1) {
               setNextRank(sortedRankings[currentIndex + 1]);
             }
@@ -50,7 +81,7 @@ export default function Membership() {
     };
 
     fetchRankings();
-  }, [totalSpent]);
+  }, [totalSpent, myRankData]);
 
   const getRankColor = (rankName: string) => {
     const colors: { [key: string]: { bg: string; text: string; border: string; badgeBg: string; badgeText: string } } = {

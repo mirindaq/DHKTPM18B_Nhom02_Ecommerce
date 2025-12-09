@@ -36,16 +36,6 @@ export default function VariantTable({
 }: VariantTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const formatVariantValues = (variantValues: any[]) => {
     if (!variantValues || variantValues.length === 0) return "Không có";
     const variantValuesActive = variantValues.filter((value) => value.status);
@@ -114,9 +104,6 @@ export default function VariantTable({
                 Trạng thái
               </TableHead>
               <TableHead className="font-semibold text-gray-700">
-                Ngày tạo
-              </TableHead>
-              <TableHead className="font-semibold text-gray-700">
                 Thao tác
               </TableHead>
             </TableRow>
@@ -124,7 +111,7 @@ export default function VariantTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                     <p className="text-gray-500 font-medium">
@@ -136,7 +123,7 @@ export default function VariantTable({
             ) : variants.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="text-center py-24 text-gray-500"
                 >
                   <div className="flex flex-col items-center space-y-4">
@@ -182,9 +169,6 @@ export default function VariantTable({
                     >
                       {variant.status ? "Hoạt động" : "Không hoạt động"}
                     </CustomBadge>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {formatDate(variant.createdAt || "")}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">

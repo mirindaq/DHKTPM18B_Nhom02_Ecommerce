@@ -111,7 +111,7 @@ export default function ShipperLogin() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
             Hệ thống giao hàng{" "}
-            <span className="text-green-300">Ecommerce Store</span>
+            <span className="text-green-300">EcomStore</span>
           </h1>
           <p className="text-lg text-gray-100">
             Quản lý và theo dõi các đơn giao hàng của bạn
@@ -291,10 +291,10 @@ export default function ShipperLogin() {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
-              Hệ thống giao hàng Ecommerce Store
+              Hệ thống giao hàng EcomStore
             </p>
             <p className="text-center text-xs text-gray-500 mt-1">
-              © 2024 Ecommerce Store. All rights reserved.
+              © 2024 EcomStore. All rights reserved.
             </p>
           </div>
         </div>

@@ -659,7 +659,7 @@ export default function Checkout() {
                     htmlFor="subscribeEmail"
                     className="cursor-pointer font-normal text-sm"
                   >
-                    Nhận email thông báo và ưu đãi từ CellphoneS
+                    Nhận email thông báo và ưu đãi từ EcomStore
                   </Label>
                 </div>
 
@@ -1335,7 +1335,7 @@ export default function Checkout() {
                     <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center border border-gray-200 shadow-sm">
                       <img
                         src="/assets/COS.png"
-                        alt="CellphoneS"
+                        alt="EcomStore"
                         className="w-10 h-10 object-contain"
                       />
                     </div>
@@ -1435,7 +1435,7 @@ export default function Checkout() {
                       Nhận hàng tại
                     </span>
                     <span className="text-right max-w-[60%] font-semibold text-gray-900">
-                      Cửa hàng CellphoneS - 125 Trần Phú, Hải Châu, Đà Nẵng
+                      Cửa hàng EcomStore - 125 Trần Phú, Hải Châu, Đà Nẵng
                     </span>
                   </div>
                 ) : (
@@ -1536,7 +1536,7 @@ export default function Checkout() {
                     Thanh toán tại cửa hàng
                   </div>
                   <div className="text-sm text-gray-600 leading-relaxed">
-                    Thanh toán khi nhận hàng tại cửa hàng CellphoneS
+                    Thanh toán khi nhận hàng tại cửa hàng EcomStore
                   </div>
                 </div>
                 {formData.paymentMethod === "CASH" && (

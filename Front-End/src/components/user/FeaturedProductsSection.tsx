@@ -34,7 +34,7 @@ export default function FeaturedProductsSection({
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-red-600" />
       </div>
     );
   }

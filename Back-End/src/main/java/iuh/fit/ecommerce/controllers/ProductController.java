@@ -154,4 +154,16 @@ public class ProductController {
         ));
     }
 
+    @GetMapping("/search/autocomplete")
+    public ResponseEntity<ResponseSuccess<List<String>>> getAutoCompleteSuggestions(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "5") int limit
+    ) {
+        return ResponseEntity.ok(new ResponseSuccess<>(
+                OK,
+                "Auto complete suggestions retrieved successfully",
+                productSearchService.getAutoCompleteSuggestions(query, limit)
+        ));
+    }
+
 }

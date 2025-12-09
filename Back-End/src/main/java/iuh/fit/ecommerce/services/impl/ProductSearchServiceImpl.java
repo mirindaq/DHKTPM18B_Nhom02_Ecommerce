@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -104,6 +105,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                     .filter(id -> id != null)
                     .collect(Collectors.toList());
 
+            logger.debug("Found {} product IDs from Elasticsearch: {}", productIds.size(), productIds);
+
             if (productIds.isEmpty()) {
                 return ResponseWithPagination.<List<ProductResponse>>builder()
                         .data(new ArrayList<>())
@@ -115,13 +118,107 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             }
 
             List<Product> products = productRepository.findAllById(productIds);
+            logger.debug("Found {} products from database for IDs: {}", products.size(), productIds);
+            
+            // Note: Status filtering is already done in Elasticsearch query, 
+            // but we still need to verify products exist and are active
+            // If product doesn't exist in DB, it means Elasticsearch index is out of sync
+            if (products.size() < productIds.size()) {
+                logger.warn("Some products from Elasticsearch not found in database. ES IDs: {}, DB found: {}", 
+                    productIds, products.stream().map(Product::getId).collect(Collectors.toList()));
+            }
+            
+            // Filter only active products (double check)
+            products = products.stream()
+                    .filter(p -> p.getStatus() != null && p.getStatus())
+                    .collect(Collectors.toList());
+            
+            logger.debug("After filtering by status, {} products remaining", products.size());
+            
+            // Create a map for faster lookup
+            java.util.Map<Long, Product> productMap = products.stream()
+                    .collect(Collectors.toMap(Product::getId, p -> p, (p1, p2) -> p1));
+            
             List<Product> orderedProducts = new ArrayList<>();
             for (Long id : productIds) {
-                products.stream()
-                        .filter(p -> p.getId().equals(id))
-                        .findFirst()
-                        .ifPresent(orderedProducts::add);
+                Product product = productMap.get(id);
+                if (product != null) {
+                    orderedProducts.add(product);
+                }
             }
+            
+            // Nếu có query, luôn sắp xếp lại kết quả theo độ khớp với query trước
+            // Sau đó mới áp dụng sortBy (price, rating) nếu có
+            if (query != null && !query.trim().isEmpty() && !orderedProducts.isEmpty()) {
+                String searchText = query.trim().toLowerCase();
+                String[] queryWords = searchText.split("\\s+");
+                
+                orderedProducts.sort((p1, p2) -> {
+                    // Tính điểm khớp cho cả name, description và searchableText
+                    String name1 = (p1.getName() != null ? p1.getName() : "").toLowerCase();
+                    String name2 = (p2.getName() != null ? p2.getName() : "").toLowerCase();
+                    String desc1 = (p1.getDescription() != null ? p1.getDescription() : "").toLowerCase();
+                    String desc2 = (p2.getDescription() != null ? p2.getDescription() : "").toLowerCase();
+                    
+                    // Tính điểm khớp tổng hợp (name có trọng số cao hơn)
+                    int score1 = calculateRelevanceScore(name1, searchText, queryWords) * 10 
+                               + calculateRelevanceScore(desc1, searchText, queryWords);
+                    int score2 = calculateRelevanceScore(name2, searchText, queryWords) * 10 
+                               + calculateRelevanceScore(desc2, searchText, queryWords);
+                    
+                    // Score cao hơn = khớp tốt hơn, nên sắp xếp giảm dần
+                    int relevanceCompare = Integer.compare(score2, score1);
+                    
+                    // Nếu relevance bằng nhau, áp dụng sortBy nếu có
+                    if (relevanceCompare == 0 && sortBy != null && !sortBy.trim().isEmpty()) {
+                        String sortLower = sortBy.toLowerCase();
+                        if (sortLower.equals("price_asc")) {
+                            Double price1 = getMinPrice(p1);
+                            Double price2 = getMinPrice(p2);
+                            return Double.compare(price1 != null ? price1 : 0.0, price2 != null ? price2 : 0.0);
+                        } else if (sortLower.equals("price_desc")) {
+                            Double price1 = getMinPrice(p1);
+                            Double price2 = getMinPrice(p2);
+                            return Double.compare(price2 != null ? price2 : 0.0, price1 != null ? price1 : 0.0);
+                        } else if (sortLower.equals("rating_desc")) {
+                            Double rating1 = p1.getRating() != null ? p1.getRating() : 0.0;
+                            Double rating2 = p2.getRating() != null ? p2.getRating() : 0.0;
+                            return Double.compare(rating2, rating1);
+                        } else if (sortLower.equals("rating_asc")) {
+                            Double rating1 = p1.getRating() != null ? p1.getRating() : 0.0;
+                            Double rating2 = p2.getRating() != null ? p2.getRating() : 0.0;
+                            return Double.compare(rating1, rating2);
+                        }
+                    }
+                    
+                    return relevanceCompare;
+                });
+            } else if (sortBy != null && !sortBy.trim().isEmpty() && !orderedProducts.isEmpty()) {
+                // Nếu không có query nhưng có sortBy, sắp xếp theo sortBy
+                String sortLower = sortBy.toLowerCase();
+                orderedProducts.sort((p1, p2) -> {
+                    if (sortLower.equals("price_asc")) {
+                        Double price1 = getMinPrice(p1);
+                        Double price2 = getMinPrice(p2);
+                        return Double.compare(price1 != null ? price1 : 0.0, price2 != null ? price2 : 0.0);
+                    } else if (sortLower.equals("price_desc")) {
+                        Double price1 = getMinPrice(p1);
+                        Double price2 = getMinPrice(p2);
+                        return Double.compare(price2 != null ? price2 : 0.0, price1 != null ? price1 : 0.0);
+                    } else if (sortLower.equals("rating_desc")) {
+                        Double rating1 = p1.getRating() != null ? p1.getRating() : 0.0;
+                        Double rating2 = p2.getRating() != null ? p2.getRating() : 0.0;
+                        return Double.compare(rating2, rating1);
+                    } else if (sortLower.equals("rating_asc")) {
+                        Double rating1 = p1.getRating() != null ? p1.getRating() : 0.0;
+                        Double rating2 = p2.getRating() != null ? p2.getRating() : 0.0;
+                        return Double.compare(rating1, rating2);
+                    }
+                    return 0;
+                });
+            }
+            
+            logger.debug("Final ordered products count: {}", orderedProducts.size());
 
             List<ProductResponse> productResponses = orderedProducts.stream()
                     .map(promotionService::addPromotionToProductResponseByProduct)
@@ -143,6 +240,115 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             throw new RuntimeException("Elasticsearch search failed: " + e.getMessage(), e);
         }
     }
+    
+    @Override
+    public List<String> getAutoCompleteSuggestions(String query, int limit) {
+        try {
+            if (query == null || query.trim().isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            String searchText = query.trim().toLowerCase();
+            limit = Math.min(Math.max(limit, 1), 10); // Limit between 1-10
+            
+            // Tìm products có name chứa query (toàn bộ hoặc một phần)
+            // Sử dụng wildcard để tìm các tên bắt đầu với query
+            Criteria criteria = new Criteria("status").is(true)
+                .and(
+                    new Criteria("name").matches(searchText)
+                        .or(new Criteria("name").matches(searchText + "*"))
+                );
+            
+            Pageable pageable = PageRequest.of(0, limit * 3); // Lấy nhiều hơn để filter và sắp xếp sau
+            Query searchQuery = new CriteriaQuery(criteria)
+                .setPageable(pageable)
+                .addSort(Sort.by("rating").descending());
+            
+            SearchHits<ProductDocument> searchHits = elasticsearchOperations.search(
+                searchQuery, 
+                ProductDocument.class
+            );
+            
+            // Phân loại suggestions theo độ khớp:
+            // 1. Bắt đầu với toàn bộ query (exact prefix match) - ưu tiên cao nhất
+            // 2. Chứa toàn bộ query như một cụm từ (phrase match) - ưu tiên cao
+            // 3. Chứa tất cả các từ trong query (all words match) - ưu tiên trung bình
+            // 4. Chứa một phần query - ưu tiên thấp
+            List<String> exactStartsWith = new ArrayList<>(); // Bắt đầu với toàn bộ query
+            List<String> phraseContains = new ArrayList<>(); // Chứa toàn bộ query như cụm từ
+            List<String> allWordsMatch = new ArrayList<>(); // Chứa tất cả các từ
+            List<String> partialMatch = new ArrayList<>(); // Chứa một phần
+            
+            String[] queryWords = searchText.split("\\s+");
+            
+            for (SearchHit<ProductDocument> hit : searchHits.getSearchHits()) {
+                String name = hit.getContent().getName();
+                if (name == null || name.isEmpty()) {
+                    continue;
+                }
+                
+                String lowerName = name.toLowerCase();
+                
+                // Kiểm tra độ khớp và phân loại
+                if (lowerName.startsWith(searchText)) {
+                    // Bắt đầu với toàn bộ query - ưu tiên cao nhất
+                    if (!exactStartsWith.contains(name)) {
+                        exactStartsWith.add(name);
+                    }
+                } else if (lowerName.contains(searchText)) {
+                    // Chứa toàn bộ query như một cụm từ - ưu tiên cao
+                    if (!phraseContains.contains(name)) {
+                        phraseContains.add(name);
+                    }
+                } else {
+                    // Kiểm tra xem có chứa tất cả các từ không
+                    boolean containsAllWords = true;
+                    for (String word : queryWords) {
+                        if (!lowerName.contains(word)) {
+                            containsAllWords = false;
+                            break;
+                        }
+                    }
+                    
+                    if (containsAllWords) {
+                        // Chứa tất cả các từ - ưu tiên trung bình
+                        if (!allWordsMatch.contains(name)) {
+                            allWordsMatch.add(name);
+                        }
+                    } else {
+                        // Chỉ chứa một phần - ưu tiên thấp
+                        boolean hasAnyWord = false;
+                        for (String word : queryWords) {
+                            if (lowerName.contains(word)) {
+                                hasAnyWord = true;
+                                break;
+                            }
+                        }
+                        if (hasAnyWord && !partialMatch.contains(name)) {
+                            partialMatch.add(name);
+                        }
+                    }
+                }
+            }
+            
+            // Kết hợp theo thứ tự ưu tiên
+            List<String> suggestions = new ArrayList<>();
+            suggestions.addAll(exactStartsWith);
+            suggestions.addAll(phraseContains);
+            suggestions.addAll(allWordsMatch);
+            suggestions.addAll(partialMatch);
+            
+            return suggestions.stream()
+                .distinct()
+                .limit(limit)
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            logger.error("Error getting auto complete suggestions: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
     @Override
     @Transactional
     public void indexProduct(Product product) {
@@ -237,6 +443,63 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         if (!documents.isEmpty()) {
             productSearchRepository.saveAll(documents);
         }
+    }
+    
+    /**
+     * Tính điểm khớp của text với query tìm kiếm
+     * Điểm càng cao = khớp càng tốt
+     */
+    private int calculateRelevanceScore(String text, String fullQuery, String[] queryWords) {
+        if (text == null || text.isEmpty()) {
+            return 0;
+        }
+        
+        int score = 0;
+        
+        // Ưu tiên cao nhất: text chứa đầy đủ cụm từ tìm kiếm (exact phrase match)
+        if (text.contains(fullQuery)) {
+            score += 1000;
+        }
+        
+        // Ưu tiên cao: text bắt đầu với query
+        if (text.startsWith(fullQuery)) {
+            score += 500;
+        }
+        
+        // Đếm số từ trong query có trong text
+        int matchedWords = 0;
+        for (String word : queryWords) {
+            if (text.contains(word)) {
+                matchedWords++;
+                // Ưu tiên các từ dài hơn
+                score += word.length() * 10;
+            }
+        }
+        
+        // Ưu tiên các text có nhiều từ khớp hơn
+        score += matchedWords * 50;
+        
+        // Ưu tiên các text có tỷ lệ từ khớp cao hơn
+        if (queryWords.length > 0) {
+            double matchRatio = (double) matchedWords / queryWords.length;
+            score += (int) (matchRatio * 100);
+        }
+        
+        return score;
+    }
+    
+    /**
+     * Lấy giá nhỏ nhất của sản phẩm từ variants
+     */
+    private Double getMinPrice(Product product) {
+        if (product.getProductVariants() == null || product.getProductVariants().isEmpty()) {
+            return null;
+        }
+        return product.getProductVariants().stream()
+                .filter(v -> v.getPrice() != null)
+                .map(ProductVariant::getPrice)
+                .min(Double::compareTo)
+                .orElse(null);
     }
     
     private ProductDocument convertToDocument(Product product) {

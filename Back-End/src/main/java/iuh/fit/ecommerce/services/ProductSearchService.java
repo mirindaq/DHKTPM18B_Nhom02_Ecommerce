@@ -15,6 +15,9 @@ public interface ProductSearchService {
             String sortBy
     );
     
+
+    List<String> getAutoCompleteSuggestions(String query, int limit);
+    
     void indexProduct(Product product);
     
     void deleteProduct(Long productId);

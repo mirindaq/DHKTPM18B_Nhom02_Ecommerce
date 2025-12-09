@@ -158,7 +158,7 @@ export default function WarrantyPolicy() {
                 Thời gian làm việc: 8:00 - 21:00 (Tất cả các ngày trong tuần)
               </p>
               <p className="text-blue-600 text-sm">
-                Email: warranty@ecommerce.vn
+                Email: warranty@ecomstore.vn
               </p>
             </div>
           </CardContent>

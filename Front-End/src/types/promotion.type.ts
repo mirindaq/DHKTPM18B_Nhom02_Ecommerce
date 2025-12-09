@@ -33,11 +33,6 @@ export interface CreatePromotionRequest {
   startDate: string;
   endDate: string;
   promotionTargets?: PromotionTarget[];
-  // Legacy/dialog compatibility properties
-  type?: string;
-  discountType?: "PERCENTAGE" | "FIXED_AMOUNT";
-  discountValue?: number;
-  targets?: any[];
 }
 
 export interface UpdatePromotionRequest {

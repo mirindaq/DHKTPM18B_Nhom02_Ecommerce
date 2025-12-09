@@ -38,7 +38,7 @@ export default function BrandSection({ selectedBrand, onBrandSelect }: BrandSect
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
       </div>
     )
   }
@@ -49,7 +49,7 @@ export default function BrandSection({ selectedBrand, onBrandSelect }: BrandSect
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {loading ? (
           <div className="flex justify-center w-full py-4">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            <Loader2 className="w-5 h-5 animate-spin text-red-600" />
           </div>
         ) : (
           <>

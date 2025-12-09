@@ -271,7 +271,6 @@ export default function Analytics() {
         endDate={currentFilter.endDate}
         year={currentFilter.year}
         month={currentFilter.month}
-        onViewDetail={handleViewProductDetail}
       />
 
       {/* Product Detail Modal */}

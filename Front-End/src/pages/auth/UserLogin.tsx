@@ -165,7 +165,7 @@ export default function UserLogin() {
             <span className="text-red-600">ECOMEMBER</span>
           </h1>
           <p className="text-lg text-gray-700">
-            Để không bỏ lỡ các ưu đãi hấp dẫn từ Ecommerce Store
+            Để không bỏ lỡ các ưu đãi hấp dẫn từ EcomStore
           </p>
         </div>
 
@@ -176,7 +176,7 @@ export default function UserLogin() {
               <p className="text-gray-800">
                 Chiết khấu đến{" "}
                 <span className="font-bold text-red-600">5%</span> khi mua các
-                sản phẩm tại Ecommerce Store
+                sản phẩm tại EcomStore
               </p>
             </div>
             <div className="flex items-start space-x-3">
@@ -303,8 +303,8 @@ export default function UserLogin() {
             {/* Seamless Login Info */}
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <p className="text-sm text-gray-600">
-                Trải nghiệm đăng nhập liền mạch giữa Ecommerce Store và các đối
-                tác, ưu tiên dùng tài khoản Ecommerce (nếu có)
+                Trải nghiệm đăng nhập liền mạch giữa EcomStore và các đối
+                tác, ưu tiên dùng tài khoản EcomStore (nếu có)
               </p>
             </div>
 
@@ -387,7 +387,7 @@ export default function UserLogin() {
             <p className="text-center text-sm text-gray-600">
               Mua sắm, sửa chữa tại{" "}
               <a href="#" className="text-red-600 hover:text-red-700">
-                ecommerce.com.vn
+                ecomstore.com.vn
               </a>
             </p>
           </div>

@@ -32,18 +32,7 @@ export default function PromotionDetailDialog({
     return labels[type as keyof typeof labels] || type;
   };
 
-  const getTypeColor = (type: string) => {
-    const colors = {
-      ORDER: "bg-blue-100 text-blue-800",
-      PRODUCT: "bg-green-100 text-green-800",
-      PRODUCT_VARIANT: "bg-purple-100 text-purple-800",
-      CATEGORY: "bg-orange-100 text-orange-800",
-    };
-    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
-  };
-
   const getDiscountText = (promotion: PromotionSummary) => {
-    // Since discount is percentage, just show as percentage
     return `${promotion.discount}%`;
   };
 
@@ -89,9 +78,10 @@ export default function PromotionDetailDialog({
                   <Target className="h-4 w-4 text-gray-500" />
                   <span className="text-sm text-gray-600">Loại:</span>
                   <CustomBadge variant={
-                    promotion.promotionType === "ORDER" ? "info" :
+                    promotion.promotionType === "ALL" ? "info" :
                     promotion.promotionType === "PRODUCT" ? "success" :
                     promotion.promotionType === "PRODUCT_VARIANT" ? "info" :
+                    promotion.promotionType === "CATEGORY" ? "warning" :
                     "warning"
                   }>
                     {getTypeLabel(promotion.promotionType)}

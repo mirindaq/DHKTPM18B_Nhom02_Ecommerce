@@ -28,14 +28,6 @@ export default function VoucherAnalytics() {
     params: {}
   })
 
-  // Mock stats - sẽ thay bằng API thực
-  const stats = {
-    totalUsage: 1250,
-    totalDiscount: 125000000,
-    usageGrowth: 15.5,
-    discountGrowth: 12.3
-  }
-
   const fetchDataByDay = async (startDate: string, endDate: string) => {
     try {
       setLoading(true)
@@ -54,7 +46,6 @@ export default function VoucherAnalytics() {
       setLoading(true)
       const response = await voucherService.getTopVouchersByMonth(year, month)
       setTopVouchers(response.data)
-      // Set date range for detail modal
       const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
       const endDate = new Date(year, month, 0).toISOString().split('T')[0]
       setDateRange({ startDate, endDate })
@@ -100,10 +91,6 @@ export default function VoucherAnalytics() {
     } else if (values.timeType === 'year' && values.year) {
       fetchDataByYear(values.year)
     }
-  }
-
-  const handleCompareToggle = (enabled: boolean) => {
-    setShowComparison(enabled)
   }
 
   const handleViewDetail = (voucherId: number) => {

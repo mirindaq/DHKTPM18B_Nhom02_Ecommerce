@@ -24,9 +24,9 @@ import { Store, Mail, Shield, Bell, Palette, Save } from "lucide-react";
 
 export default function Settings() {
   const [generalSettings, setGeneralSettings] = useState({
-    storeName: "EcommerceWWW",
+    storeName: "EcomStore",
     storeDescription: "Cửa hàng điện tử hàng đầu Việt Nam",
-    storeEmail: "contact@ecommercewww.com",
+    storeEmail: "contact@ecomstore.com",
     storePhone: "1900-xxxx",
     storeAddress: "123 Đường ABC, Quận 1, TP.HCM",
     timezone: "Asia/Ho_Chi_Minh",
@@ -37,10 +37,10 @@ export default function Settings() {
   const [emailSettings, setEmailSettings] = useState({
     smtpHost: "smtp.gmail.com",
     smtpPort: "587",
-    smtpUsername: "noreply@ecommercewww.com",
+    smtpUsername: "noreply@ecomstore.com",
     smtpPassword: "",
-    fromEmail: "noreply@ecommercewww.com",
-    fromName: "EcommerceWWW",
+    fromEmail: "noreply@ecomstore.com",
+    fromName: "EcomStore",
     orderConfirmation: true,
     shippingNotification: true,
     marketingEmails: false,

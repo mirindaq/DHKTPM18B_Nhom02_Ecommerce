@@ -53,7 +53,7 @@ export default function Footer() {
             />
             <label className="flex items-center text-xs">
               <input type="checkbox" className="mr-2" /> Tôi đồng ý với điều
-              khoản của CellphoneS
+              khoản của EcomStore
             </label>
             <button className="bg-red-600 text-white font-semibold py-2 rounded hover:bg-red-700">
               Đăng ký ngay
@@ -107,7 +107,7 @@ export default function Footer() {
 
         {/* Cột 4 */}
         <div>
-          <h3 className="font-semibold mb-2">Kết nối với CellphoneS</h3>
+          <h3 className="font-semibold mb-2">Kết nối với EcomStore</h3>
           <div className="flex gap-3 mb-4 items-center">
             <img
               src="/images/social/youtube.png"

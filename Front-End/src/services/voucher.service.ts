@@ -219,4 +219,10 @@ export const voucherService = {
   sendVoucherToCustomers: async (id: number) => {
     await axiosClient.put(`/vouchers/${id}/send`);
   },
+  getAvailableVouchersForCustomer: async (customerId: number) => {
+    const response = await axiosClient.get<ApiResponse<VoucherAvailableResponse[]>>(
+      `/vouchers/available/${customerId}`
+    );
+    return response.data.data;
+  },
 };

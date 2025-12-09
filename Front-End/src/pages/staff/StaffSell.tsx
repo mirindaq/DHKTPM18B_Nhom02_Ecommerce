@@ -57,7 +57,7 @@ export default function StaffSell() {
   const [showVoucherModal, setShowVoucherModal] = useState(false)
 
   const { data: availableVouchers = [], isLoading: isLoadingVouchers } = useQuery<VoucherAvailableResponse[]>(
-    () => voucherService.getAvailableVouchersForCustomer(customerId!),
+    () => voucherService.getAvailableVouchersForCustomer(customerId ?? 0),
     {
       queryKey: ['vouchers', 'available', customerId?.toString() || ''],
       enabled: !!customerId,

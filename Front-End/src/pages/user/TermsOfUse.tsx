@@ -118,10 +118,10 @@ export default function TermsOfUse() {
               Nếu bạn có bất kỳ câu hỏi nào về các điều khoản này, vui lòng liên
               hệ với chúng tôi qua email:{" "}
               <a
-                href="mailto:support@ecommerce.vn"
+                href="mailto:support@ecomstore.vn"
                 className="text-red-600 hover:underline"
               >
-                support@ecommerce.vn
+                support@ecomstore.vn
               </a>
             </p>
           </CardContent>

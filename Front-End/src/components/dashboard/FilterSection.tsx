@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, TrendingUp } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'

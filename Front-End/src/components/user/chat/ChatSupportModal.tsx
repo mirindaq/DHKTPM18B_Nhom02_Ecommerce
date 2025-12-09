@@ -72,14 +72,14 @@ export default function ChatSupportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-7 right-4 sm:right-24 z-[60] w-[calc(100vw-2rem)] sm:w-[400px] h-[calc(100vh-10rem)] sm:h-[600px] max-h-[600px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 rounded-xl bg-white">
+    <div className="fixed bottom-24 right-4 sm:right-25 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] h-[calc(100vh-8rem)] sm:h-[600px] max-h-[600px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 rounded-xl bg-white">
       <ChatHeader onClose={onClose} />
 
       <div className="flex-1 flex flex-col p-0 min-h-0 bg-white overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center flex-1">
             <div className="text-center p-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+              <Loader2 className="h-8 w-8 animate-spin text-red-600 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">Đang tải...</p>
             </div>
           </div>

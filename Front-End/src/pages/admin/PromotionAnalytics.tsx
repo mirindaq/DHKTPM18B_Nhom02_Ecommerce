@@ -28,13 +28,6 @@ export default function PromotionAnalytics() {
     params: {}
   })
 
-  // Mock stats - sẽ thay bằng API thực
-  const stats = {
-    totalUsage: 890,
-    totalDiscount: 89000000,
-    usageGrowth: 18.2,
-    discountGrowth: 14.7
-  }
 
   const fetchDataByDay = async (startDate: string, endDate: string) => {
     try {
@@ -98,10 +91,6 @@ export default function PromotionAnalytics() {
     } else if (values.timeType === 'year' && values.year) {
       fetchDataByYear(values.year)
     }
-  }
-
-  const handleCompareToggle = (enabled: boolean) => {
-    setShowComparison(enabled)
   }
 
   const handleViewDetail = (promotionId: number) => {

@@ -43,7 +43,7 @@ const getInitialFormData = (
       dateOfBirth: staff.dateOfBirth ?? "",
       joinDate: staff.joinDate ?? "",
       workStatus: staff.workStatus ?? "ACTIVE",
-      roleId: staff.role?.id,
+      roleId: staff.role?.id ?? 0,
       avatar: staff.avatar ?? "",
       password: "",
       active: staff.active ?? true,
@@ -59,7 +59,7 @@ const getInitialFormData = (
     dateOfBirth: "",
     joinDate: "",
     workStatus: "ACTIVE",
-    roleId: undefined,
+    roleId: 0,
     avatar: "",
     active: true,
   };

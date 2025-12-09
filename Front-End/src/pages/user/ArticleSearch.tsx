@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams, Link, useLocation } from 'react-router';
-import { Home, ChevronRight, Loader2, Newspaper, Gamepad2, MessageSquare, Smartphone, Megaphone, Users } from 'lucide-react';
+import { Home, ChevronRight, Loader2, Newspaper, Gamepad2, MessageSquare, Smartphone, Megaphone, Users, Clock } from 'lucide-react';
 import { articleService } from '@/services/article.service';
 import { articleCategoryService } from '@/services/article-category.service';
 import { useQuery } from '@/hooks';
@@ -36,7 +36,7 @@ export default function ArticleSearch() {
     } = useQuery<ArticleListResponse>(
         () => articleService.getArticles(page, 10, query, selectedCategory, null),
         {
-            queryKey: ['articles', 'search', query, selectedCategory, page],
+            queryKey: ['articles', 'search', query, selectedCategory ? String(selectedCategory) : '', String(page)],
             enabled: !!query,
         }
     );

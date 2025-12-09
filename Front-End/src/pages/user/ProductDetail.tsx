@@ -22,6 +22,7 @@ import { cartService } from "@/services/cart.service";
 import { productService } from "@/services/product.service";
 import { productQuestionService } from "@/services/productQuestion.service";
 import { feedbackService } from "@/services/feedback.service";
+import { categoryService } from "@/services/category.service";
 import { PUBLIC_PATH } from "@/constants/path";
 import type { Product, ProductVariantResponse } from "@/types/product.type";
 import type { Feedback, RatingStatistics } from "@/types/feedback.type";
@@ -33,6 +34,10 @@ import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
 import { useWishlist } from "@/hooks/useWishlist";
 import Breadcrumb from "@/components/user/search/Breadcrumb";
+import { articleService } from "@/services/article.service";
+import type { Article } from "@/types/article.type";
+import ProductCard from "@/components/user/ProductCard";
+import ProductRelatedArticles from "@/components/user/product/ProductRelatedArticles";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -169,6 +174,49 @@ export default function ProductDetail() {
   const feedbacks: Feedback[] = feedbacksData?.data?.content || [];
   const totalFeedbacks = feedbacksData?.data?.totalElements || 0;
   const statistics: RatingStatistics | null = statisticsData?.data || null;
+
+  // Load category to get slug
+  const { data: categoryData } = useQuery(
+    () => categoryService.getCategoryById(product?.categoryId || 0),
+    {
+      queryKey: ["category", product?.categoryId?.toString() || ""],
+      enabled: !!product?.categoryId,
+      onError: (err) => {
+        console.error("Error loading category:", err);
+      },
+    }
+  );
+
+  const categorySlug = categoryData?.data?.slug || "";
+
+  // Load related products (same category)
+  const { data: relatedProductsData, isLoading: relatedProductsLoading } = useQuery(
+    () => productService.getProducts(1, 5, { categoryId: product?.categoryId || null }),
+    {
+      queryKey: ["related-products", product?.categoryId?.toString() || ""],
+      enabled: !!product?.categoryId,
+      onError: (err) => {
+        console.error("Error loading related products:", err);
+      },
+    }
+  );
+
+  const relatedProducts: Product[] = (relatedProductsData?.data?.data || []).filter(
+    (p) => p.id !== product?.id
+  ).slice(0, 5);
+
+  // Load related articles
+  const { data: relatedArticlesData, isLoading: relatedArticlesLoading } = useQuery(
+    () => articleService.getArticles(1, 4, "", null, null),
+    {
+      queryKey: ["related-articles"],
+      onError: (err) => {
+        console.error("Error loading related articles:", err);
+      },
+    }
+  );
+
+  const relatedArticles: Article[] = (relatedArticlesData?.data?.data || []).slice(0, 4);
 
   useEffect(() => {
     if (questionsData?.data?.data) {
@@ -449,44 +497,68 @@ export default function ProductDetail() {
           ]}
         />
 
-        {/* Main Product Section */}
+        {/* Section 1: Banner + Thông số kỹ thuật bên trái, Giá + Biến thể + Mua hàng bên phải */}
         <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Column - Product Images */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Product Title */}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                  {product?.name}
-                </h1>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <button
-                    onClick={handleWishlistToggle}
-                    disabled={isLoadingWishlist || productId === 0}
-                    className={`flex items-center gap-1.5 transition-colors ${
-                      inWishlist ? "text-red-600" : "text-gray-600 hover:text-red-600"
-                    } ${
-                      isLoadingWishlist
-                        ? "opacity-50 cursor-not-allowed"
-                        : "cursor-pointer"
+          {/* Product Title */}
+          <div className="">
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">
+              {product?.name}
+            </h1>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <button
+                onClick={handleWishlistToggle}
+                disabled={isLoadingWishlist || productId === 0}
+                className={`flex items-center gap-1.5 transition-colors ${
+                  inWishlist ? "text-red-600" : "text-gray-600 hover:text-red-600"
+                } ${
+                  isLoadingWishlist
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
+              >
+                {isLoadingWishlist ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Heart
+                    className={`w-4 h-4 ${
+                      inWishlist ? "fill-red-600 text-red-600" : ""
                     }`}
-                  >
-                    {isLoadingWishlist ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Heart
-                        className={`w-4 h-4 ${
-                          inWishlist ? "fill-red-600 text-red-600" : ""
-                        }`}
-                      />
-                    )}
-                    <span>Yêu thích</span>
-                  </button>
-                </div>
-              </div>
+                  />
+                )}
+                <span>Yêu thích</span>
+              </button>
+              <button
+                onClick={() => {
+                  const element = document.getElementById('reviews');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="flex items-center gap-1.5 text-gray-600 hover:text-red-600 transition-colors cursor-pointer"
+              >
+                <Star className="w-4 h-4" />
+                <span>Đánh giá</span>
+              </button>
+              <button
+                onClick={() => {
+                  const element = document.getElementById('questions');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="flex items-center gap-1.5 text-gray-600 hover:text-red-600 transition-colors cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Câu hỏi</span>
+              </button>
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column - Banner + Thông số kỹ thuật */}
+            <div className="lg:col-span-7 space-y-6">
               {/* Main Product Image */}
-              <div className="relative rounded-xl overflow-hidden bg-gray-50">
+              <div className="relative rounded-xl overflow-hidden bg-gray-50 h-[420px] flex items-center justify-center">
                 <img
                   src={
                     product?.productImages && product.productImages.length > 0
@@ -494,7 +566,7 @@ export default function ProductDetail() {
                       : product?.thumbnail
                   }
                   alt={product?.name}
-                  className="w-full h-[500px] object-contain"
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
                 />
               </div>
 
@@ -520,9 +592,41 @@ export default function ProductDetail() {
                   ))}
                 </div>
               )}
+
+              {/* Technical Specifications */}
+              {attributes.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">Thông số kỹ thuật</h2>
+                      <p className="text-sm text-gray-500">Chi tiết cấu hình sản phẩm</p>
+                    </div>
+                  </div>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <tbody>
+                        {attributes.map((attr, index) => (
+                          <tr
+                            key={index}
+                            className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors"
+                          >
+                            <td className="w-1/3 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-50 border-r border-gray-200">
+                              {attr.attribute.name}
+                            </td>
+                            <td className="w-2/3 px-4 py-3 text-sm text-gray-900 font-medium">
+                              {attr.value}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Right Column - Purchase Options */}
+            {/* Right Column - Giá + Biến thể + Mua hàng */}
             <div className="lg:col-span-5 space-y-6">
               {/* Price Section */}
               <div className="p-6 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-100">
@@ -672,52 +776,73 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {/* Technical Specifications */}
-        {attributes.length > 0 && (
+        {/* Section 2: Sản phẩm tương tự */}
+        {relatedProducts.length > 0 && (
           <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Thông số kỹ thuật</h2>
-                <p className="text-sm text-gray-500">Chi tiết cấu hình sản phẩm</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Sản phẩm tương tự</h2>
+                  <p className="text-sm text-gray-500">Có thể bạn cũng thích</p>
+                </div>
               </div>
+              {relatedProducts.length >= 5 && categorySlug && (
+                <Link to={`${PUBLIC_PATH.HOME}search/${categorySlug}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    Xem thêm <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {attributes.map((attr, index) => (
-                <div
-                  key={index}
-                  className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
-                >
-                  <div className="w-1/3 text-sm font-semibold text-gray-700">
-                    {attr.attribute.name}
-                  </div>
-                  <div className="w-2/3 text-sm text-gray-900 font-medium">
-                    {attr.value}
+            {relatedProductsLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-64 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {relatedProducts.map((relatedProduct) => (
+                  <ProductCard key={relatedProduct.id} product={relatedProduct} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Section 3: Chi tiết bên trái, Tin tức bên phải */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Left - Product Description */}
+          <div className="lg:col-span-2">
+            {product?.description && (
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">Mô tả sản phẩm</h2>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Product Description */}
-        {product?.description && (
-          <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Mô tả sản phẩm</h2>
+                <div
+                  className="article-content prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
               </div>
-            </div>
-            <div
-              className="article-content prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: product.description }}
-            />
+            )}
           </div>
-        )}
+
+          {/* Right - Related Articles */}
+          <div className="lg:col-span-1">
+            <ProductRelatedArticles articles={relatedArticles} isLoading={relatedArticlesLoading} />
+          </div>
+        </div>
 
         {/* Product Reviews Section */}
-        <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200">
+        <div id="reviews" className="bg-white rounded-xl p-6 mb-6 border border-gray-200 scroll-mt-4">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
             <div>
@@ -938,7 +1063,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Product Questions Section */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <div id="questions" className="bg-white rounded-xl p-6 border border-gray-200 scroll-mt-4">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
             <div>

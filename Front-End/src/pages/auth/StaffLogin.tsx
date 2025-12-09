@@ -108,7 +108,7 @@ export default function StaffLogin() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-4">
             Hệ thống nhân viên{" "}
-            <span className="text-blue-300">Ecommerce Store</span>
+            <span className="text-blue-300">EcomStore</span>
           </h1>
           <p className="text-lg text-gray-100">
             Quản lý đơn hàng và hỗ trợ khách hàng hiệu quả
@@ -287,10 +287,10 @@ export default function StaffLogin() {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
-              Hệ thống quản lý Ecommerce Store
+              Hệ thống quản lý EcomStore
             </p>
             <p className="text-center text-xs text-gray-500 mt-1">
-              © 2024 Ecommerce Store. All rights reserved.
+              © 2024 EcomStore. All rights reserved.
             </p>
           </div>
         </div>
