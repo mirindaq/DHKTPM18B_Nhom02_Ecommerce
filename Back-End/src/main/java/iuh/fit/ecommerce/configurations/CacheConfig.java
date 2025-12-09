@@ -23,13 +23,8 @@ import java.util.Map;
 @EnableCaching
 public class CacheConfig {
     public static final String PROVINCE_CACHE = "provinces";
-    public static final String  CATEGORY_CACHE = "categories";
-    public static final String BRAND_CACHE = "brands";
     public static final String BANNER_CACHE = "banners";
     public static final String RANKING_CACHE = "rankings";
-    public static final String ARTICLE_CATEGORY_CACHE = "article-categories";
-    public static final String CATEGORY_BRAND_CACHE = "category-brands";
-    public static final String FILTER_CRITERIA_CACHE = "filter-criteria";
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
@@ -74,15 +69,6 @@ public class CacheConfig {
         cacheConfigurations.put(RANKING_CACHE, listConfig.entryTtl(Duration.ofHours(24)));
         cacheConfigurations.put(BANNER_CACHE, listConfig.entryTtl(Duration.ofHours(1)));
 
-        // Các cache có ResponseWithPagination → dùng defaultConfig (có type info)
-        cacheConfigurations.put(CATEGORY_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-        cacheConfigurations.put(BRAND_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-
-        cacheConfigurations.put(ARTICLE_CATEGORY_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-
-        // Các cache có List trực tiếp → dùng listConfig (không có type info)
-        cacheConfigurations.put(CATEGORY_BRAND_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
-        cacheConfigurations.put(FILTER_CRITERIA_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultConfig)

@@ -27,6 +27,7 @@ import { useQuery } from "@/hooks";
 import type { Article } from "@/types/article.type";
 import type { Category, CategoryListResponse } from "@/types/category.type";
 
+
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(true);
@@ -50,11 +51,13 @@ export default function Home() {
       // Lấy tất cả categories có status = true
       const activeCategories = categoriesData.data.data.filter(cat => cat.status)
       setTopCategories(activeCategories)
+      
     }
   }, [categoriesData])
+  
+  
 
-  // Lấy top 2 categories để hiển thị sản phẩm
-  const top2Categories = topCategories.slice(0, 2)
+  const top3Categories = topCategories.slice(0, 3)
 
 
   const loadArticles = async () => {
@@ -359,7 +362,7 @@ export default function Home() {
             <Loader2 className="w-8 h-8 animate-spin text-red-600" />
           </div>
         ) : (
-          top2Categories.map((category) => (
+          top3Categories.map((category) => (
             <CategoryProductSection 
               key={category.id}
               category={category}
@@ -420,7 +423,7 @@ export default function Home() {
               <Loader2 className="w-8 h-8 animate-spin text-red-600" />
             </div>
           ) : articles.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {articles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
