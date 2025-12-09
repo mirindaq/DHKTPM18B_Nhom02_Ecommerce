@@ -6,6 +6,7 @@ import { UserProvider } from './context/UserContext'
 import { ImportProvider } from './context/ImportContext'
 import GlobalImportNotification from './components/common/GlobalImportNotification'
 import GlobalImportResultDialog from './components/common/GlobalImportResultDialog'
+import ScrollToTop from './components/common/ScrollToTop'
 
 function App() {
   const router = useRouteElements()
@@ -13,6 +14,7 @@ function App() {
     <UserProvider>
       <ImportProvider>
         <div>
+          <ScrollToTop />
           {router}
           <Toaster />
           <GlobalImportNotification />

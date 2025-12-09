@@ -60,7 +60,6 @@ public class VariantServiceImpl implements VariantService {
     }
 
     @Override
-    @CacheEvict(value = CacheConfig.VARIANT_CACHE, allEntries = true)
     public VariantResponse createVariant(VariantAddRequest request) {
         Variant variant = new Variant();
         mapVariantFields(variant, request);
@@ -75,7 +74,6 @@ public class VariantServiceImpl implements VariantService {
     }
 
     @Override
-    @CacheEvict(value = CacheConfig.VARIANT_CACHE, allEntries = true)
     public VariantResponse updateVariant(Long id, VariantAddRequest request) {
         Variant variant = findVariantOrThrow(id);
 
@@ -91,7 +89,6 @@ public class VariantServiceImpl implements VariantService {
     }
 
     @Override
-    @CacheEvict(value = CacheConfig.VARIANT_CACHE, allEntries = true)
     public void changeStatusVariant(Long id) {
         Variant variant = findVariantOrThrow(id);
         variant.setStatus(!variant.getStatus());
@@ -99,7 +96,6 @@ public class VariantServiceImpl implements VariantService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.VARIANT_CACHE, key = "'category:' + #id")
     public List<VariantResponse> getVariantsByCategory( Long id) {
         List<Variant> variants = variantCategoryRepository.findByStatusAndCategoryId(true,id);
         return variants.stream()
@@ -108,7 +104,6 @@ public class VariantServiceImpl implements VariantService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.VARIANT_CACHE, key = "'category-slug:' + #slug")
     public List<VariantResponse> getVariantsByCategorySlug(String slug) {
         List<Variant> variants = variantCategoryRepository.findByStatusAndCategorySlug(true,slug);
         return variants.stream()

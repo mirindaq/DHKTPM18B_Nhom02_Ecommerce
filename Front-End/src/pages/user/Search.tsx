@@ -98,12 +98,13 @@ export default function Search() {
 
   if (!query || query.trim().length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Breadcrumb
-          items={[
-            { label: 'Kết quả tìm kiếm' },
-          ]}
-        />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <Breadcrumb
+            items={[
+              { label: 'Kết quả tìm kiếm' },
+            ]}
+          />
         <div className="text-center py-12">
           <SearchIcon size={64} className="mx-auto text-gray-400 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -127,18 +128,20 @@ export default function Search() {
             </div>
           </form>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <Breadcrumb
-        items={[
-          { label: 'Kết quả tìm kiếm cho', href: undefined },
-          { label: `'${query}'` },
-        ]}
-      />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <Breadcrumb
+          items={[
+            { label: 'Kết quả tìm kiếm cho', href: undefined },
+            { label: `'${query}'` },
+          ]}
+        />
 
       {/* Search bar */}
       <div className="mb-6">
@@ -159,9 +162,17 @@ export default function Search() {
 
       {/* Results count */}
       <div className="mb-6">
-        <p className="text-gray-600">
-          Tìm thấy <span className="font-semibold text-gray-900">{totalItem.toLocaleString()}</span> sản phẩm cho từ khóa <span className="font-semibold text-gray-900">'{query}'</span>
-        </p>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full" />
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">
+              Kết quả tìm kiếm
+            </h2>
+            <p className="text-sm text-gray-500">
+              Tìm thấy <span className="font-semibold text-gray-900">{totalItem.toLocaleString()}</span> sản phẩm cho từ khóa <span className="font-semibold text-gray-900">'{query}'</span>
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Sort section */}
@@ -169,13 +180,15 @@ export default function Search() {
 
       {/* Products grid */}
       {productsLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <ProductSkeleton key={index} />
-          ))}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <ProductSkeleton key={index} />
+            ))}
+          </div>
         </div>
       ) : products.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
           <SearchIcon size={64} className="mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500 text-lg mb-2">
             Không tìm thấy sản phẩm nào cho từ khóa <span className="font-semibold">'{query}'</span>
@@ -189,21 +202,25 @@ export default function Search() {
               navigate(PUBLIC_PATH.HOME);
             }}
             variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50"
           >
             Về trang chủ
           </Button>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           </div>
 
           {/* Pagination */}
           {totalPage > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
+            <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+              <div className="flex justify-center items-center gap-2">
               <Button
                 variant="outline"
                 onClick={() => handlePageChange(page - 1)}
@@ -245,10 +262,12 @@ export default function Search() {
               >
                 Sau
               </Button>
+              </div>
             </div>
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
