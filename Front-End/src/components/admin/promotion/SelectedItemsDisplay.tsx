@@ -12,7 +12,7 @@ interface SelectedItem {
 interface SelectedItemsDisplayProps {
   items: SelectedItem[];
   onRemove: (id: number) => void;
-  itemType: "category" | "brand" | "product" | "variant";
+  itemType: "category" | "brand" | "product" | "variant" | "customer";
   emptyMessage?: string;
 }
 
@@ -42,6 +42,8 @@ export default function SelectedItemsDisplay({
         return "📦";
       case "variant":
         return "🔧";
+      case "customer":
+        return "👤";
       default:
         return "✓";
     }
@@ -51,7 +53,7 @@ export default function SelectedItemsDisplay({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-gray-700">
-          Đã chọn {items.length} {itemType === "category" ? "danh mục" : itemType === "brand" ? "thương hiệu" : itemType === "product" ? "sản phẩm" : "biến thể"}
+          Đã chọn {items.length} {itemType === "category" ? "danh mục" : itemType === "brand" ? "thương hiệu" : itemType === "product" ? "sản phẩm" : itemType === "variant" ? "biến thể" : "khách hàng"}
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -64,11 +66,15 @@ export default function SelectedItemsDisplay({
               <img
                 src={item.thumbnail || item.image}
                 alt={item.name}
-                className="w-12 h-12 object-cover rounded-lg border-2 border-gray-200"
+                className={`w-12 h-12 object-cover border-2 border-gray-200 ${
+                  itemType === "customer" ? "rounded-full" : "rounded-lg"
+                }`}
                 loading="lazy"
               />
             ) : (
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-lg border-2 border-blue-200">
+              <div className={`w-12 h-12 bg-blue-100 flex items-center justify-center text-lg border-2 border-blue-200 ${
+                itemType === "customer" ? "rounded-full" : "rounded-lg"
+              }`}>
                 {getItemIcon()}
               </div>
             )}

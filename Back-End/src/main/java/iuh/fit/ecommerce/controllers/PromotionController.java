@@ -47,7 +47,7 @@ public class PromotionController {
     @GetMapping("")
     public ResponseEntity<ResponseSuccess<ResponseWithPagination<List<PromotionResponse>>>> getAllPromotions(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "7") int limit,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Boolean active,

@@ -22,7 +22,7 @@ export default function Promotions() {
   const [viewingPromotion, setViewingPromotion] = useState<PromotionSummary | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(7);
 
   // state filter
   const [searchParams, setSearchParams] = useState<PromotionFilter>({});
@@ -121,6 +121,7 @@ export default function Promotions() {
   return (
     <div className="space-y-6 p-2">
       {/* Header */}
+
       <div className="flex justify-between items-center">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">

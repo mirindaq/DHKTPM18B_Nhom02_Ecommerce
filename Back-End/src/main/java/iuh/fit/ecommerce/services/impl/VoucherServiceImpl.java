@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import iuh.fit.ecommerce.dtos.response.voucher.VoucherResponse;
 
@@ -86,7 +87,7 @@ public class VoucherServiceImpl implements VoucherService {
             int page, int limit, String name, String type, Boolean active, LocalDate startDate, LocalDate endDate) {
 
         page = Math.max(page - 1, 0);
-        Pageable pageable = PageRequest.of(page, limit);
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         VoucherType voucherType = null;
         if (type != null && !type.isBlank()) {

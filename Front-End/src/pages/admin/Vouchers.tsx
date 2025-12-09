@@ -13,7 +13,7 @@ import type { VoucherListResponse, VoucherType } from "@/types/voucher.type";
 export default function Vouchers() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(7);
 
   // state filter
   const [searchParams, setSearchParams] = useState<{

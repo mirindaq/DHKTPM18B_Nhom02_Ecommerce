@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,13 +55,13 @@ const getInitialFormData = (promotion: PromotionSummary | null): PromotionFormDa
 
     if (promotion.promotionTargets && promotion.promotionTargets.length > 0) {
       promotion.promotionTargets.forEach((target) => {
-        if (target.categoryId) {
+        if (target.categoryId && !categoryIds.includes(target.categoryId)) {
           categoryIds.push(target.categoryId);
         }
-        if (target.brandId) {
+        if (target.brandId && !brandIds.includes(target.brandId)) {
           brandIds.push(target.brandId);
         }
-        if (target.productId) {
+        if (target.productId && !productIds.includes(target.productId)) {
           productIds.push(target.productId);
         }
         if (target.productVariantId) {
@@ -150,18 +150,25 @@ export default function PromotionForm({
     }
   );
 
+  // Deduplicate và sort productIds để đảm bảo query key ổn định
+  // Dùng useMemo để tránh tạo array mới mỗi lần render, gây infinite loop
+  const uniqueProductIds = useMemo(() => {
+    return [...new Set(formData.selectedProductIds)].sort((a, b) => a - b);
+  }, [formData.selectedProductIds]);
+  
   const { data: productsData } = useQuery(
     () => productService.getProducts(1, 100, {}),
     {
-      queryKey: ["products-for-promotion", formData.selectedProductIds.join(",")],
-      enabled: (formData.promotionType === "PRODUCT" || formData.promotionType === "PRODUCT_VARIANT") && formData.selectedProductIds.length > 0,
+      queryKey: ["products-for-promotion", uniqueProductIds.join(",")],
+      enabled: (formData.promotionType === "PRODUCT" || formData.promotionType === "PRODUCT_VARIANT") && uniqueProductIds.length > 0,
     }
   );
 
   const { data: variantsData } = useQuery(
     async () => {
       const allVariants: ProductVariantDescription[] = [];
-      for (const productId of formData.selectedProductIds) {
+      // Chỉ query unique productIds để tránh duplicate calls
+      for (const productId of uniqueProductIds) {
         try {
           const response = await productService.getSkusForPromotion(productId);
           allVariants.push(...(response.data || []));
@@ -172,8 +179,8 @@ export default function PromotionForm({
       return { data: allVariants };
     },
     {
-      queryKey: ["variants-for-promotion", formData.selectedProductIds.join(",")],
-      enabled: formData.promotionType === "PRODUCT_VARIANT" && formData.selectedProductIds.length > 0,
+      queryKey: ["variants-for-promotion", uniqueProductIds.join(",")],
+      enabled: formData.promotionType === "PRODUCT_VARIANT" && uniqueProductIds.length > 0,
     }
   );
 
@@ -198,11 +205,11 @@ export default function PromotionForm({
   useEffect(() => {
     if ((formData.promotionType === "PRODUCT" || formData.promotionType === "PRODUCT_VARIANT") && productsData?.data?.data) {
       const products = productsData.data.data;
-      setSelectedProducts(products.filter((p) => formData.selectedProductIds.includes(p.id)));
-    } else if ((formData.promotionType === "PRODUCT" || formData.promotionType === "PRODUCT_VARIANT") && formData.selectedProductIds.length === 0) {
+      setSelectedProducts(products.filter((p) => uniqueProductIds.includes(p.id)));
+    } else if ((formData.promotionType === "PRODUCT" || formData.promotionType === "PRODUCT_VARIANT") && uniqueProductIds.length === 0) {
       setSelectedProducts([]);
     }
-  }, [productsData, formData.selectedProductIds, formData.promotionType]);
+  }, [productsData, uniqueProductIds, formData.promotionType]);
 
   useEffect(() => {
     if (formData.promotionType === "PRODUCT_VARIANT") {
@@ -217,7 +224,7 @@ export default function PromotionForm({
         }
       } else {
         // Nếu variantsData chưa load xong, chỉ clear nếu không có selectedVariantIds
-        if (formData.selectedVariantIds.length === 0 || formData.selectedProductIds.length === 0) {
+        if (formData.selectedVariantIds.length === 0 || uniqueProductIds.length === 0) {
           setSelectedVariants([]);
         }
         // Nếu có selectedVariantIds nhưng variantsData chưa load, giữ nguyên (không clear)
@@ -225,7 +232,7 @@ export default function PromotionForm({
     } else {
       setSelectedVariants([]);
     }
-  }, [variantsData, formData.selectedVariantIds, formData.selectedProductIds, formData.promotionType]);
+  }, [variantsData, formData.selectedVariantIds, uniqueProductIds, formData.promotionType]);
 
   const handleValueChange = (field: keyof PromotionFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -684,7 +691,7 @@ export default function PromotionForm({
                   />
                 </div>
 
-                {formData.selectedProductIds.length > 0 && (
+                {uniqueProductIds.length > 0 && (
                   <div className="space-y-4">
                     <Button
                       type="button"
