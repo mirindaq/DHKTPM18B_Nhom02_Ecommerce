@@ -86,6 +86,7 @@ public class RankingServiceImpl implements RankingService {
         
         // Lấy rank dựa trên tổng tiền tích lũy
         Ranking ranking = getRankingForSpending(totalSpending);
+        rankingRepository.save(ranking);
         return rankingMapper.toRankResponse(ranking);
     }
 }
