@@ -5,6 +5,7 @@ import iuh.fit.ecommerce.dtos.response.base.ResponseError;
 import iuh.fit.ecommerce.exceptions.custom.ConflictException;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
 import iuh.fit.ecommerce.exceptions.custom.UnauthorizedException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.validation.FieldError;
@@ -22,6 +23,7 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -33,6 +35,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .toList();
         String errorMessage = String.join(", ", errorMessages);
+        log.warn("Validation error at {}: {}", request.getDescription(false), errorMessage);
 
         return ResponseError.builder()
                 .timestamp(new Date())
@@ -46,6 +49,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(CONFLICT)
     public ResponseError handleConflictException(ConflictException e, WebRequest request) {
+        log.warn("Conflict error at {}: {}", request.getDescription(false), e.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(CONFLICT.value())
@@ -58,6 +62,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     public ResponseError handleDataNotFoundException(ResourceNotFoundException e , WebRequest request){
+        log.warn("Resource not found at {}: {}", request.getDescription(false), e.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(NOT_FOUND.value())
@@ -70,6 +75,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseError handleIllegalArgumentException(IllegalArgumentException e, WebRequest request) {
+        log.warn("Illegal argument at {}: {}", request.getDescription(false), e.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -82,6 +88,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseError handleAccessDeniedException(AccessDeniedException e, WebRequest request) {
+        log.warn("Access denied at {}: {}", request.getDescription(false), e.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.FORBIDDEN.value())
@@ -94,6 +101,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseError handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        log.warn("Authentication error at {}: {}", request.getDescription(false), ex.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -106,6 +114,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseError handleIllegalStateExceptionException(IllegalStateException ex, WebRequest request) {
+        log.error("Illegal state error at {}: {}", request.getDescription(false), ex.getMessage(), ex);
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -119,6 +128,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseError handleException(Exception ex, WebRequest request) {
+        log.error("Unhandled exception at {}: {}", request.getDescription(false), ex.getMessage(), ex);
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -131,6 +141,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseError handleUnauthorizedException(UnauthorizedException ex, WebRequest request) {
+        log.warn("Unauthorized error at {}: {}", request.getDescription(false), ex.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -143,6 +154,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JwtException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseError handleJwtException(JwtException ex, WebRequest request) {
+        log.warn("JWT error at {}: {}", request.getDescription(false), ex.getMessage());
         return ResponseError.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.UNAUTHORIZED.value())
