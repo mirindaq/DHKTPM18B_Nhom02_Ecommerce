@@ -1,0 +1,29 @@
+groups:
+  - name: critical_alerts
+    interval: 10s
+    rules:
+      - alert: Backend5xxError
+        expr: |
+          increase(http_server_requests_seconds_count{status=~"5..", application="Ecommerce Backend"}[30s]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: backend
+          priority: immediate
+        annotations:
+          summary: "🔴 Backend có lỗi 5xx - Cần xử lý ngay!"
+          description: "Backend service vừa trả về lỗi 5xx (instance: {{ $labels.instance }}, uri: {{ $labels.uri }}, status: {{ $labels.status }}, method: {{ $labels.method }})"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+          ) * 100 > 50
+        for: 1m
+        labels:
+          severity: warning
+          service: system
+          priority: high
+        annotations:
+          summary: "⚠️ RAM server đang cao"
+          description: "Server đang sử dụng {{ $value | humanize }}% RAM trong 1 phút (instance: {{ $labels.instance }})"

@@ -1,0 +1,53 @@
+global:
+  resolve_timeout: 2m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'viet04hoang@gmail.com'
+  smtp_auth_username: 'viet04hoang@gmail.com'
+  smtp_auth_password: 'phit icwq nnsc acmz'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname']
+  group_wait: 0s
+  group_interval: 5s
+  repeat_interval: 30m
+  receiver: 'email-alerts'
+
+receivers:
+  - name: 'email-alerts'
+    email_configs:
+      - to: 'hoanghochoi314@gmail.com'
+        send_resolved: true
+        headers:
+          Subject: '🚨 [{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+        html: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              .alert { padding: 15px; margin: 10px 0; border-radius: 5px; }
+              .critical { background-color: #ff4444; color: white; }
+              .warning { background-color: #ffaa00; color: white; }
+              .resolved { background-color: #00C851; color: white; }
+            </style>
+          </head>
+          <body>
+            <h2>Cảnh báo từ Ecommerce Monitoring</h2>
+            {{ range .Alerts }}
+            <div class="alert {{ if eq .Status "firing" }}{{ if eq .Labels.severity "critical" }}critical{{ else }}warning{{ end }}{{ else }}resolved{{ end }}">
+              <h3>{{ .Labels.alertname }}</h3>
+              <p><strong>Trạng thái:</strong> {{ .Status | toUpper }}</p>
+              <p><strong>Mức độ:</strong> {{ .Labels.severity | toUpper }}</p>
+              <p><strong>Service:</strong> {{ .Labels.service }}</p>
+              <p><strong>Mô tả:</strong> {{ .Annotations.description }}</p>
+              <p><strong>Thời gian:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05" }}</p>
+              {{ if .EndsAt }}
+              <p><strong>Kết thúc:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05" }}</p>
+              {{ end }}
+            </div>
+            {{ end }}
+          </body>
+          </html>
+
+inhibit_rules: []
