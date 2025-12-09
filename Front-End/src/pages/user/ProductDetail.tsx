@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { CustomBadge } from "@/components/ui/CustomBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -12,7 +11,6 @@ import {
   Settings,
   ChevronRight,
   Shield,
-  Zap,
   Truck,
   RotateCcw,
   Check,
@@ -465,14 +463,17 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
-      <div className="bg-white/80 backdrop-blur-sm border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <nav className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
+            <Link
+              to={PUBLIC_PATH.HOME}
+              className="text-gray-500 hover:text-red-600 transition-colors"
+            >
               Trang chủ
-            </span>
+            </Link>
             <ChevronRight className="w-4 h-4 text-gray-400" />
             <span className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors">
               Laptop
@@ -489,343 +490,353 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column - Product Images & Info */}
-          <div className="lg:col-span-7 space-y-8">
-            {/* Product Title */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {product.name}
-            </h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Product Title & Rating */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            {product.name}
+          </h1>
+          <div className="flex items-center gap-6 text-sm">
+            {/* Rating */}
+            {statistics && statistics.totalReviews > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                  <span className="font-semibold text-gray-900">
+                    {statistics.averageRating}
+                  </span>
+                </div>
+                <span className="text-blue-600 hover:underline cursor-pointer">
+                  ({statistics.totalReviews} đánh giá)
+                </span>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center space-x-4">
               <button
                 onClick={handleWishlistToggle}
                 disabled={isLoadingWishlist || productId === 0}
-                className={`flex items-center space-x-1 transition-colors hover:text-red-500 ${
-                  inWishlist ? "text-red-500" : "text-gray-500"
+                className={`flex items-center gap-1 transition-colors ${
+                  inWishlist
+                    ? "text-red-500"
+                    : "text-gray-600 hover:text-red-500"
                 } ${
-                  isLoadingWishlist
-                    ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer"
+                  isLoadingWishlist ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
               >
                 {isLoadingWishlist ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Heart
-                    className={`w-4 h-4 ${
-                      inWishlist ? "fill-red-500 text-red-500" : ""
-                    }`}
+                    className={`w-4 h-4 ${inWishlist ? "fill-red-500" : ""}`}
                   />
                 )}
                 <span>Yêu thích</span>
               </button>
-              <div className="flex items-center space-x-1">
-                <GitCompareArrows className="w-4 h-4 text-gray-400" />
+
+              <button className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors">
+                <GitCompareArrows className="w-4 h-4" />
                 <span>So sánh</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MessageCircle className="w-4 h-4 text-gray-400" />
+              </button>
+
+              <a
+                href="#questions"
+                className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
                 <span>Hỏi đáp</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Settings className="w-4 h-4 text-gray-400" />
+              </a>
+
+              <a
+                href="#specifications"
+                className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
                 <span>Thông số</span>
-              </div>
+              </a>
             </div>
-
-            {/* Featured Section */}
-            <Card className="overflow-hidden">
-              <img
-                src={product.thumbnail}
-                alt={product.name}
-                className="w-full h-90 object-cover rounded-xl transition-transform group-hover:scale-105"
-              />
-            </Card>
-
-            {/* Product Image Gallery */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  Hình ảnh sản phẩm
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                  {product.productImages.map((image, index) => (
-                    <div
-                      key={index}
-                      className={`relative shrink-0 cursor-pointer group transition-all duration-200 ${
-                        index === currentImageIndex
-                          ? "ring-2 ring-red-500 ring-offset-2 scale-105"
-                          : "hover:scale-105"
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                    >
-                      <div className="relative overflow-hidden rounded-lg">
-                        <img
-                          src={image}
-                          alt={`${product.name} ${index + 1}`}
-                          className="w-24 h-24 object-cover transition-transform group-hover:scale-110"
-                        />
-                        {index === currentImageIndex && (
-                          <div className="absolute inset-0 bg-red-500/20 rounded-lg"></div>
-                        )}
-                        {index === 0 && (
-                          <div className="absolute top-2 left-2">
-                            <CustomBadge variant="warning" size="sm">
-                              <Star className="w-3 h-3 mr-1" />
-                              Chính
-                            </CustomBadge>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <div className="flex items-center justify-center w-24 h-24 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer">
-                    <ChevronRight className="w-6 h-6 text-gray-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Product Commitments */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  Cam kết sản phẩm
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-                      <Check className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">
-                        Nguyên hộp, đầy đủ phụ kiện từ nhà sản xuất
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Bảo hành pin và bộ sạc 12 tháng
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                      <Shield className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">
-                        Bảo hành 24 tháng tại trung tâm bảo hành Chính hãng
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        1 đổi 1 trong 30 ngày nếu có lỗi
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                      <Truck className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">
-                        Giao hàng miễn phí toàn quốc
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Nhận hàng trong 24h tại TP.HCM, 2-3 ngày các tỉnh khác
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Product Description */}
-            {product.description && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5 text-blue-600" />
-                    Mô tả sản phẩm
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div
-                    className="article-content"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
-                  />
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Right Column - Purchase Options */}
-          <div className="space-y-6 lg:col-span-5">
-            {/* Price */}
-            <Card className="border border-red-100">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-red-600" />
-                  Giá sản phẩm
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-3">
-                  {" "}
-                  {/* Thay đổi: Chỉ giữ gap-3 để tách biệt giá mới và giá cũ */}
-                  <span className="text-4xl font-bold text-red-600">
-                    {formatPrice(selectedVariant?.price || 0)}
-                  </span>
-                  {selectedVariant && selectedVariant.discount > 0 && (
-                    <span className="text-xl text-gray-400 line-through">
-                      {formatPrice(selectedVariant.oldPrice)}
-                    </span>
-                  )}
-                </div>
-
-                {selectedVariant && selectedVariant.discount > 0 && (
-                  <div className="text-sm mt-3">
-                    Tiết kiệm:{" "}
-                    <span className="font-semibold text-green-700">
-                      {formatPrice(
-                        selectedVariant.oldPrice - (selectedVariant?.price || 0)
-                      )}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Dynamic Custom Configuration */}
-            {Object.keys(availableVariants).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-blue-600" />
-                      Lựa chọn cấu hình tùy chỉnh
-                    </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="lg"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => {
-                        const defaultSelections: { [key: string]: string } = {};
-                        Object.keys(availableVariants).forEach(
-                          (variantName) => {
-                            defaultSelections[variantName] =
-                              availableVariants[variantName][0];
-                          }
-                        );
-                        setSelectedVariants(defaultSelections);
-                      }}
-                    >
-                      <RotateCcw className="w-4 h-4 mr-1" />
-                      Thiết lập lại
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    {Object.keys(availableVariants).map(
-                      (variantName, _index) => (
-                        <div key={variantName} className="space-y-4">
-                          <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            {variantName.toUpperCase()}
-                          </h4>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {availableVariants[variantName].map((value) => (
-                              <button
-                                key={value}
-                                className={`p-4 text-sm border rounded-xl transition-all duration-300 group ${
-                                  selectedVariants[variantName] === value
-                                    ? "border-red-500 text-red-700 font-semibold shadow-md scale-105"
-                                    : "border-gray-200 hover:border-red-300 hover:bg-gray-50 text-gray-700 hover:shadow-sm hover:scale-102"
-                                }`}
-                                onClick={() =>
-                                  handleVariantSelection(variantName, value)
-                                }
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="text-left font-medium">
-                                    {value}
-                                  </span>
-                                  {selectedVariants[variantName] === value && (
-                                    <div className="flex items-center gap-1">
-                                      <Check className="w-4 h-4 text-red-600" />
-                                    </div>
-                                  )}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Action Buttons */}
-            <Card>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-3">
-                  <Button
-                    variant="outline"
-                    className="h-16 border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500 hover:ring-2 hover:ring-blue-200 font-semibold py-3 rounded-xl transition-all duration-300"
-                    onClick={handleBuyNow}
-                  >
-                    <Zap className="w-5 h-5 mr-1" />
-                    Trả góp 0%
-                  </Button>
-
-                  <Button
-                    className="col-span-1 h-16 bg-linear-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-bold text-lg py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                    onClick={handleBuyNow}
-                  >
-                    <div className="text-center">
-                      <div className="text-xl font-extrabold mb-1">
-                        MUA NGAY
-                      </div>
-                    </div>
-                  </Button>
-
-                  {/* Nút Thêm vào giỏ */}
-                  <Button
-                    variant="outline"
-                    className="h-16 border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 hover:ring-2 hover:ring-red-200 font-semibold py-3 rounded-xl transition-all duration-300"
-                    onClick={handleAddToCart}
-                    disabled={addToCartMutation.isLoading}
-                  >
-                    {addToCartMutation.isLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600 mr-1"></div>
-                        Đang thêm...
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-5 h-5 mr-1" />
-                        Thêm vào giỏ
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
+        <div className="flex flex-col lg:flex-row gap-5 items-start">
+          {/* Left Column - Product Images */}
+          <div className="flex-1 lg:sticky lg:top-4">
+            {/* Main Image with Slider */}
+            <Card className="overflow-hidden mb-4">
+              <CardContent className="p-0">
+                <div className="relative aspect-square bg-gradient-to-br from-pink-100 via-orange-50 to-white flex items-center justify-center p-8">
+                  <img
+                    src={
+                      product.productImages[currentImageIndex] ||
+                      product.thumbnail
+                    }
+                    alt={product.name}
+                    className="w-full h-full object-contain"
+                  />
+                  {selectedVariant && selectedVariant.discount > 0 && (
+                    <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-md font-bold text-sm">
+                      Giảm {selectedVariant.discount}%
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Thumbnail Gallery */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {product.productImages.map((image, index) => (
+                <button
+                  key={index}
+                  className={`relative shrink-0 rounded-lg overflow-hidden transition-all duration-200 ${
+                    index === currentImageIndex
+                      ? "ring-2 ring-red-500 ring-offset-2"
+                      : "ring-1 ring-gray-200 hover:ring-gray-300"
+                  }`}
+                  onClick={() => setCurrentImageIndex(index)}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="w-12 h-12 object-cover"
+                  />
+                  {index === currentImageIndex && (
+                    <div className="absolute inset-0 bg-red-600/10"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Product Info Cards */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-bold text-sm mb-3">Thông tin sản phẩm</h3>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                      <span>Nguyên hộp, đầy đủ phụ kiện</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Shield className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span>Bảo hành 12 tháng</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Truck className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                      <span>Giao hàng miễn phí</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <RotateCcw className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                      <span>1 đổi 1 trong 30 ngày</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-bold text-sm mb-3">
+                    Có {product.variants?.length || 0} phiên bản
+                  </h3>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <p>✓ Tất cả các phiên bản đều có sẵn</p>
+                    <p>✓ Giao hàng nhanh trong 2h</p>
+                    <p>✓ Nhận tại cửa hàng</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Right Column - Purchase Options */}
+          <div className="basis-[400px] lg:sticky lg:top-4">
+            <div className="space-y-4">
+              {/* Variant Selection */}
+              {Object.keys(availableVariants).length > 0 && (
+                <div>
+                  <h2 className="text-sm font-bold mb-3">
+                    Chọn màu để xem giá và chi tiết
+                  </h2>
+                  <div className="space-y-3">
+                    {Object.keys(availableVariants).map((variantName) => (
+                      <div key={variantName}>
+                        <p className="text-xs text-gray-600 mb-2 uppercase font-semibold">
+                          {variantName}
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {availableVariants[variantName].map((value) => (
+                            <button
+                              key={value}
+                              className={`flex gap-2 items-center justify-center p-2 border rounded-lg transition-all ${
+                                selectedVariants[variantName] === value
+                                  ? "border-red-600 bg-red-50"
+                                  : "border-gray-300 hover:border-gray-400"
+                              }`}
+                              onClick={() =>
+                                handleVariantSelection(variantName, value)
+                              }
+                            >
+                              <div className="text-[10.5px] text-start">
+                                <p
+                                  className={`font-bold text-xs ${
+                                    selectedVariants[variantName] === value
+                                      ? "text-red-600"
+                                      : ""
+                                  }`}
+                                >
+                                  {value}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Price Display */}
+              <div className="h-[60px] rounded-xl bg-gray-100 flex gap-3 p-[5px]">
+                <div className="text-gray-700 flex-1 gap-2 h-full flex justify-center items-center hover:bg-white rounded-lg transition-colors cursor-pointer">
+                  <RotateCcw className="w-6 h-6" />
+                  <div>
+                    <p className="font-bold text-center text-sm">Thu cũ đổi mới</p>
+                    <p className="text-xs">Giá tốt hơn</p>
+                  </div>
+                </div>
+                <div className="text-gray-700 flex-1 h-full flex flex-col justify-center items-center border-2 border-red-600 bg-white rounded-lg">
+                  <p className="font-bold text-center text-red-600">
+                    {formatPrice(selectedVariant?.price || 0)}
+                  </p>
+                  {selectedVariant && selectedVariant.discount > 0 && (
+                    <p className="line-through text-xs text-gray-400">
+                      {formatPrice(selectedVariant.oldPrice)}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Promotions */}
+              <Card className="border border-red-200">
+                <CardContent className="p-0">
+                  <div className="bg-red-50 text-red-600 font-bold p-3 flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Khuyến mãi hấp dẫn
+                  </div>
+                  <div className="p-3">
+                    <ul className="text-sm space-y-2">
+                      {selectedVariant && selectedVariant.discount > 0 && (
+                        <li className="flex items-start gap-2">
+                          <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                          <span>
+                            <span className="text-red-600 font-bold">
+                              Giảm {selectedVariant.discount}%
+                            </span>{" "}
+                            - Tiết kiệm{" "}
+                            {formatPrice(
+                              selectedVariant.oldPrice -
+                                (selectedVariant?.price || 0)
+                            )}
+                          </span>
+                        </li>
+                      )}
+                      <li className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                        <span className="font-bold">
+                          Nhận hàng trong 2h, miễn phí giao hàng toàn quốc
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                        <span>
+                          Trả góp 0% lãi suất, tối đa 12 tháng, trả trước từ 10%
+                          qua CTTC hoặc 0đ qua thẻ tín dụng
+                        </span>
+                      </li>
+                    </ul>
+                    <p className="text-red-600 text-sm font-bold bg-red-50 py-2 px-3 my-3 rounded-lg text-center">
+                      LIÊN HỆ HOTLINE 1800.2097 ĐỂ ĐƯỢC GIÁ ĐẶC BIỆT
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="h-[60px] flex gap-4">
+                <Button
+                  className="flex-1 bg-red-600 h-full hover:bg-red-500"
+                  onClick={handleBuyNow}
+                >
+                  <div className="text-center">
+                    <p className="font-bold text-base">Mua ngay</p>
+                    <p className="text-xs">Giao hàng trong 2h hoặc nhận tại cửa hàng</p>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-full basis-[60px] px-0 flex-grow-0 flex-shrink-0 border-2 border-red-600 hover:border-red-500 hover:bg-red-50"
+                  onClick={handleAddToCart}
+                  disabled={addToCartMutation.isLoading}
+                >
+                  <div>
+                    {addToCartMutation.isLoading ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-red-600 mx-auto" />
+                    ) : (
+                      <ShoppingCart className="w-6 h-6 text-red-600 mx-auto" />
+                    )}
+                    <p className="text-[8.5px] text-red-600 mt-1">Thêm vào giỏ</p>
+                  </div>
+                </Button>
+              </div>
+
+              {/* More Offers */}
+              <Card className="border-2 border-gray-200">
+                <CardContent className="p-0">
+                  <h2 className="bg-gray-100 p-3 font-bold text-sm">Ưu đãi thêm</h2>
+                  <ul className="divide-y">
+                    <li className="py-2 px-3 flex gap-2 items-start text-sm hover:bg-gray-50 transition-colors">
+                      <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                      <span>Giảm thêm 5% (tối đa 200.000đ) khi thu cũ lên đời</span>
+                    </li>
+                    <li className="py-2 px-3 flex gap-2 items-start text-sm hover:bg-gray-50 transition-colors">
+                      <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                      <span>
+                        Hoàn tiền đến 2 triệu khi mở thẻ tín dụng HSBC
+                      </span>
+                    </li>
+                    <li className="py-2 px-3 flex gap-2 items-start text-sm hover:bg-gray-50 transition-colors">
+                      <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                      <span>Giảm ngay 700K khi trả góp qua thẻ tín dụng TECHCOMBANK</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Description & Commitments */}
+        {product.description && (
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+                Mô tả sản phẩm
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="article-content"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Dynamic Technical Specifications */}
-        <Card className="mt-8">
+        <Card className="mt-8" id="specifications">
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl flex items-center gap-2">
@@ -1124,7 +1135,7 @@ export default function ProductDetail() {
         </Card>
 
         {/* Product Questions Section */}
-        <Card className="mt-8">
+        <Card className="mt-8" id="questions">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-800">
               Hỏi và đáp
