@@ -395,9 +395,9 @@ public class DashboardExcelService {
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Mã Promotion", "Mã khuyến mãi", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại",
+        String[] headers = {"Mã Promotion", "Mã khuyến mãi", "Mã đơn hàng", "Mã chi tiết đơn", "Ngày đặt", "Tên khách hàng", "Số điện thoại",
                            "Tên Promotion", "Loại Promotion", "Số tiền giảm",
-                           "Tổng đơn hàng", "Thành tiền", "Phương thức thanh toán", "Trạng thái"};
+                           "Tổng chi tiết đơn", "Thành tiền chi tiết", "Phương thức thanh toán", "Trạng thái"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -428,48 +428,54 @@ public class DashboardExcelService {
 
             // Order ID
             Cell orderIdCell = row.createCell(2);
-            orderIdCell.setCellValue(usage.getOrder().getId());
+            orderIdCell.setCellValue(usage.getOrderDetail().getOrder().getId());
             orderIdCell.setCellStyle(numberStyle);
             
+            // Order Detail ID
+            Cell orderDetailIdCell = row.createCell(3);
+            orderDetailIdCell.setCellValue(usage.getOrderDetail().getId());
+            orderDetailIdCell.setCellStyle(numberStyle);
+            
             // Order Date
-            Cell dateCell = row.createCell(3);
-            dateCell.setCellValue(Date.from(usage.getOrder().getOrderDate().atZone(ZoneId.systemDefault()).toInstant()));
+            Cell dateCell = row.createCell(4);
+            dateCell.setCellValue(Date.from(usage.getOrderDetail().getOrder().getOrderDate().atZone(ZoneId.systemDefault()).toInstant()));
             dateCell.setCellStyle(dateStyle);
             
             // Customer info
-            row.createCell(4).setCellValue(usage.getOrder().getCustomer().getFullName());
-            row.createCell(5).setCellValue(usage.getOrder().getCustomer().getPhone());
+            row.createCell(5).setCellValue(usage.getOrderDetail().getOrder().getCustomer().getFullName());
+            row.createCell(6).setCellValue(usage.getOrderDetail().getOrder().getCustomer().getPhone());
             
             // Promotion info
-            row.createCell(6).setCellValue(usage.getPromotion().getName());
-            row.createCell(7).setCellValue(usage.getPromotion().getPromotionType().name());
+            row.createCell(7).setCellValue(usage.getPromotion().getName());
+            row.createCell(8).setCellValue(usage.getPromotion().getPromotionType().name());
             
             // Discount amount
-            Cell discountCell = row.createCell(8);
+            Cell discountCell = row.createCell(9);
             discountCell.setCellValue(usage.getDiscountAmount() != null ? usage.getDiscountAmount() : 0);
             discountCell.setCellStyle(currencyStyle);
             
-            // Order total
-            Cell orderTotalCell = row.createCell(9);
-            orderTotalCell.setCellValue(usage.getOrder().getTotalPrice());
+            // Order detail total (price * quantity)
+            Double orderDetailTotal = usage.getOrderDetail().getPrice() * usage.getOrderDetail().getQuantity();
+            Cell orderTotalCell = row.createCell(10);
+            orderTotalCell.setCellValue(orderDetailTotal);
             orderTotalCell.setCellStyle(currencyStyle);
             
-            // Final total
-            Cell finalTotalCell = row.createCell(10);
-            finalTotalCell.setCellValue(usage.getOrder().getFinalTotalPrice());
+            // Order detail final price (sau khi giảm giá)
+            Cell finalTotalCell = row.createCell(11);
+            finalTotalCell.setCellValue(usage.getOrderDetail().getFinalPrice());
             finalTotalCell.setCellStyle(currencyStyle);
             
             // Payment method
-            row.createCell(11).setCellValue(usage.getOrder().getPaymentMethod() != null ?
-                    usage.getOrder().getPaymentMethod().name() : "");
+            row.createCell(12).setCellValue(usage.getOrderDetail().getOrder().getPaymentMethod() != null ?
+                    usage.getOrderDetail().getOrder().getPaymentMethod().name() : "");
             
             // Status
-            row.createCell(12).setCellValue(usage.getOrder().getStatus() != null ?
-                    usage.getOrder().getStatus().name() : "");
+            row.createCell(13).setCellValue(usage.getOrderDetail().getOrder().getStatus() != null ?
+                    usage.getOrderDetail().getOrder().getStatus().name() : "");
             
             totalDiscount += (usage.getDiscountAmount() != null ? usage.getDiscountAmount() : 0);
-            totalOrderValue += usage.getOrder().getTotalPrice();
-            totalFinalValue += usage.getOrder().getFinalTotalPrice();
+            totalOrderValue += orderDetailTotal;
+            totalFinalValue += usage.getOrderDetail().getFinalPrice();
         }
         
         // Total row
@@ -478,15 +484,15 @@ public class DashboardExcelService {
         totalLabelCell.setCellValue("TỔNG CỘNG");
         totalLabelCell.setCellStyle(headerStyle);
         
-        Cell totalDiscountCell = totalRow.createCell(8);
+        Cell totalDiscountCell = totalRow.createCell(9);
         totalDiscountCell.setCellValue(totalDiscount);
         totalDiscountCell.setCellStyle(currencyStyle);
         
-        Cell totalOrderCell = totalRow.createCell(9);
+        Cell totalOrderCell = totalRow.createCell(10);
         totalOrderCell.setCellValue(totalOrderValue);
         totalOrderCell.setCellStyle(currencyStyle);
         
-        Cell totalFinalCell = totalRow.createCell(10);
+        Cell totalFinalCell = totalRow.createCell(11);
         totalFinalCell.setCellValue(totalFinalValue);
         totalFinalCell.setCellStyle(currencyStyle);
         

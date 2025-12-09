@@ -17,8 +17,8 @@ public class PromotionUsage {
     private Promotion promotion;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+    @JoinColumn(name = "order_detail_id")
+    private OrderDetail orderDetail;
 
     private Double discountAmount;
 }

@@ -44,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
     private final VoucherUsageHistoryRepository voucherUsageHistoryRepository;
     private final ProductVariantRepository productVariantRepository;
     private final PromotionService promotionService;
+    private final PromotionUsageRepository promotionUsageRepository;
     private final OrderMapper orderMapper;
     private final PaymentService paymentService;
     private final RankingService rankingService;
@@ -120,6 +121,34 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
         handleVoucherUsage(voucher, order, voucherDiscountAmount);
+        handlePromotionUsage(orderDetails);
+    }
+
+    private void handlePromotionUsage(List<OrderDetail> orderDetails) {
+        List<PromotionUsage> promotionUsages = new ArrayList<>();
+
+        for (OrderDetail orderDetail : orderDetails) {
+            if (orderDetail.getDiscount() != null && orderDetail.getDiscount() > 0) {
+                ProductVariant variant = orderDetail.getProductVariant();
+                Promotion promotion = promotionService.getBestPromotionForVariant(variant);
+
+                if (promotion != null) {
+                    double itemTotal = orderDetail.getPrice() * orderDetail.getQuantity();
+                    double discountAmount = itemTotal * (orderDetail.getDiscount() / 100.0);
+
+                    PromotionUsage usage = PromotionUsage.builder()
+                            .promotion(promotion)
+                            .orderDetail(orderDetail)
+                            .discountAmount(discountAmount)
+                            .build();
+                    promotionUsages.add(usage);
+                }
+            }
+        }
+
+        if (!promotionUsages.isEmpty()) {
+            promotionUsageRepository.saveAll(promotionUsages);
+        }
     }
 
 
@@ -503,6 +532,7 @@ public class OrderServiceImpl implements OrderService {
 
         restoreProductStock(order.getOrderDetails());
         restoreVoucher(order);
+        deletePromotionUsage(order);
 
         order.setStatus(CANCELED);
         orderRepository.save(order);
@@ -533,6 +563,10 @@ public class OrderServiceImpl implements OrderService {
         if (voucherUsageHistoryRepository.existsByOrder(order)) {
             voucherUsageHistoryRepository.deleteByOrder(order);
         }
+    }
+
+    private void deletePromotionUsage(Order order) {
+        promotionUsageRepository.deleteByOrderId(order.getId());
     }
 
     @Override

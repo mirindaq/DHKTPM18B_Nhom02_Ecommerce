@@ -1,8 +1,10 @@
 package iuh.fit.ecommerce.repositories;
 
 import iuh.fit.ecommerce.dtos.projection.TopPromotionProjection;
+import iuh.fit.ecommerce.entities.OrderDetail;
 import iuh.fit.ecommerce.entities.PromotionUsage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,7 +24,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
                    COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
             FROM promotion_usages pu
             JOIN promotions p ON pu.promotion_id = p.id
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE o.order_date BETWEEN :startDate AND :endDate
             GROUP BY p.id, p.name, p.promotion_type
             ORDER BY usageCount DESC
@@ -40,7 +43,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
                    COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
             FROM promotion_usages pu
             JOIN promotions p ON pu.promotion_id = p.id
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE YEAR(o.order_date) = :year AND MONTH(o.order_date) = :month
             GROUP BY p.id, p.name, p.promotion_type
             ORDER BY usageCount DESC
@@ -58,7 +62,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
                    COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
             FROM promotion_usages pu
             JOIN promotions p ON pu.promotion_id = p.id
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE YEAR(o.order_date) = :year
             GROUP BY p.id, p.name, p.promotion_type
             ORDER BY usageCount DESC
@@ -70,7 +75,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
     @Query(value = """
             SELECT COUNT(pu.id)
             FROM promotion_usages pu
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE o.order_date BETWEEN :startDate AND :endDate
             """, nativeQuery = true)
     Long countPromotionUsageByDateRange(@Param("startDate") LocalDateTime startDate,
@@ -80,7 +86,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
     @Query(value = """
             SELECT COALESCE(SUM(pu.discount_amount), 0)
             FROM promotion_usages pu
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE o.order_date BETWEEN :startDate AND :endDate
             """, nativeQuery = true)
     Double sumPromotionDiscountByDateRange(@Param("startDate") LocalDateTime startDate,
@@ -89,7 +96,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
     // Lấy tất cả promotion usage với thông tin chi tiết (cho Excel export)
     @Query("SELECT pu FROM PromotionUsage pu " +
            "JOIN FETCH pu.promotion p " +
-           "JOIN FETCH pu.order o " +
+           "JOIN FETCH pu.orderDetail od " +
+           "JOIN FETCH od.order o " +
            "JOIN FETCH o.customer c " +
            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
            "ORDER BY o.orderDate DESC")
@@ -105,7 +113,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
                    COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
             FROM promotion_usages pu
             JOIN promotions p ON pu.promotion_id = p.id
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE o.order_date BETWEEN :startDate AND :endDate
             GROUP BY p.id, p.name, p.promotion_type
             ORDER BY usageCount DESC, totalDiscountAmount DESC
@@ -122,7 +131,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
                    COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
             FROM promotion_usages pu
             JOIN promotions p ON pu.promotion_id = p.id
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE YEAR(o.order_date) = :year AND MONTH(o.order_date) = :month
             GROUP BY p.id, p.name, p.promotion_type
             ORDER BY usageCount DESC, totalDiscountAmount DESC
@@ -139,7 +149,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
                    COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
             FROM promotion_usages pu
             JOIN promotions p ON pu.promotion_id = p.id
-            JOIN orders o ON pu.order_id = o.id
+            JOIN order_detail od ON pu.order_detail_id = od.id
+            JOIN orders o ON od.order_id = o.id
             WHERE YEAR(o.order_date) = :year
             GROUP BY p.id, p.name, p.promotion_type
             ORDER BY usageCount DESC, totalDiscountAmount DESC
@@ -149,7 +160,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
     // Lấy promotion usages theo promotion ID và date range (cho detail)
     @Query("SELECT pu FROM PromotionUsage pu " +
            "JOIN FETCH pu.promotion p " +
-           "JOIN FETCH pu.order o " +
+           "JOIN FETCH pu.orderDetail od " +
+           "JOIN FETCH od.order o " +
            "JOIN FETCH o.customer c " +
            "WHERE pu.promotion.id = :promotionId " +
            "AND o.orderDate BETWEEN :startDate AND :endDate " +
@@ -163,4 +175,8 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
            "JOIN FETCH pu.promotion p " +
            "WHERE pu.promotion.id = :promotionId")
     java.util.Optional<PromotionUsage> findFirstByPromotionId(@Param("promotionId") Long promotionId);
+
+    @Modifying
+    @Query("DELETE FROM PromotionUsage pu WHERE pu.orderDetail.order.id = :orderId")
+    void deleteByOrderId(@Param("orderId") Long orderId);
 }

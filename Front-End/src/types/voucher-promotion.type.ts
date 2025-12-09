@@ -102,6 +102,7 @@ export interface VoucherDetailResponse {
 // Promotion Detail Types
 export interface PromotionOrderDetail {
   orderId: number;
+  orderDetailId: number;
   orderCode: string;
   orderDate: string;
   customerName: string;

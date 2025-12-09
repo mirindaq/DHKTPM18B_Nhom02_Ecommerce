@@ -130,7 +130,14 @@ export default function PromotionDetailModal({
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
                           <div className="text-xs text-gray-500">Mã đơn hàng</div>
-                          <div className="font-semibold text-purple-600">{order.orderCode}</div>
+                          <a 
+                            href={`/orders/${order.orderId}`}
+                            className="font-semibold text-purple-600 hover:text-purple-800 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {order.orderCode}
+                          </a>
                         </div>
                         <div>
                           <div className="text-xs text-gray-500">Ngày đặt</div>

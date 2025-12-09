@@ -681,9 +681,11 @@ public class DashboardServiceImpl implements DashboardService {
         // Map sang response
         List<PromotionOrderDetailResponse> orders = usages.stream()
                 .map(usage -> {
-                    var order = usage.getOrder();
+                    var orderDetail = usage.getOrderDetail();
+                    var order = orderDetail.getOrder();
                     return PromotionOrderDetailResponse.builder()
                             .orderId(order.getId())
+                            .orderDetailId(orderDetail.getId())
                             .orderCode("ORD-" + order.getId())
                             .orderDate(order.getOrderDate())
                             .customerName(order.getCustomer().getFullName())

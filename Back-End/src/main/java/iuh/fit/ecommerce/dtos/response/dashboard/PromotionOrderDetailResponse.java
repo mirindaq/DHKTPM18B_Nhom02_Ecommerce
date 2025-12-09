@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PromotionOrderDetailResponse {
     private Long orderId;
+    private Long orderDetailId;
     private String orderCode;
     private LocalDateTime orderDate;
     private String customerName;
