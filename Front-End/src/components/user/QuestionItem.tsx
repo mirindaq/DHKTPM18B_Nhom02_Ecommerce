@@ -16,7 +16,6 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
   const [showAnswerForm, setShowAnswerForm] = useState(false);
   const [answerContent, setAnswerContent] = useState("");
 
-  // Helper function to get user initials for avatar
   const getUserInitials = (name: string) => {
     if (!name) return "?";
     const words = name.trim().split(" ");
@@ -24,7 +23,6 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
     return words[words.length - 1].charAt(0).toUpperCase();
   };
 
-  // Helper function to format time ago
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -40,12 +38,10 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
     return `${diffInMonths} tháng trước`;
   };
 
-  // Toggle answer visibility
   const toggleAnswers = () => {
     setExpandedAnswers(!expandedAnswers);
   };
 
-  // Handle answer form submission
   const handleAnswerSubmit = () => {
     if (!answerContent.trim() || !onAnswerSubmit) return;
 
@@ -54,23 +50,20 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
     setShowAnswerForm(false);
   };
 
-  // Toggle answer form
   const toggleAnswerForm = () => {
     setShowAnswerForm(!showAnswerForm);
   };
 
   return (
-    <div className="border-b border-gray-200 pb-6 last:border-b-0">
-      <div className="flex items-start gap-4">
-        {/* User Avatar */}
+    <div className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+      <div className="flex items-start gap-3">
         <Avatar className="w-10 h-10 shrink-0">
-          <AvatarFallback className="bg-purple-600 text-white font-semibold text-sm">
+          <AvatarFallback className="bg-red-100 text-red-600 font-semibold text-sm">
             {getUserInitials(question.userName)}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          {/* Question Header */}
           <div className="flex items-center gap-2 mb-2">
             <span className="font-semibold text-gray-900 text-sm">{question.userName}</span>
             <div className="flex items-center gap-1 text-gray-400">
@@ -81,12 +74,9 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
             </div>
           </div>
 
-          {/* Question Content */}
           <p className="text-gray-700 text-sm leading-relaxed mb-3">{question.content}</p>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            {/* Reply Button - only show if there are answers */}
             {question.answers && question.answers.length > 0 && (
               <Button
                 variant="ghost"
@@ -96,31 +86,29 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
               >
                 {expandedAnswers ? (
                   <>
-                    <ChevronUp className="w-4 h-4" />
-                    Thu gọn phản hồi
+                    <ChevronUp className="w-4 h-4 mr-1" />
+                    Thu gọn
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="w-4 h-4" />
-                    Chi tiết phản hồi
+                    <ChevronDown className="w-4 h-4 mr-1" />
+                    Xem {question.answers.length} phản hồi
                   </>
                 )}
               </Button>
             )}
 
-            {/* Answer Button - only allow replying to original question */}
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleAnswerForm}
               className="h-auto p-0 text-red-600 hover:text-red-700 hover:bg-transparent font-medium text-sm"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4 mr-1" />
               Phản hồi
             </Button>
           </div>
 
-          {/* Answer Form */}
           {showAnswerForm && (
             <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="space-y-3">
@@ -167,21 +155,18 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
             </div>
           )}
 
-          {/* Answers Section */}
           {question.answers && question.answers.length > 0 && expandedAnswers && (
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-3">
               {question.answers.map((answer: ProductQuestionAnswer) => (
-                <div key={answer.id} className="flex items-start gap-4 pl-4 border-l-2 border-gray-100">
-                  {/* Answer Avatar - Admin or User */}
-                  <Avatar className="w-10 h-10 shrink-0">
-                    <AvatarFallback className={answer.admin ? "bg-red-600 text-white font-bold text-xs" : "bg-purple-600 text-white font-semibold text-sm"}>
+                <div key={answer.id} className="flex items-start gap-3 pl-4 border-l-2 border-red-200 bg-red-50/30 rounded-r-lg p-3">
+                  <Avatar className="w-8 h-8 shrink-0">
+                    <AvatarFallback className={answer.admin ? "bg-red-600 text-white font-bold text-xs" : "bg-red-100 text-red-600 font-semibold text-xs"}>
                       {answer.admin ? "S" : getUserInitials(answer.userName || "U")}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    {/* Answer Header */}
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-gray-900 text-sm">
                         {answer.admin ? "Quản Trị Viên" : (answer.userName || "Người dùng")}
                       </span>
@@ -202,10 +187,8 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
                       </div>
                     </div>
 
-                    {/* Answer Content with clickable links */}
                     <div className="text-gray-700 text-sm leading-relaxed">
                       {answer.content.split('\n').map((line, idx) => {
-                        // Check if line contains a URL
                         const urlRegex = /(https?:\/\/[^\s]+)/g;
                         const parts = line.split(urlRegex);
 
@@ -241,4 +224,3 @@ export default function QuestionItem({ question, onAnswerSubmit, isAnswering = f
     </div>
   );
 }
-

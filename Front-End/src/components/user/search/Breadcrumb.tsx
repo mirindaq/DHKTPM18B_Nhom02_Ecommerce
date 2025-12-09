@@ -7,7 +7,7 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm px-4 py-3 mb-6">
+    <div className="bg-white py-3 mb-1">
       <div className="flex items-center space-x-2 text-sm text-gray-600">
         <Link to="/" className="hover:text-red-600 flex items-center transition-colors">
           <Home size={16} className="mr-1" />

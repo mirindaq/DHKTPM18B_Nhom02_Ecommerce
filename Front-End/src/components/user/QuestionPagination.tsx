@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 
 interface QuestionPaginationProps {
   currentPage: number;
@@ -18,7 +18,6 @@ export default function QuestionPagination({
   onLoadMore,
   isLoading = false
 }: QuestionPaginationProps) {
-  // Không hiển thị nút nếu đã hết câu hỏi
   if (currentPage >= totalPages) return null;
 
   const remainingItems = totalItems - currentItems;
@@ -27,19 +26,18 @@ export default function QuestionPagination({
     <div className="flex items-center justify-center mt-6">
       <Button
         variant="outline"
-        size="lg"
         onClick={onLoadMore}
         disabled={isLoading}
-        className="flex items-center gap-2 px-6 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all rounded-full"
+        className="flex items-center gap-2 px-6 py-2 text-gray-700 border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all rounded-lg"
       >
         {isLoading ? (
           <>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+            <Loader2 className="w-4 h-4 animate-spin" />
             Đang tải...
           </>
         ) : (
           <>
-            Xem thêm {remainingItems} bình luận
+            Xem thêm {remainingItems} câu hỏi
             <ChevronRight className="w-4 h-4" />
           </>
         )}
@@ -47,4 +45,3 @@ export default function QuestionPagination({
     </div>
   );
 }
-
