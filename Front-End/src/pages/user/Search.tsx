@@ -18,7 +18,7 @@ export default function Search() {
   const navigate = useNavigate();
   const query = searchParams.get('q') || '';
   const page = parseInt(searchParams.get('page') || '1');
-  const size = 12;
+  const size = 10;
   const sortBy = (searchParams.get('sortBy') || 'popular') as SortOption;
 
   const [searchInput, setSearchInput] = useState(query);

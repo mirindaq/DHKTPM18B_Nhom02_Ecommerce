@@ -173,23 +173,15 @@ export default function UserRegister() {
               <h3 className="text-center text-gray-700 font-medium">
                 Đăng ký bằng tài khoản mạng xã hội
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex justify-center">
                 <Button
                   variant="outline"
                   type="button"
-                  className="h-12 border-gray-300 hover:bg-gray-50"
+                  className="h-12 border-gray-300 hover:bg-gray-50 w-full max-w-xs"
                   onClick={handleGoogleRegister}
                 >
                   <FcGoogle className="mr-2 h-4 w-4" />
                   Google
-                </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="h-12 border-gray-300 hover:bg-gray-50"
-                >
-                  <div className="w-4 h-4 bg-blue-500 rounded mr-2" />
-                  Zalo
                 </Button>
               </div>
             </div>
