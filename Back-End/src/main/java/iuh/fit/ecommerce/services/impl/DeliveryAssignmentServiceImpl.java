@@ -19,6 +19,7 @@ import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.services.DeliveryAssignmentService;
 import iuh.fit.ecommerce.services.NotificationWebSocketService;
 import iuh.fit.ecommerce.services.OrderService;
+import iuh.fit.ecommerce.services.RankingService;
 import iuh.fit.ecommerce.services.StaffService;
 import iuh.fit.ecommerce.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
     private final SecurityUtils securityUtils;
     private final DeliveryAssignmentMapper deliveryAssignmentMapper;
     private final NotificationWebSocketService notificationWebSocketService;
+    private final RankingService rankingService;
 
     @Override
     public void assignShipperToOrder(AssignShipperRequest request) {
@@ -143,6 +145,9 @@ public class DeliveryAssignmentServiceImpl implements DeliveryAssignmentService 
         if (Boolean.TRUE.equals(request.getSuccess())) {
             deliveryAssignment.setDeliveryStatus(DeliveryStatus.DELIVERED);
             deliveryAssignment.getOrder().setStatus(OrderStatus.COMPLETED);
+            
+            // Update customer ranking when delivery is completed successfully
+            rankingService.updateCustomerRanking(deliveryAssignment.getOrder());
         } else {
             deliveryAssignment.setDeliveryStatus(DeliveryStatus.FAILED);
             deliveryAssignment.getOrder().setStatus(OrderStatus.FAILED);
