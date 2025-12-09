@@ -1,4 +1,5 @@
 import axiosClient from "@/configurations/axios.config";
+import type { Product } from "@/types/product.type";
 
 export interface ChatAIRequest {
   message: string;
@@ -9,6 +10,7 @@ export interface ChatAIRequest {
 export interface ChatAIResponse {
   message: string;
   role: string;
+  products?: Product[]; // Danh sách sản phẩm được AI tìm thấy
 }
 
 export interface AIApiResponse {
