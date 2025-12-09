@@ -1,0 +1,52 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'ecommerce-monitor'
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+        labels:
+          application: "Prometheus"
+
+  - job_name: "backend-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["backend:8080"]
+        labels:
+          application: "Ecommerce Backend"
+
+  - job_name: "mysql"
+    static_configs:
+      - targets: ["mysql-exporter:9104"]
+        labels:
+          application: "MySQL Database"
+
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels:
+          application: "Redis Cache"
+
+  - job_name: "elasticsearch"
+    metrics_path: "/_prometheus/metrics"
+    static_configs:
+      - targets: ["elasticsearch:9200"]
+        labels:
+          application: "Elasticsearch"
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          application: "System Metrics"
+
+  - job_name: "minio"
+    metrics_path: "/minio/v2/metrics/cluster"
+    scheme: http
+    static_configs:
+      - targets: ["minio:9000"]
+        labels:
+          application: "MinIO Storage"
