@@ -178,8 +178,7 @@ export default function Carts() {
         </div>
         {selectedCartIds.length > 0 && (
           <Button
-            variant="default"
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
             onClick={handleOpenConfirmDialog}
           >
             <Send className="h-4 w-4 mr-2" />
