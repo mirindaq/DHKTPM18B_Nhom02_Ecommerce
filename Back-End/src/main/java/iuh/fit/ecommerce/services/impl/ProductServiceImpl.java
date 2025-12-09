@@ -78,7 +78,6 @@ public class ProductServiceImpl implements ProductService {
         
         // Index product to Elasticsearch
         productSearchService.indexProduct(savedProduct);
-
     }
 
     private void saveAttributes(List<ProductAttributeRequest> attributes, Product product) {

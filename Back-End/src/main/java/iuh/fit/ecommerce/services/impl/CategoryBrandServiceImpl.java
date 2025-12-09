@@ -44,7 +44,6 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheConfig.CATEGORY_BRAND_CACHE, allEntries = true)
     public void setBrandsForCategory(SetBrandsForCategoryRequest request) {
         Category category = categoryService.getCategoryEntityById(request.getCategoryId());
 
@@ -73,7 +72,6 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
 
 
     @Override
-    @Cacheable(value = CacheConfig.CATEGORY_BRAND_CACHE, key = "'category:' + #categoryId + ':brandName:' + (#brandName != null ? #brandName : 'all')")
     public List<BrandResponse> getBrandsByCategoryId(
             Long categoryId, String brandName
     ) {
@@ -90,7 +88,6 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.CATEGORY_BRAND_CACHE, key = "'brand:' + #brandId + ':categoryName:' + (#categoryName != null ? #categoryName : 'all')")
     public List<CategoryResponse> getCategoriesByBrandId(
             Long brandId, String categoryName
     ) {
@@ -106,7 +103,6 @@ public class CategoryBrandServiceImpl implements CategoryBrandService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.CATEGORY_BRAND_CACHE, key = "'category-slug:' + #slug")
     public List<BrandResponse> getBrandsByCategorySlug(String slug) {
         List<Brand> brands = categoryBrandRepository.findBrandsByCategorySlug(slug);
         return brands.stream().map(brandMapper::toResponse).collect(Collectors.toList());
