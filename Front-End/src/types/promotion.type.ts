@@ -39,6 +39,7 @@ export interface UpdatePromotionRequest {
   name: string;
   promotionType: PromotionType;
   discount: number;
+  active: boolean;
   priority: number;
   description?: string;
   startDate: string;

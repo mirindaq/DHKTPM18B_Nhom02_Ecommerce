@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -415,19 +416,48 @@ export default function PromotionForm({
       );
     }
 
-    const submitData: CreatePromotionRequest | UpdatePromotionRequest = {
-      name: formData.name,
-      promotionType: formData.promotionType,
-      discount: formData.discount,
-      description: formData.description,
-      active: formData.active,
-      priority: formData.priority,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      promotionTargets: promotionTargets.length > 0 ? promotionTargets : undefined,
+    // Format date - backend sử dụng LocalDate nên chỉ cần yyyy-MM-dd
+    const formatDate = (dateString: string): string => {
+      if (!dateString) return "";
+      // Nếu đã có time thì chỉ lấy phần date
+      if (dateString.includes("T")) {
+        return dateString.split("T")[0];
+      }
+      return dateString;
     };
 
-    onSubmit(submitData);
+    // Kiểm tra xem đang create hay update
+    const isUpdate = !!promotion;
+
+    if (isUpdate) {
+      // Format cho UpdatePromotionRequest (giống với CreatePromotionRequest)
+      const updateData: UpdatePromotionRequest = {
+        name: formData.name,
+        promotionType: formData.promotionType,
+        discount: formData.discount,
+        active: formData.active,
+        description: formData.description,
+        priority: formData.priority,
+        startDate: formatDate(formData.startDate),
+        endDate: formatDate(formData.endDate),
+        promotionTargets: promotionTargets.length > 0 ? promotionTargets : undefined,
+      };
+      onSubmit(updateData);
+    } else {
+      // Format cho CreatePromotionRequest
+      const createData: CreatePromotionRequest = {
+        name: formData.name,
+        promotionType: formData.promotionType,
+        discount: formData.discount,
+        description: formData.description,
+        active: formData.active,
+        priority: formData.priority,
+        startDate: formatDate(formData.startDate),
+        endDate: formatDate(formData.endDate),
+        promotionTargets: promotionTargets.length > 0 ? promotionTargets : undefined,
+      };
+      onSubmit(createData);
+    }
   };
 
   const handleReset = () => {
@@ -526,10 +556,10 @@ export default function PromotionForm({
               <Label>
                 Ngày bắt đầu <span className="text-red-500">*</span>
               </Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={formData.startDate}
-                onChange={(e) => handleValueChange("startDate", e.target.value)}
+                onChange={(value) => handleValueChange("startDate", value)}
+                placeholder="Chọn ngày bắt đầu"
               />
             </div>
 
@@ -537,10 +567,10 @@ export default function PromotionForm({
               <Label>
                 Ngày kết thúc <span className="text-red-500">*</span>
               </Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={formData.endDate}
-                onChange={(e) => handleValueChange("endDate", e.target.value)}
+                onChange={(value) => handleValueChange("endDate", value)}
+                placeholder="Chọn ngày kết thúc"
               />
             </div>
 

@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { GitCompare, X } from "lucide-react";
@@ -132,24 +132,24 @@ export default function CompareSection({
                   <label className="text-sm font-medium text-gray-700">
                     Từ ngày
                   </label>
-                  <Input
-                    type="date"
-                    value={period1.startDate || ""}
-                    onChange={(e) =>
-                      setPeriod1({ ...period1, startDate: e.target.value })
+                  <DatePicker
+                    value={period1.startDate}
+                    onChange={(value) =>
+                      setPeriod1({ ...period1, startDate: value })
                     }
+                    placeholder="Chọn từ ngày"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
                     Đến ngày
                   </label>
-                  <Input
-                    type="date"
-                    value={period1.endDate || ""}
-                    onChange={(e) =>
-                      setPeriod1({ ...period1, endDate: e.target.value })
+                  <DatePicker
+                    value={period1.endDate}
+                    onChange={(value) =>
+                      setPeriod1({ ...period1, endDate: value })
                     }
+                    placeholder="Chọn đến ngày"
                   />
                 </div>
               </>
@@ -259,24 +259,24 @@ export default function CompareSection({
                   <label className="text-sm font-medium text-gray-700">
                     Từ ngày
                   </label>
-                  <Input
-                    type="date"
-                    value={period2.startDate || ""}
-                    onChange={(e) =>
-                      setPeriod2({ ...period2, startDate: e.target.value })
+                  <DatePicker
+                    value={period2.startDate}
+                    onChange={(value) =>
+                      setPeriod2({ ...period2, startDate: value })
                     }
+                    placeholder="Chọn từ ngày"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
                     Đến ngày
                   </label>
-                  <Input
-                    type="date"
-                    value={period2.endDate || ""}
-                    onChange={(e) =>
-                      setPeriod2({ ...period2, endDate: e.target.value })
+                  <DatePicker
+                    value={period2.endDate}
+                    onChange={(value) =>
+                      setPeriod2({ ...period2, endDate: value })
                     }
+                    placeholder="Chọn đến ngày"
                   />
                 </div>
               </>

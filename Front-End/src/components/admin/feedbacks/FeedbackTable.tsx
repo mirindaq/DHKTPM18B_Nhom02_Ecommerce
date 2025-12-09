@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Table,
   TableBody,
@@ -156,13 +156,10 @@ export default function FeedbackTable({
           {/* From Date */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-600">Từ ngày</label>
-            <Input
-              type="date"
-              value={filters.fromDate || ""}
-              onChange={(e) => handleFilterChange("fromDate", e.target.value)}
-              disabled={isLoading}
-              className="h-9 cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              style={{ colorScheme: "light" }}
+            <DatePicker
+              value={filters.fromDate}
+              onChange={(value) => handleFilterChange("fromDate", value)}
+              placeholder="Chọn từ ngày"
             />
           </div>
 
@@ -171,13 +168,10 @@ export default function FeedbackTable({
             <label className="text-xs font-medium text-gray-600">
               Đến ngày
             </label>
-            <Input
-              type="date"
-              value={filters.toDate || ""}
-              onChange={(e) => handleFilterChange("toDate", e.target.value)}
-              disabled={isLoading}
-              className="h-9 cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              style={{ colorScheme: "light" }}
+            <DatePicker
+              value={filters.toDate}
+              onChange={(value) => handleFilterChange("toDate", value)}
+              placeholder="Chọn đến ngày"
             />
           </div>
 

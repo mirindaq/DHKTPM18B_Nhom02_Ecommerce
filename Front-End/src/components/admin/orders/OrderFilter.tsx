@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -104,12 +105,10 @@ export default function OrderFilter({ onSearch, isLoading }: OrderFilterProps) {
             <label className="text-sm font-medium text-gray-700">
               Ngày đặt hàng
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={orderDate}
-              onChange={(e) => setOrderDate(e.target.value)}
-              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-              disabled={isLoading}
+              onChange={setOrderDate}
+              placeholder="Chọn ngày đặt hàng"
             />
           </div>
 

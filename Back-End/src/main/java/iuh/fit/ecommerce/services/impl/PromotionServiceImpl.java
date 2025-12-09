@@ -98,21 +98,14 @@ public class PromotionServiceImpl implements PromotionService {
     public PromotionResponse updatePromotion(Long id, PromotionUpdateRequest request) {
         Promotion promotion = findById(id);
 
-//        promotion.setName(request.getName());
-//        promotion.setType(request.getType());
-//        promotion.setDiscountType(request.getDiscountType());
-//        promotion.setDiscountValue(request.getDiscountValue());
-//        promotion.setPriority(request.getPriority());
-//        promotion.setDescription(request.getDescription());
-//        promotion.setStartDate(request.getStartDate());
-//        promotion.setEndDate(request.getEndDate());
-
+        // Sử dụng mapper để update promotion từ DTO
+        promotionMapper.updatePromotionFromDto(request, promotion);
         promotionRepository.save(promotion);
 
         // Xoá targets cũ và thêm targets mới
         promotionTargetRepository.deleteByPromotion(promotion);
-        if (request.getTargets() != null) {
-            promotionTargetRepository.saveAll(promotionMapper.toPromotionTargets(request.getTargets(), promotion));
+        if (request.getPromotionTargets() != null) {
+            promotionTargetRepository.saveAll(promotionMapper.toPromotionTargets(request.getPromotionTargets(), promotion));
         }
 
         return promotionMapper.toResponse(promotion);
