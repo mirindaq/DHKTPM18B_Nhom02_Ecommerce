@@ -2,11 +2,13 @@ package iuh.fit.ecommerce.services.impl;
 
 import iuh.fit.ecommerce.dtos.response.ai.ChatAIResponse;
 import iuh.fit.ecommerce.dtos.response.ai.ChatHistoryMessage;
+import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.entities.Customer;
 import iuh.fit.ecommerce.entities.Order;
 import iuh.fit.ecommerce.entities.Product;
 import iuh.fit.ecommerce.entities.ProductVariant;
 import iuh.fit.ecommerce.exceptions.custom.ResourceNotFoundException;
+import iuh.fit.ecommerce.mappers.ProductMapper;
 import iuh.fit.ecommerce.repositories.CustomerRepository;
 import iuh.fit.ecommerce.repositories.OrderRepository;
 import iuh.fit.ecommerce.repositories.ProductRepository;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +38,7 @@ public class AIServiceImpl implements AIService {
     private final ChatModel chatModel;
     private final ChatMemoryService chatMemoryService;
     private final VectorStoreService vectorStoreService;
+    private final ProductMapper productMapper;
 
     @Override
     public ChatAIResponse chat(String message, Long customerId, String sessionId) {
@@ -91,9 +95,35 @@ public class AIServiceImpl implements AIService {
         
         chatMemoryService.addMessage(sessionId, "assistant", response);
 
+        String lowerMessage = message.toLowerCase();
+        boolean isProductRelated = lowerMessage.contains("sản phẩm") 
+                || lowerMessage.contains("mua") 
+                || lowerMessage.contains("giá") 
+                || lowerMessage.contains("tìm")
+                || lowerMessage.contains("có")
+                || lowerMessage.contains("nào")
+                || lowerMessage.contains("gợi ý")
+                || lowerMessage.contains("khuyên")
+                || lowerMessage.contains("phù hợp");
+
+        List<ProductResponse> productResponses = new ArrayList<>();
+        
+        if (isProductRelated) {
+            List<Long> productIds = vectorStoreService.searchSimilarProductIds(message, 2);
+            List<Product> products = new ArrayList<>();
+            if (!productIds.isEmpty()) {
+                products = productRepository.findAllById(productIds);
+            }
+
+            productResponses = products.stream()
+                    .map(productMapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
         return ChatAIResponse.builder()
                 .message(response)
                 .role("assistant")
+                .products(productResponses)
                 .build();
     }
 

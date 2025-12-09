@@ -5,7 +5,6 @@ import iuh.fit.ecommerce.entities.ProductVariant;
 import iuh.fit.ecommerce.services.VectorStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 public class VectorStoreServiceImpl implements VectorStoreService {
 
     private final VectorStore vectorStore;
-    private final EmbeddingModel embeddingModel;
 
     @Override
     public void indexProductVariant(ProductVariant productVariant) {
@@ -87,6 +85,37 @@ public class VectorStoreServiceImpl implements VectorStoreService {
                             doc.getFormattedContent()
                     );
                 })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> searchSimilarProductIds(String query, int topK) {
+        SearchRequest request = SearchRequest.builder()
+                .query(query)
+                .topK(topK)
+                .build();
+
+        List<Document> retrievedDocs = vectorStore.similaritySearch(request);
+
+        // Lấy danh sách product IDs từ metadata, loại bỏ trùng lặp
+        return retrievedDocs.stream()
+                .map(doc -> {
+                    Map<String, Object> metadata = doc.getMetadata();
+                    Object productIdObj = metadata.get("productId");
+                    if (productIdObj == null) {
+                        return null;
+                    }
+                    // Xử lý cả Number và String
+                    if (productIdObj instanceof Number) {
+                        return ((Number) productIdObj).longValue();
+                    } else if (productIdObj instanceof String) {
+                        return Long.parseLong((String) productIdObj);
+                    } else {
+                        return Long.parseLong(productIdObj.toString());
+                    }
+                })
+                .filter(id -> id != null) // Loại bỏ null
+                .distinct() // Loại bỏ trùng lặp
                 .collect(Collectors.toList());
     }
 

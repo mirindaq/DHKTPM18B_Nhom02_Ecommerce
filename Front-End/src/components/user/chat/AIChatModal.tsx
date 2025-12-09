@@ -7,12 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Bot, Send, Loader2, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ProductCardCompact from "./ProductCardCompact";
+import type { Product } from "@/types/product.type";
 
 interface AIMessage {
   id: string;
   content: string;
   isAI: boolean;
   createdAt: Date;
+  products?: Product[]; // Danh sách sản phẩm từ AI
 }
 
 interface AIChatModalProps {
@@ -84,6 +87,7 @@ export default function AIChatModal({ isOpen, onClose }: AIChatModalProps) {
         content: response.data.message,
         isAI: true,
         createdAt: new Date(),
+        products: response.data.products || [], // Lấy danh sách sản phẩm từ response
       };
 
       // Xóa "thinking" message và thêm response thật
@@ -108,7 +112,7 @@ export default function AIChatModal({ isOpen, onClose }: AIChatModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-24 right-4 sm:right-25 z-[60] w-[calc(100vw-2rem)] sm:w-[400px] h-[calc(100vh-10rem)] sm:h-[600px] max-h-[600px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 rounded-xl bg-gradient-to-b from-purple-50 to-white">
+    <div className="fixed bottom-24 right-4 sm:right-25 z-[60] w-[calc(100vw-2rem)] sm:w-[500px] h-[calc(100vh-8rem)] sm:h-[700px] max-h-[700px] shadow-2xl flex flex-col animate-in slide-in-from-bottom-5 duration-300 border-2 rounded-xl bg-gradient-to-b from-purple-50 to-white">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-t-xl">
         <div className="flex items-center gap-2">
@@ -202,6 +206,19 @@ export default function AIChatModal({ isOpen, onClose }: AIChatModalProps) {
                       minute: "2-digit",
                     })}
                   </p>
+                )}
+                {/* Hiển thị sản phẩm nếu có */}
+                {msg.isAI && msg.products && msg.products.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-medium text-purple-600 mb-2">
+                      Sản phẩm gợi ý:
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {msg.products.slice(0, 2).map((product) => (
+                        <ProductCardCompact key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 

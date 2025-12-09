@@ -19,13 +19,11 @@ import {
 import { orderService } from "@/services/order.service";
 import { voucherService } from "@/services/voucher.service";
 import { wishlistService } from "@/services/wishlist.service";
-import { bannerService } from "@/services/banner.service";
 import { useQuery } from "@/hooks/useQuery";
 import { useMutation } from "@/hooks/useMutation";
 import type { OrderResponse } from "@/types/order.type";
 import type { VoucherAvailableResponse } from "@/types/voucher.type";
 import type { WishListResponse, WishListRequest } from "@/types/wishlist.type";
-import type { Banner } from "@/types/banner.type";
 import { toast } from "sonner";
 import { USER_PATH, PUBLIC_PATH } from "@/constants/path";
 
@@ -98,17 +96,11 @@ export default function Overview() {
     setProductToDelete(null);
   };
 
-  const { data: bannersData, isLoading: loadingBanners } = useQuery(
-    () => bannerService.getBannersToDisplay(),
-    {
-      queryKey: ["featuredBanners"],
-    }
-  );
 
   const recentOrders = ordersData?.data?.data?.slice(0, 3) || [];
   const availableVouchers = vouchersData || [];
   const wishlistItems = wishlistData?.data || [];
-  const featuredBanners = bannersData?.data || [];
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -485,63 +477,7 @@ export default function Overview() {
         </Card>
       </div>
 
-      {/* Featured Programs */}
-      <div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          Chương trình nổi bật
-        </h3>
-        {loadingBanners ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-red-600" />
-          </div>
-        ) : featuredBanners.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center py-8">
-              <p className="text-gray-600">Chưa có chương trình nổi bật</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-3 gap-4">
-            {featuredBanners.slice(0, 3).map((banner: Banner) => (
-              <Card
-                key={banner.id}
-                className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => {
-                  if (banner.linkUrl) {
-                    if (banner.linkUrl.startsWith("http")) {
-                      window.open(banner.linkUrl, "_blank");
-                    } else {
-                      navigate(banner.linkUrl);
-                    }
-                  }
-                }}
-              >
-                <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
-                  {banner.imageUrl ? (
-                    <img
-                      src={banner.imageUrl}
-                      alt={banner.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ShoppingBag size={32} className="text-gray-400" />
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {banner.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {banner.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+
     </div>
   );
 }

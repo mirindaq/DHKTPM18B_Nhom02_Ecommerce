@@ -8,5 +8,6 @@ public interface VectorStoreService {
     void indexProductVariant(ProductVariant productVariant);
     void deleteProductVariantIndex(Long productVariantId);
     List<String> searchSimilarProducts(String query, int topK);
+    List<Long> searchSimilarProductIds(String query, int topK); // Trả về danh sách product IDs
 }
 

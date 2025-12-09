@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Loader2 } from "lucide-react";
 import {
   Home,
   ShoppingBag,
@@ -16,14 +17,18 @@ import {
   LogOut,
   Eye,
   EyeOff,
-  ChevronDown,
   ShoppingCart,
   Ticket,
   Crown,
   Wrench,
   FileText,
 } from "lucide-react";
+import { orderService } from "@/services/order.service";
+import { rankingService } from "@/services/ranking.service";
+import { useQuery } from "@/hooks";
 import Overview from "./Overview";
+import type { OrderListResponse } from "@/types/order.type";
+import type { RankResponse } from "@/types/ranking.type";
 
 type MenuItem = {
   icon: React.ReactNode;
@@ -112,13 +117,45 @@ export default function Profile() {
     );
   }
 
-  // Mock data - sẽ được thay thế bằng API thực tế
-  const totalOrders = 11;
-  const totalSpent = 1828000;
-  const currentRank = "S-NULL";
-  const nextRank = "S-NEW";
-  const requiredSpending = 3000000;
-  const remainingSpending = requiredSpending - totalSpent;
+  // Fetch orders để tính tổng số đơn và tổng tiền
+  const {
+    data: ordersData,
+    isLoading: loadingOrders,
+  } = useQuery<OrderListResponse>(
+    () => orderService.getMyOrders(1, 1000), // Lấy tất cả orders để tính tổng
+    {
+      queryKey: ["my-orders", "profile-stats"],
+    }
+  );
+
+  // Fetch ranks để tính next rank
+  const {
+    data: ranksData,
+    isLoading: loadingRanks,
+  } = useQuery<RankResponse>(
+    () => rankingService.getAllRankings(),
+    {
+      queryKey: ["ranks", "all"],
+    }
+  );
+
+  // Tính toán thống kê
+  const orders = ordersData?.data?.data || [];
+  const totalOrders = orders.length;
+  const totalSpent = orders.reduce((sum, order) => sum + (order.finalTotalPrice || 0), 0);
+  
+  // Lấy rank hiện tại và rank tiếp theo
+  const currentRank = user?.rank?.name || "MEMBER";
+  const ranks = ranksData?.data || [];
+  const sortedRanks = [...ranks].sort((a, b) => a.minSpending - b.minSpending);
+  const currentRankIndex = sortedRanks.findIndex(r => r.name === currentRank);
+  const nextRank = currentRankIndex >= 0 && currentRankIndex < sortedRanks.length - 1 
+    ? sortedRanks[currentRankIndex + 1] 
+    : null;
+  const requiredSpending = nextRank ? nextRank.minSpending : 0;
+  const remainingSpending = Math.max(0, requiredSpending - totalSpent);
+
+  const isLoadingStats = loadingOrders || loadingRanks;
 
   // Mask phone number
   const maskPhone = (phone: string | undefined) => {
@@ -232,7 +269,7 @@ export default function Profile() {
       {/* Header Section */}
       <div className="bg-white ">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between my-5">
             {/* Left: User Info */}
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
@@ -260,12 +297,9 @@ export default function Profile() {
                 </div>
               </div>
               <div className="ml-4">
-                <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-gray-200 text-gray-700">
+                <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-red-50 text-red-600">
                   {currentRank}
                 </span>
-                <p className="text-xs text-gray-500 mt-1">
-                  ⏰ Cập nhật lại sau 01/01/2026
-                </p>
               </div>
             </div>
 
@@ -276,59 +310,49 @@ export default function Profile() {
                   orientation="vertical"
                   className="absolute right-0 h-12"
                 />
-                <div className="flex items-center gap-2 mb-1">
-                  <ShoppingCart size={20} className="text-red-600" />
-                  <span className="text-2xl font-bold text-gray-900">
-                    {totalOrders}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600">Tổng số đơn hàng đã mua</p>
+                {isLoadingStats ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-red-600 mx-auto" />
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShoppingCart size={20} className="text-red-600" />
+                      <span className="text-2xl font-bold text-gray-900">
+                        {totalOrders}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">Tổng số đơn hàng đã mua</p>
+                  </>
+                )}
               </div>
               <div className="text-center pr-8 relative">
                 <Separator
                   orientation="vertical"
                   className="absolute right-0 h-12"
                 />
-                <div className="flex items-center gap-2 mb-1">
-                  <Ticket size={20} className="text-red-600" />
-                  <span className="text-2xl font-bold text-gray-900">
-                    {totalSpent.toLocaleString("vi-VN")}đ
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600">
-                  Tổng tiền tích lũy{" "}
-                  <span className="text-red-600">Từ 01/01/2024</span>
-                </p>
-                <p className="text-xs text-gray-600">
-                  Cần chi tiêu thêm{" "}
-                  <span className="font-semibold">
-                    {remainingSpending.toLocaleString("vi-VN")}đ
-                  </span>{" "}
-                  để lên hạng <span className="font-semibold">{nextRank}</span>
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-600 mb-2">
-                  Bạn đang ở kênh thành viên
-                </p>
-                <Button
-                  variant="outline"
-                  className="px-4 py-2 bg-red-50 hover:bg-red-100 border-red-200"
-                >
-                  <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center mr-2">
-                    <span className="text-white font-bold text-xs">S</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">
-                    CellphoneS
-                  </span>
-                  <ChevronDown size={16} className="text-gray-600 ml-2" />
-                </Button>
-                <a
-                  href="https://cellphones.com.vn"
-                  className="text-xs text-blue-600 hover:underline mt-1 block"
-                >
-                  cellphones.com.vn ↗
-                </a>
+                {isLoadingStats ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-red-600 mx-auto" />
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Ticket size={20} className="text-red-600" />
+                      <span className="text-2xl font-bold text-gray-900">
+                        {totalSpent.toLocaleString("vi-VN")}đ
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Tổng tiền tích lũy
+                    </p>
+                    {nextRank && remainingSpending > 0 && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        Cần chi tiêu thêm{" "}
+                        <span className="font-semibold text-red-600">
+                          {remainingSpending.toLocaleString("vi-VN")}đ
+                        </span>{" "}
+                        để lên hạng <span className="font-semibold">{nextRank.name}</span>
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
