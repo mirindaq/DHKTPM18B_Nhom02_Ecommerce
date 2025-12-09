@@ -15,6 +15,8 @@ public interface ChatService {
     
     ChatResponse getChatByCustomerId(Long customerId);
     
+    ChatResponse getChatByCustomerEmail(String email);
+    
     List<ChatResponse> getChatsByStaffId(Long staffId);
     
     List<ChatResponse> getAllChats();

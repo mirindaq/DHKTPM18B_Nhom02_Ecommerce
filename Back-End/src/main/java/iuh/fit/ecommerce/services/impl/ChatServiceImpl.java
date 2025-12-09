@@ -76,6 +76,12 @@ public class ChatServiceImpl implements ChatService {
     }
     
     @Override
+    public ChatResponse getChatByCustomerEmail(String email) {
+        Customer customer = customerService.getCustomerEntityByEmail(email);
+        return getChatByCustomerId(customer.getId());
+    }
+    
+    @Override
     public List<ChatResponse> getChatsByStaffId(Long staffId) {
         List<Chat> chats = chatRepository.findByStaffId(staffId);
         return chats.stream()

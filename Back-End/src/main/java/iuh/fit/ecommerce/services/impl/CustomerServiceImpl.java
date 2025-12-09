@@ -129,6 +129,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public Customer getCustomerEntityByEmail(String email) {
+        return customerRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with email = " + email));
+    }
+
+    @Override
     @Transactional
     public void updateExpoPushToken(String expoPushToken) {
         Customer customer = securityUtils.getCurrentCustomer();

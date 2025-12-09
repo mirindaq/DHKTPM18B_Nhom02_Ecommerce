@@ -388,7 +388,11 @@ public class OrderServiceImpl implements OrderService {
         try {
             String customerEmail = order.getCustomer().getEmail();
             if (customerEmail != null && !customerEmail.isBlank()) {
-                emailService.sendOrderConfirmation(customerEmail, order);
+                // Fetch order with all necessary data for email to avoid lazy loading issues
+                Order orderWithDetails = orderRepository.findByIdWithDetailsForEmail(order.getId());
+                if (orderWithDetails != null) {
+                    emailService.sendOrderConfirmation(customerEmail, orderWithDetails);
+                }
             }
         } catch (Exception e) {
             // Log error but don't fail the order

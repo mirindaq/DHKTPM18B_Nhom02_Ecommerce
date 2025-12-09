@@ -97,4 +97,17 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     // Tính tổng tiền tích lũy từ đơn hàng COMPLETED của một customer
     @Query("SELECT COALESCE(SUM(o.finalTotalPrice), 0.0) FROM Order o WHERE o.customer.id = :customerId AND o.status = 'COMPLETED'")
     Double getTotalSpendingByCustomerId(@Param("customerId") Long customerId);
+    
+    // Fetch order with all necessary data for email (eager loading)
+    @Query("""
+        SELECT DISTINCT o FROM Order o
+        LEFT JOIN FETCH o.orderDetails od
+        LEFT JOIN FETCH od.productVariant pv
+        LEFT JOIN FETCH pv.productVariantValues pvv
+        LEFT JOIN FETCH pvv.variantValue vv
+        LEFT JOIN FETCH vv.variant v
+        LEFT JOIN FETCH pv.product p
+        WHERE o.id = :orderId
+    """)
+    Order findByIdWithDetailsForEmail(@Param("orderId") Long orderId);
 }

@@ -67,9 +67,17 @@ public class ChatController {
     
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<ResponseSuccess<ChatResponse>> getChatByCustomerId(
-            @PathVariable Long customerId
+            @PathVariable String customerId
     ) {
-        ChatResponse chatResponse = chatService.getChatByCustomerId(customerId);
+        // Try to parse as Long first, if fails treat as email
+        ChatResponse chatResponse;
+        try {
+            Long id = Long.parseLong(customerId);
+            chatResponse = chatService.getChatByCustomerId(id);
+        } catch (NumberFormatException e) {
+            // If not a number, treat as email
+            chatResponse = chatService.getChatByCustomerEmail(customerId);
+        }
         return ResponseEntity.ok(new ResponseSuccess<>(
                 OK,
                 "Get chat by customer successfully",
