@@ -1,14 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import type { RevenueByMonthResponse, RevenueByDayResponse, RevenueByYearResponse } from '@/types/dashboard.type'
+import { Eye } from 'lucide-react'
 
 interface RevenueCardProps {
   data: RevenueByMonthResponse[] | RevenueByDayResponse[] | RevenueByYearResponse[]
   timeType: 'day' | 'month' | 'year'
   loading?: boolean
+  onViewDetail?: (startDate: string, endDate: string, title: string) => void
 }
 
-export default function RevenueCard({ data, timeType, loading }: RevenueCardProps) {
+export default function RevenueCard({ data, timeType, loading, onViewDetail }: RevenueCardProps) {
   // Format data cho biểu đồ
   const chartData = data.map((item) => {
     if ('month' in item) {
@@ -182,18 +185,31 @@ export default function RevenueCard({ data, timeType, loading }: RevenueCardProp
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     TB/Đơn
                   </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {data.map((item, index) => {
                   const avgPerOrder = item.orderCount > 0 ? item.revenue / item.orderCount : 0
                   let displayName = ''
+                  let startDate = ''
+                  let endDate = ''
+                  
                   if ('month' in item) {
                     displayName = `Tháng ${item.month}/${item.year}`
+                    startDate = `${item.year}-${String(item.month).padStart(2, '0')}-01`
+                    const lastDay = new Date(item.year, item.month, 0).getDate()
+                    endDate = `${item.year}-${String(item.month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
                   } else if ('date' in item) {
                     displayName = new Date(item.date).toLocaleDateString('vi-VN')
+                    startDate = item.date
+                    endDate = item.date
                   } else {
                     displayName = `Năm ${item.year}`
+                    startDate = `${item.year}-01-01`
+                    endDate = `${item.year}-12-31`
                   }
                   
                   return (
@@ -209,6 +225,17 @@ export default function RevenueCard({ data, timeType, loading }: RevenueCardProp
                       </td>
                       <td className="px-4 py-3 text-sm text-right text-gray-600">
                         {avgPerOrder.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} ₫
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onViewDetail?.(startDate, endDate, `Chi tiết đơn hàng - ${displayName}`)}
+                          className="gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Chi tiết
+                        </Button>
                       </td>
                     </tr>
                   )
@@ -228,6 +255,7 @@ export default function RevenueCard({ data, timeType, loading }: RevenueCardProp
                   <td className="px-4 py-3 text-sm text-right font-bold text-gray-600">
                     {(totalRevenue / totalOrders).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} ₫
                   </td>
+                  <td className="px-4 py-3"></td>
                 </tr>
               </tfoot>
             </table>

@@ -107,4 +107,71 @@ public interface VoucherUsageHistoryRepository extends JpaRepository<VoucherUsag
            "ORDER BY v.code")
     List<VoucherUsageHistory> findAllWithDetailsByDateRange(@Param("startDate") LocalDateTime startDate,
                                                               @Param("endDate") LocalDateTime endDate);
+    
+    // Lấy usage history theo voucher ID và khoảng thời gian
+    @Query("SELECT vuh FROM VoucherUsageHistory vuh " +
+           "JOIN FETCH vuh.voucher v " +
+           "JOIN FETCH vuh.order o " +
+           "JOIN FETCH o.customer c " +
+           "WHERE v.id = :voucherId AND o.orderDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY o.orderDate DESC")
+    List<VoucherUsageHistory> findByVoucherIdAndDateRange(@Param("voucherId") Long voucherId,
+                                                            @Param("startDate") LocalDateTime startDate,
+                                                            @Param("endDate") LocalDateTime endDate);
+    
+    // Lấy một usage history bất kỳ của voucher (để lấy thông tin voucher)
+    @Query("SELECT vuh FROM VoucherUsageHistory vuh " +
+           "JOIN FETCH vuh.voucher v " +
+           "WHERE v.id = :voucherId")
+    java.util.Optional<VoucherUsageHistory> findFirstByVoucherId(@Param("voucherId") Long voucherId);
+    
+    // ALL vouchers by day range (không giới hạn top 5)
+    @Query(value = """
+            SELECT v.id as voucherId,
+                   v.code as voucherCode,
+                   v.name as voucherName,
+                   COUNT(vuh.id) as usageCount,
+                   COALESCE(SUM(vuh.discount_amount), 0) as totalDiscountAmount
+            FROM voucher_usage_histories vuh
+            JOIN vouchers v ON vuh.voucher_id = v.id
+            JOIN orders o ON vuh.order_id = o.id
+            WHERE o.order_date BETWEEN :startDate AND :endDate
+            GROUP BY v.id, v.code, v.name
+            ORDER BY usageCount DESC
+            """, nativeQuery = true)
+    List<TopVoucherProjection> getAllVouchersByDay(@Param("startDate") LocalDateTime startDate,
+                                                     @Param("endDate") LocalDateTime endDate);
+
+    // ALL vouchers by month (không giới hạn top 5)
+    @Query(value = """
+            SELECT v.id as voucherId,
+                   v.code as voucherCode,
+                   v.name as voucherName,
+                   COUNT(vuh.id) as usageCount,
+                   COALESCE(SUM(vuh.discount_amount), 0) as totalDiscountAmount
+            FROM voucher_usage_histories vuh
+            JOIN vouchers v ON vuh.voucher_id = v.id
+            JOIN orders o ON vuh.order_id = o.id
+            WHERE YEAR(o.order_date) = :year AND MONTH(o.order_date) = :month
+            GROUP BY v.id, v.code, v.name
+            ORDER BY usageCount DESC
+            """, nativeQuery = true)
+    List<TopVoucherProjection> getAllVouchersByMonth(@Param("year") Integer year,
+                                                       @Param("month") Integer month);
+
+    // ALL vouchers by year (không giới hạn top 5)
+    @Query(value = """
+            SELECT v.id as voucherId,
+                   v.code as voucherCode,
+                   v.name as voucherName,
+                   COUNT(vuh.id) as usageCount,
+                   COALESCE(SUM(vuh.discount_amount), 0) as totalDiscountAmount
+            FROM voucher_usage_histories vuh
+            JOIN vouchers v ON vuh.voucher_id = v.id
+            JOIN orders o ON vuh.order_id = o.id
+            WHERE YEAR(o.order_date) = :year
+            GROUP BY v.id, v.code, v.name
+            ORDER BY usageCount DESC
+            """, nativeQuery = true)
+    List<TopVoucherProjection> getAllVouchersByYear(@Param("year") Integer year);
 }

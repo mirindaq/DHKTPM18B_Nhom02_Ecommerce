@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation } from "@/hooks";
 import { voucherService } from "@/services/voucher.service";
 import VoucherForm from "@/components/admin/vouchers/VoucherForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ADMIN_PATH } from "@/constants/path";
 import type {
   VoucherResponse,
   CreateVoucherRequest,
@@ -20,7 +21,6 @@ export default function VoucherFormPage() {
   const [showSendNotificationDialog, setShowSendNotificationDialog] = useState(false);
   const [createdVoucherId, setCreatedVoucherId] = useState<number | null>(null);
 
-  // Get voucher by ID if editing
   const {
     data: voucherData,
     isLoading: isLoadingVoucher,
@@ -46,7 +46,8 @@ export default function VoucherFormPage() {
           setCreatedVoucherId(response.id);
           setShowSendNotificationDialog(true);
         } else {
-          refetchVoucher();
+          // Navigate to vouchers list after successful creation
+          navigate(ADMIN_PATH.VOUCHERS);
         }
       },
       onError: (error) => {
@@ -84,6 +85,8 @@ export default function VoucherFormPage() {
     {
       onSuccess: () => {
         toast.success("Gửi thông báo voucher thành công");
+        // Navigate to vouchers list after sending notification
+        navigate(ADMIN_PATH.VOUCHERS);
       },
       onError: (error) => {
         console.error("Error sending notification:", error);
@@ -111,24 +114,24 @@ export default function VoucherFormPage() {
       handleSendNotification(createdVoucherId);
       setShowSendNotificationDialog(false);
       setCreatedVoucherId(null);
-      refetchVoucher();
+      // Navigation will be handled in sendNotificationMutation.onSuccess
     }
   };
 
   const handleCancelSendNotification = () => {
     setShowSendNotificationDialog(false);
     setCreatedVoucherId(null);
-    refetchVoucher();
-  };
-
-  const handleBack = () => {
-    navigate("/admin/vouchers");
+    // Navigate to vouchers list after canceling
+    navigate(ADMIN_PATH.VOUCHERS);
   };
 
   if (isEdit && isLoadingVoucher) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải thông tin voucher...</p>
+        </div>
       </div>
     );
   }
@@ -138,21 +141,21 @@ export default function VoucherFormPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button
-          variant="outline"
-          size="sm"
-          onClick={handleBack}
-          className="flex items-center gap-2"
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(ADMIN_PATH.VOUCHERS)}
         >
-          <ArrowLeft className="h-4 w-4" />
-          Quay lại
+          <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900">
             {isEdit ? "Chỉnh sửa voucher" : "Tạo voucher mới"}
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-sm text-gray-500 mt-1">
             {isEdit
-              ? "Cập nhật thông tin voucher"
+              ? voucher
+                ? `Cập nhật thông tin voucher: ${voucher.name}`
+                : "Cập nhật thông tin voucher"
               : "Tạo voucher giảm giá mới cho khách hàng"
             }
           </p>
@@ -160,14 +163,12 @@ export default function VoucherFormPage() {
       </div>
 
       {/* Form */}
-      <div >
-        <VoucherForm
-          voucher={voucher}
-          onSubmit={handleFormSubmit}
-          onSendNotification={handleSendNotification}
-          isLoading={isLoading || createVoucherMutation.isLoading || updateVoucherMutation.isLoading}
-        />
-      </div>
+      <VoucherForm
+        voucher={voucher}
+        onSubmit={handleFormSubmit}
+        onSendNotification={handleSendNotification}
+        isLoading={isLoading || createVoucherMutation.isLoading || updateVoucherMutation.isLoading}
+      />
 
       {/* Send notification dialog */}
       <AlertDialog open={showSendNotificationDialog} onOpenChange={setShowSendNotificationDialog}>

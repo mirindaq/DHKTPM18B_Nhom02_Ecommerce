@@ -80,6 +80,44 @@ export interface PromotionTypeDistribution {
   percentage: number;
 }
 
+// Voucher Detail Types
+export interface VoucherOrderDetail {
+  orderId: number;
+  orderCode: string;
+  orderDate: string;
+  customerName: string;
+  orderTotal: number;
+  discountAmount: number;
+}
+
+export interface VoucherDetailResponse {
+  voucherId: number;
+  voucherCode: string;
+  voucherName: string;
+  totalUsage: number;
+  totalDiscountAmount: number;
+  orders: VoucherOrderDetail[];
+}
+
+// Promotion Detail Types
+export interface PromotionOrderDetail {
+  orderId: number;
+  orderCode: string;
+  orderDate: string;
+  customerName: string;
+  orderTotal: number;
+  discountAmount: number;
+}
+
+export interface PromotionDetailResponse {
+  promotionId: number;
+  promotionName: string;
+  promotionType: string;
+  totalUsage: number;
+  totalDiscountAmount: number;
+  orders: PromotionOrderDetail[];
+}
+
 export interface ApiResponse<T> {
   status: number;
   message: string;

@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartDetail {
+public class CartDetail extends BaseEntity {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)

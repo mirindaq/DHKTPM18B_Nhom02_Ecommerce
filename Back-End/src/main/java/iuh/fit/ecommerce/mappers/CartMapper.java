@@ -29,6 +29,8 @@ public interface CartMapper {
     @Mapping(source = "totalItems", target = "totalItems")
     @Mapping(source = "cartDetails", target = "items")
     @Mapping(source = "cartDetails", target = "totalPrice", qualifiedByName = "calculateTotalPrice")
+    @Mapping(source = "modifiedAt", target = "modifiedAt")
+
     CartWithCustomerResponse toCartWithCustomerResponse(Cart cart);
 
     @Mapping(source = "productVariant.id", target = "productVariantId")

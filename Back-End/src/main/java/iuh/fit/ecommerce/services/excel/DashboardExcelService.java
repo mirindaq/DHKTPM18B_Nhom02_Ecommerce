@@ -1,6 +1,9 @@
 package iuh.fit.ecommerce.services.excel;
 
 import iuh.fit.ecommerce.dtos.response.dashboard.RevenueByDayResponse;
+import iuh.fit.ecommerce.dtos.response.dashboard.TopProductResponse;
+import iuh.fit.ecommerce.dtos.response.dashboard.TopVoucherResponse;
+import iuh.fit.ecommerce.dtos.response.dashboard.TopPromotionResponse;
 import iuh.fit.ecommerce.dtos.response.product.ProductResponse;
 import iuh.fit.ecommerce.entities.PromotionUsage;
 import iuh.fit.ecommerce.entities.VoucherUsageHistory;
@@ -41,19 +44,19 @@ public class DashboardExcelService {
         CellStyle currencyStyle = createCurrencyStyle(workbook);
         CellStyle numberStyle = createNumberStyle(workbook);
         
-        // Sheet 1: Tổng quan
+        // Sheet 1: Summary Statistics
         createSummarySheet(workbook, startDate, endDate, headerStyle, currencyStyle, numberStyle);
         
-        // Sheet 2: Chi tiết doanh thu
+        // Sheet 2: Revenue Detail
         createRevenueSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
         
-        // Sheet 3: Chi tiết Voucher
+        // Sheet 3: Voucher Usage
         createVoucherSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
         
-        // Sheet 4: Chi tiết Promotion
+        // Sheet 4: Customer Promotions
         createPromotionSheet(workbook, startDate, endDate, headerStyle, dateStyle, currencyStyle, numberStyle);
         
-        // Sheet 5: Danh sách sản phẩm
+        // Sheet 5: Products
         createProductSheet(workbook, headerStyle, currencyStyle, numberStyle);
         
         // Write to bytes
@@ -80,7 +83,7 @@ public class DashboardExcelService {
         Double promotionDiscount = promotionUsageRepository.sumPromotionDiscountByDateRange(start, end);
         Long voucherUsageCount = voucherUsageHistoryRepository.countVoucherUsageByDateRange(start, end);
         Long promotionUsageCount = promotionUsageRepository.countPromotionUsageByDateRange(start, end);
-        
+
         int rowNum = 0;
         
         // Title
@@ -96,13 +99,13 @@ public class DashboardExcelService {
         Row periodRow = sheet.createRow(rowNum++);
         periodRow.createCell(0).setCellValue("Kỳ báo cáo:");
         periodRow.createCell(1).setCellValue(startDate + " đến " + endDate);
-        
+
         // Export info
         Row exportTimeRow = sheet.createRow(rowNum++);
         exportTimeRow.createCell(0).setCellValue("Thời gian lập:");
         exportTimeRow.createCell(1).setCellValue(java.time.LocalDateTime.now().format(
             java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-        
+
         Row exportByRow = sheet.createRow(rowNum++);
         exportByRow.createCell(0).setCellValue("Người lập:");
         exportByRow.createCell(1).setCellValue("Hệ thống"); // Có thể customize để lấy tên user thực tế
@@ -293,8 +296,8 @@ public class DashboardExcelService {
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Mã Voucher", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại", 
-                           "Code Voucher", "Tên Voucher", "Loại giảm giá", "Số tiền giảm", 
+        String[] headers = {"Mã Voucher", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại",
+                           "Code Voucher", "Tên Voucher", "Loại giảm giá", "Số tiền giảm",
                            "Tổng đơn hàng", "Thành tiền"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -320,7 +323,7 @@ public class DashboardExcelService {
             Cell voucherIdCell = row.createCell(0);
             voucherIdCell.setCellValue(usage.getVoucher().getId());
             voucherIdCell.setCellStyle(numberStyle);
-            
+
             // Order ID
             Cell orderIdCell = row.createCell(1);
             orderIdCell.setCellValue(usage.getOrder().getId());
@@ -392,8 +395,8 @@ public class DashboardExcelService {
         
         // Header
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Mã Promotion", "Mã khuyến mãi", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại", 
-                           "Tên Promotion", "Loại Promotion", "Số tiền giảm", 
+        String[] headers = {"Mã Promotion", "Mã khuyến mãi", "Mã đơn hàng", "Ngày đặt", "Tên khách hàng", "Số điện thoại",
+                           "Tên Promotion", "Loại Promotion", "Số tiền giảm",
                            "Tổng đơn hàng", "Thành tiền", "Phương thức thanh toán", "Trạng thái"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -418,11 +421,11 @@ public class DashboardExcelService {
             Cell promotionIdCell = row.createCell(0);
             promotionIdCell.setCellValue(usage.getPromotion().getId());
             promotionIdCell.setCellStyle(numberStyle);
-            
+
             // Promotion Code (generated from name)
             String promotionCode = generatePromotionCode(usage.getPromotion().getName());
             row.createCell(1).setCellValue(promotionCode);
-            
+
             // Order ID
             Cell orderIdCell = row.createCell(2);
             orderIdCell.setCellValue(usage.getOrder().getId());
@@ -457,11 +460,11 @@ public class DashboardExcelService {
             finalTotalCell.setCellStyle(currencyStyle);
             
             // Payment method
-            row.createCell(11).setCellValue(usage.getOrder().getPaymentMethod() != null ? 
+            row.createCell(11).setCellValue(usage.getOrder().getPaymentMethod() != null ?
                     usage.getOrder().getPaymentMethod().name() : "");
             
             // Status
-            row.createCell(12).setCellValue(usage.getOrder().getStatus() != null ? 
+            row.createCell(12).setCellValue(usage.getOrder().getStatus() != null ?
                     usage.getOrder().getStatus().name() : "");
             
             totalDiscount += (usage.getDiscountAmount() != null ? usage.getDiscountAmount() : 0);
@@ -572,7 +575,7 @@ public class DashboardExcelService {
         style.setDataFormat(createHelper.createDataFormat().getFormat("#,##0"));
         return style;
     }
-    
+
     /**
      * Generate promotion code from promotion name
      * Example: "Black Friday 2024" -> "BF2024"
@@ -581,21 +584,21 @@ public class DashboardExcelService {
         if (promotionName == null || promotionName.isEmpty()) {
             return "PROMO";
         }
-        
+
         // Remove special characters and split by space
         String[] words = promotionName.toUpperCase()
                 .replaceAll("[^A-Z0-9\\s]", "")
                 .split("\\s+");
-        
+
         StringBuilder code = new StringBuilder();
-        
+
         // Take first letter of each word (max 4 letters) + numbers
         int letterCount = 0;
         StringBuilder numbers = new StringBuilder();
-        
+
         for (String word : words) {
             if (word.isEmpty()) continue;
-            
+
             // Check if word is a number
             if (word.matches("\\d+")) {
                 numbers.append(word);
@@ -604,17 +607,17 @@ public class DashboardExcelService {
                 letterCount++;
             }
         }
-        
+
         // Append numbers at the end
         code.append(numbers);
-        
+
         // If code is too short, use first 6 chars of name
         if (code.length() < 3) {
             return promotionName.toUpperCase()
                     .replaceAll("[^A-Z0-9]", "")
                     .substring(0, Math.min(6, promotionName.length()));
         }
-        
+
         return code.toString();
     }
 }

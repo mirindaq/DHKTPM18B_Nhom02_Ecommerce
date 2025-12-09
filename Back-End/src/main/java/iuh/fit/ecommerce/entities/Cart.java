@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cart {
+public class Cart extends BaseEntity {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
@@ -36,5 +37,8 @@ public class Cart {
             cascade = {CascadeType.MERGE, CascadeType.PERSIST},
             orphanRemoval = true)
     private List<CartDetail> cartDetails = new ArrayList<>();
+
+    @Column(name = "last_reminder_sent_at")
+    private LocalDateTime lastReminderSentAt;
 
 }

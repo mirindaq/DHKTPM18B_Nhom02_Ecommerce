@@ -11,6 +11,7 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -21,8 +22,6 @@ import java.util.Map;
 @Configuration
 @EnableCaching
 public class CacheConfig {
-
-    // Cache names
     public static final String PROVINCE_CACHE = "provinces";
     public static final String  CATEGORY_CACHE = "categories";
     public static final String BRAND_CACHE = "brands";
@@ -39,36 +38,53 @@ public class CacheConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // GenericJackson2JsonRedisSerializer tự động xử lý type information
-        // Không cần activateDefaultTyping vì sẽ gây conflict khi deserialize
+        // Cấu hình type information với NON_FINAL để đảm bảo ResponseWithPagination có type info
+        objectMapper.activateDefaultTyping(
+            objectMapper.getPolymorphicTypeValidator(),
+            com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.NON_FINAL,
+            com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+        );
+
         GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
         
+        // ObjectMapper riêng cho các cache có List trực tiếp (không có type info cho List)
+        ObjectMapper listObjectMapper = new ObjectMapper();
+        listObjectMapper.registerModule(new JavaTimeModule());
+        listObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        Jackson2JsonRedisSerializer<Object> listSerializer = new Jackson2JsonRedisSerializer<>(listObjectMapper, Object.class);
+        
         // Default cache configuration (24 hours TTL for level 1 cache)
+        // Dùng cho các cache có ResponseWithPagination (cần type info)
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(24))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer))
                 .disableCachingNullValues();
 
+        // Configuration riêng cho các cache có List trực tiếp (không có type info)
+        RedisCacheConfiguration listConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofHours(24))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(listSerializer))
+                .disableCachingNullValues();
+
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        cacheConfigurations.put(PROVINCE_CACHE, defaultConfig.entryTtl(Duration.ofHours(24)));
+        // Các cache có List trực tiếp → dùng listConfig (không có type info)
+        cacheConfigurations.put(PROVINCE_CACHE, listConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put(RANKING_CACHE, listConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put(BANNER_CACHE, listConfig.entryTtl(Duration.ofHours(1)));
 
+        // Các cache có ResponseWithPagination → dùng defaultConfig (có type info)
         cacheConfigurations.put(CATEGORY_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-
         cacheConfigurations.put(BRAND_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-
-        cacheConfigurations.put(BANNER_CACHE, defaultConfig.entryTtl(Duration.ofHours(1)));
-
-        cacheConfigurations.put(RANKING_CACHE, defaultConfig.entryTtl(Duration.ofHours(24)));
 
         cacheConfigurations.put(ARTICLE_CATEGORY_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
 
-        cacheConfigurations.put(VARIANT_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-
-        cacheConfigurations.put(CATEGORY_BRAND_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
-
-        cacheConfigurations.put(FILTER_CRITERIA_CACHE, defaultConfig.entryTtl(Duration.ofHours(12)));
+        // Các cache có List trực tiếp → dùng listConfig (không có type info)
+        cacheConfigurations.put(VARIANT_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
+        cacheConfigurations.put(CATEGORY_BRAND_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
+        cacheConfigurations.put(FILTER_CRITERIA_CACHE, listConfig.entryTtl(Duration.ofHours(12)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultConfig)

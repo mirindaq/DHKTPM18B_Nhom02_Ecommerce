@@ -15,7 +15,13 @@ import java.util.List;
 public interface PromotionRepository extends JpaRepository<Promotion, Long>, JpaSpecificationExecutor<Promotion> {
 
     @Query("""
-            SELECT p FROM Promotion p
+            SELECT DISTINCT p FROM Promotion p
+            LEFT JOIN FETCH p.promotionTargets pt
+            LEFT JOIN FETCH pt.productVariant pv
+            LEFT JOIN FETCH pv.product
+            LEFT JOIN FETCH pt.product
+            LEFT JOIN FETCH pt.category
+            LEFT JOIN FETCH pt.brand
             WHERE (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
             AND (:type IS NULL OR p.promotionType = :type)
             AND (:active IS NULL OR p.active = :active)
@@ -28,6 +34,19 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long>, Jpa
                                      @Param("startDate") LocalDate startDate,
                                      @Param("endDate") LocalDate endDate,
                                      Pageable pageable);
+    
+    // Query để lấy promotion với đầy đủ thông tin targets
+    @Query("""
+            SELECT DISTINCT p FROM Promotion p
+            LEFT JOIN FETCH p.promotionTargets pt
+            LEFT JOIN FETCH pt.productVariant pv
+            LEFT JOIN FETCH pv.product
+            LEFT JOIN FETCH pt.product
+            LEFT JOIN FETCH pt.category
+            LEFT JOIN FETCH pt.brand
+            WHERE p.id = :id
+            """)
+    java.util.Optional<Promotion> findByIdWithTargets(@Param("id") Long id);
 
     @Query("""
     SELECT DISTINCT p

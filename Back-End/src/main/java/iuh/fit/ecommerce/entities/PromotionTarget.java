@@ -19,11 +19,11 @@ public class PromotionTarget {
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_variant_id", nullable = true)
     private ProductVariant productVariant; // Giảm cho SKU cụ thể
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = true)
     private Product product; // Hoặc giảm cho toàn bộ SPU
 

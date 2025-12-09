@@ -95,4 +95,72 @@ public interface PromotionUsageRepository extends JpaRepository<PromotionUsage, 
            "ORDER BY o.orderDate DESC")
     List<PromotionUsage> findAllWithDetailsByDateRange(@Param("startDate") LocalDateTime startDate,
                                                          @Param("endDate") LocalDateTime endDate);
+
+    // ALL promotions by day range (không giới hạn top 5)
+    @Query(value = """
+            SELECT p.id as promotionId,
+                   p.name as promotionName,
+                   p.promotion_type as promotionType,
+                   COUNT(pu.id) as usageCount,
+                   COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
+            FROM promotion_usages pu
+            JOIN promotions p ON pu.promotion_id = p.id
+            JOIN orders o ON pu.order_id = o.id
+            WHERE o.order_date BETWEEN :startDate AND :endDate
+            GROUP BY p.id, p.name, p.promotion_type
+            ORDER BY usageCount DESC, totalDiscountAmount DESC
+            """, nativeQuery = true)
+    List<TopPromotionProjection> getAllPromotionsByDay(@Param("startDate") LocalDateTime startDate,
+                                                        @Param("endDate") LocalDateTime endDate);
+
+    // ALL promotions by month (không giới hạn top 5)
+    @Query(value = """
+            SELECT p.id as promotionId,
+                   p.name as promotionName,
+                   p.promotion_type as promotionType,
+                   COUNT(pu.id) as usageCount,
+                   COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
+            FROM promotion_usages pu
+            JOIN promotions p ON pu.promotion_id = p.id
+            JOIN orders o ON pu.order_id = o.id
+            WHERE YEAR(o.order_date) = :year AND MONTH(o.order_date) = :month
+            GROUP BY p.id, p.name, p.promotion_type
+            ORDER BY usageCount DESC, totalDiscountAmount DESC
+            """, nativeQuery = true)
+    List<TopPromotionProjection> getAllPromotionsByMonth(@Param("year") Integer year,
+                                                          @Param("month") Integer month);
+
+    // ALL promotions by year (không giới hạn top 5)
+    @Query(value = """
+            SELECT p.id as promotionId,
+                   p.name as promotionName,
+                   p.promotion_type as promotionType,
+                   COUNT(pu.id) as usageCount,
+                   COALESCE(SUM(pu.discount_amount), 0) as totalDiscountAmount
+            FROM promotion_usages pu
+            JOIN promotions p ON pu.promotion_id = p.id
+            JOIN orders o ON pu.order_id = o.id
+            WHERE YEAR(o.order_date) = :year
+            GROUP BY p.id, p.name, p.promotion_type
+            ORDER BY usageCount DESC, totalDiscountAmount DESC
+            """, nativeQuery = true)
+    List<TopPromotionProjection> getAllPromotionsByYear(@Param("year") Integer year);
+
+    // Lấy promotion usages theo promotion ID và date range (cho detail)
+    @Query("SELECT pu FROM PromotionUsage pu " +
+           "JOIN FETCH pu.promotion p " +
+           "JOIN FETCH pu.order o " +
+           "JOIN FETCH o.customer c " +
+           "WHERE pu.promotion.id = :promotionId " +
+           "AND o.orderDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY o.orderDate DESC")
+    List<PromotionUsage> findByPromotionIdAndDateRange(@Param("promotionId") Long promotionId,
+                                                         @Param("startDate") LocalDateTime startDate,
+                                                         @Param("endDate") LocalDateTime endDate);
+
+    // Lấy promotion usage đầu tiên theo promotion ID (để lấy thông tin promotion)
+    @Query("SELECT pu FROM PromotionUsage pu " +
+           "JOIN FETCH pu.promotion p " +
+           "WHERE pu.promotion.id = :promotionId")
+    java.util.Optional<PromotionUsage> findFirstByPromotionId(@Param("promotionId") Long promotionId);
 }

@@ -1,21 +1,31 @@
-import { useState, useEffect } from 'react'
-import { Tag } from 'lucide-react'
-import PromotionStatsCards from '@/components/dashboard/promotion/PromotionStatsCards'
-import TopPromotionsTable from '@/components/dashboard/promotion/TopPromotionsTable'
-import PromotionFilterSection from '@/components/dashboard/promotion/PromotionFilterSection'
+import { useState } from 'react'
+import { Download, Tag } from 'lucide-react'
+import TopPromotionsChart from '@/components/dashboard/promotion/TopPromotionsChart'
+import AllPromotionsModal from '@/components/dashboard/promotion/AllPromotionsModal'
+import PromotionDetailModal from '@/components/dashboard/promotion/PromotionDetailModal'
 import PromotionComparisonModal from '@/components/dashboard/promotion/PromotionComparisonModal'
-import ExcelActions from '@/components/admin/common/ExcelActions'
+import FilterSection, { type FilterValues } from '@/components/dashboard/FilterSection'
 import { promotionService } from '@/services/promotion.service'
-import { dashboardService } from '@/services/dashboard.service'
 import type { TopPromotionResponse } from '@/types/voucher-promotion.type'
+import { Button } from '@/components/ui/button'
 
 export default function PromotionAnalytics() {
   const [topPromotions, setTopPromotions] = useState<TopPromotionResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [showComparison, setShowComparison] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
+  const [showAllPromotions, setShowAllPromotions] = useState(false)
+  const [selectedPromotionId, setSelectedPromotionId] = useState<number | null>(null)
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
+  })
+  const [currentFilter, setCurrentFilter] = useState<{
+    type: 'day' | 'month' | 'year'
+    params: { startDate?: string; endDate?: string; year?: number; month?: number }
+  }>({
+    type: 'day',
+    params: {}
   })
 
   // Mock stats - sẽ thay bằng API thực
@@ -26,11 +36,12 @@ export default function PromotionAnalytics() {
     discountGrowth: 14.7
   }
 
-  const fetchData = async (startDate: string, endDate: string) => {
+  const fetchDataByDay = async (startDate: string, endDate: string) => {
     try {
       setLoading(true)
       const response = await promotionService.getTopPromotionsByDay(startDate, endDate)
       setTopPromotions(response.data)
+      setDateRange({ startDate, endDate })
     } catch (error) {
       console.error('Error fetching promotion data:', error)
     } finally {
@@ -38,20 +49,68 @@ export default function PromotionAnalytics() {
     }
   }
 
-  useEffect(() => {
-    // Lấy top promotions 30 ngày qua mặc định
-    const now = new Date()
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    const startDate = thirtyDaysAgo.toISOString().split('T')[0]
-    const endDate = now.toISOString().split('T')[0]
-    
-    setDateRange({ startDate, endDate })
-    fetchData(startDate, endDate)
-  }, [])
+  const fetchDataByMonth = async (year: number, month: number) => {
+    try {
+      setLoading(true)
+      const response = await promotionService.getTopPromotionsByMonth(year, month)
+      setTopPromotions(response.data)
+      // Set date range for detail modal
+      const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
+      const endDate = new Date(year, month, 0).toISOString().split('T')[0]
+      setDateRange({ startDate, endDate })
+    } catch (error) {
+      console.error('Error fetching promotion data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const handleFilterChange = (startDate: string, endDate: string) => {
-    setDateRange({ startDate, endDate })
-    fetchData(startDate, endDate)
+  const fetchDataByYear = async (year: number) => {
+    try {
+      setLoading(true)
+      const response = await promotionService.getTopPromotionsByYear(year)
+      setTopPromotions(response.data)
+      // Set date range for detail modal
+      const startDate = `${year}-01-01`
+      const endDate = `${year}-12-31`
+      setDateRange({ startDate, endDate })
+    } catch (error) {
+      console.error('Error fetching promotion data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFilter = (values: FilterValues) => {
+    const params = {
+      startDate: values.startDate,
+      endDate: values.endDate,
+      year: values.year,
+      month: values.month
+    }
+    
+    setCurrentFilter({ type: values.timeType, params })
+
+    if (values.timeType === 'day' && values.startDate && values.endDate) {
+      fetchDataByDay(values.startDate, values.endDate)
+    } else if (values.timeType === 'month' && values.year && values.month) {
+      fetchDataByMonth(values.year, values.month)
+    } else if (values.timeType === 'year' && values.year) {
+      fetchDataByYear(values.year)
+    }
+  }
+
+  const handleCompareToggle = (enabled: boolean) => {
+    setShowComparison(enabled)
+  }
+
+  const handleViewDetail = (promotionId: number) => {
+    setSelectedPromotionId(promotionId)
+    setShowDetail(true)
+  }
+
+  const handleViewAllPromotions = () => {
+    setShowAllPromotions(true)
   }
 
   return (
@@ -67,35 +126,66 @@ export default function PromotionAnalytics() {
             <p className="text-gray-600">Phân tích hiệu quả chương trình khuyến mãi</p>
           </div>
         </div>
-        <ExcelActions
-          onExport={() => dashboardService.exportExcel(dateRange.startDate, dateRange.endDate)}
-          exportFileName="promotion_analytics.xlsx"
-        />
+        <Button
+          onClick={async () => {
+            try {
+              setLoading(true)
+              await promotionService.exportDashboardExcel(dateRange.startDate, dateRange.endDate)
+            } catch (error) {
+              console.error('Error exporting Excel:', error)
+              alert('Có lỗi xảy ra khi export Excel')
+            } finally {
+              setLoading(false)
+            }
+          }}
+          disabled={loading || !dateRange.startDate || !dateRange.endDate}
+          className="bg-green-600 hover:bg-green-700 gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Export Excel
+        </Button>
       </div>
 
       {/* Filter Section */}
-      <PromotionFilterSection
-        onFilterChange={handleFilterChange}
-        onCompareClick={() => setShowComparison(true)}
+      <FilterSection
+        onFilter={handleFilter}
       />
 
-      {/* Stats Cards */}
-      <PromotionStatsCards
-        totalUsage={stats.totalUsage}
-        totalDiscount={stats.totalDiscount}
-        usageGrowth={stats.usageGrowth}
-        discountGrowth={stats.discountGrowth}
-      />
 
-      {/* Top Promotions Table */}
+
+      {/* Top Promotions Chart */}
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
           <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
         </div>
       ) : (
-        <TopPromotionsTable promotions={topPromotions} />
+        <TopPromotionsChart
+          promotions={topPromotions}
+          onViewDetail={handleViewDetail}
+          onViewAll={handleViewAllPromotions}
+        />
       )}
+
+      {/* All Promotions Modal */}
+      <AllPromotionsModal
+        open={showAllPromotions}
+        onClose={() => setShowAllPromotions(false)}
+        timeType={currentFilter.type}
+        startDate={currentFilter.params.startDate}
+        endDate={currentFilter.params.endDate}
+        year={currentFilter.params.year}
+        month={currentFilter.params.month}
+      />
+
+      {/* Detail Modal */}
+      <PromotionDetailModal
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        promotionId={selectedPromotionId}
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+      />
 
       {/* Comparison Modal */}
       <PromotionComparisonModal

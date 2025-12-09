@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -16,11 +16,9 @@ export interface FilterValues {
 
 interface FilterSectionProps {
   onFilter: (values: FilterValues) => void
-  onCompareToggle: (enabled: boolean) => void
-  compareMode: boolean
 }
 
-export default function FilterSection({ onFilter, onCompareToggle, compareMode }: FilterSectionProps) {
+export default function FilterSection({ onFilter }: FilterSectionProps) {
   const [timeType, setTimeType] = useState<TimeType>('month')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -36,6 +34,12 @@ export default function FilterSection({ onFilter, onCompareToggle, compareMode }
       month: timeType === 'month' ? month : undefined
     })
   }
+
+  // Auto-trigger filter on mount with default values (current month)
+  useEffect(() => {
+    handleFilter()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -144,15 +148,6 @@ export default function FilterSection({ onFilter, onCompareToggle, compareMode }
         <Button onClick={handleFilter} className="bg-blue-600 hover:bg-blue-700">
           <Calendar className="h-4 w-4 mr-2" />
           Lọc dữ liệu
-        </Button>
-        
-        <Button
-          variant={compareMode ? "default" : "outline"}
-          onClick={() => onCompareToggle(!compareMode)}
-          className={compareMode ? "bg-purple-600 hover:bg-purple-700" : ""}
-        >
-          <TrendingUp className="h-4 w-4 mr-2" />
-          {compareMode ? 'Đang so sánh' : 'So sánh'}
         </Button>
       </div>
     </div>

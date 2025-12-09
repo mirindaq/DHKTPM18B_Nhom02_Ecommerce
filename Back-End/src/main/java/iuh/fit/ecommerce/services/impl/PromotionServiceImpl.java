@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
@@ -60,7 +61,9 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     public PromotionResponse getPromotionById(Long id) {
-        Promotion promotion = findById(id);
+        // Sử dụng query với FETCH để load đầy đủ productVariant và product
+        Promotion promotion = promotionRepository.findByIdWithTargets(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id = " + id));
         return promotionMapper.toResponse(promotion);
     }
 
@@ -69,7 +72,7 @@ public class PromotionServiceImpl implements PromotionService {
                                                                             String type, Boolean active,
                                                                             LocalDate startDate, Integer priority) {
         page = page > 0 ? page - 1 : page;
-        Pageable pageable = PageRequest.of(page, limit);
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // Convert type string to PromotionType enum
         PromotionType promotionType = null;
@@ -132,7 +135,8 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     private Promotion findById(Long id) {
-        return promotionRepository.findById(id)
+        // Sử dụng query với FETCH để load đầy đủ productVariant và product
+        return promotionRepository.findByIdWithTargets(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id = " + id));
     }
 
