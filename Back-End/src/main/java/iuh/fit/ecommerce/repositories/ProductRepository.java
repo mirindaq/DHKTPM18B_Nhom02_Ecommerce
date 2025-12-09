@@ -19,7 +19,11 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN p.productVariants pv " +
-           "WHERE (:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.spu) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "WHERE (:keyword IS NULL OR (" +
+            "   LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(p.spu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(pv.sku) LIKE LOWER(CONCAT('%', :keyword, '%'))" + // <--- DÒNG QUAN TRỌNG VỪA THÊM
+            ")) " +
            "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
            "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
            "AND (:status IS NULL OR p.status = :status) " +
